@@ -141,8 +141,8 @@ package skysand.render
 		}
 		
 		/**
-		 * Отрисовать все объекты.
-		 * @param	object отрисовываемый объект.
+		 * Отрисовать все объекты
+		 * @param	object
 		 */
 		private function drawAllChilds(object:RenderObject):void
 		{
