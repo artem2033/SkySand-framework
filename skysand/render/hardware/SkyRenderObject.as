@@ -1,17 +1,18 @@
-package skysand.render.hardware 
+package skysand.render.hardware
 {
+	
 	/**
 	 * ...
-	 * @author 
+	 * @author
 	 */
 	public class SkyRenderObject
 	{
 		
-		public function SkyRenderObject() 
+		public function SkyRenderObject()
 		{
-			
-		}
 		
+		}
+	
 	}
 
 }

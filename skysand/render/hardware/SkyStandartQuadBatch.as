@@ -1,11 +1,12 @@
-package skysand.render.hardware 
+package skysand.render.hardware
 {
+	
 	public class SkyStandartQuadBatch extends SkyQuadBatchBase
 	{
 		
-		public function SkyStandartQuadBatch() 
+		public function SkyStandartQuadBatch()
 		{
-			
+		
 		}
 	}
 

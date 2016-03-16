@@ -1,15 +1,16 @@
-package skysand.render.hardware 
+package skysand.render.hardware
 {
 	import flash.display3D.Context3D;
+	
 	/**
 	 * ...
-	 * @author 
+	 * @author
 	 */
 	public class SkyQuadBatchBase extends Object
 	{
 		internal var context3D:Context3D;
 		
-		public function SkyQuadBatchBase() 
+		public function SkyQuadBatchBase()
 		{
 			super();
 		}
@@ -21,7 +22,7 @@ package skysand.render.hardware
 		
 		public function render():void
 		{
-			
+		
 		}
 	}
 }

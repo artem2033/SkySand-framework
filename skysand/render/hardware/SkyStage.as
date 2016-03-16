@@ -1,15 +1,16 @@
-package skysand.render.hardware 
+package skysand.render.hardware
 {
 	import flash.display3D.Context3D;
+	
 	/**
 	 * ...
-	 * @author 
+	 * @author
 	 */
 	public class SkyStage extends Object
 	{
 		private var batches:Vector.<SkyQuadBatchBase>;
 		private var context3D:Context3D;
-		
+		private var numBatches:int;
 		/**
 		 * Ссылка класса на самого себя.
 		 */
@@ -17,9 +18,9 @@ package skysand.render.hardware
 		
 		public function SkyStage()
 		{
-			if(_instance != null)
+			if (_instance != null)
 			{
-				throw new Error(Используйте instance для доступа к классу);
+				throw new Error("Используйте instance для доступа к классу");
 			}
 			_instance = this;
 		}
@@ -27,6 +28,16 @@ package skysand.render.hardware
 		public function initialize(context3D:Context3D):void
 		{
 			this.context3D = context3D;
+			
+			batches = new Vector.<SkyQuadBatchBase>();
+		}
+		
+		public function render():void
+		{
+			for (var i:int = 0; i < numBatches; i++)
+			{
+				batches[i].render();
+			}
 		}
 		
 		/**
