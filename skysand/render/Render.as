@@ -140,10 +140,6 @@ package skysand.render
 			buffer.unlock();
 		}
 		
-		/**
-		 * Отрисовать все объекты.
-		 * @param	object отрисовываемый объект.
-		 */
 		private function drawAllChilds(object:RenderObject):void
 		{
 			var length:int = object.numChildren;
