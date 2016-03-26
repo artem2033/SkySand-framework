@@ -114,6 +114,12 @@ package skysand.text
 		{
 			textField.appendText(newText);
 			drawText();
+			
+			if (textField.autoSize != "none")
+			{
+				width = textField.width != width ? textField.width : width;
+				height = textField.height != height ? textField.height : height;
+			}
 		}
 		
 		/**
@@ -374,6 +380,12 @@ package skysand.text
 			{
 				textField.text = value;
 				drawText();
+				
+				if (textField.autoSize != "none")
+				{
+					width = textField.width != width ? textField.width : width;
+					height = textField.height != height ? textField.height : height;
+				}
 			}
 		}
 		

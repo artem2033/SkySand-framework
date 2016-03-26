@@ -38,5 +38,20 @@ package skysand.utils
 		{
 			return getTimer() - time;
 		}
+		
+		public static function changeColorBright(color:uint, bright:Number):uint
+		{
+			var r:uint = (color >> 16) & 0xFF;
+			var g:uint = (color >> 8) & 0xFF;
+			var b:uint = color & 0xFF;
+			
+			r |= bright;
+			g |= bright;
+			b |= bright;
+			
+			var result:uint = (r << 16) | (g << 8) | b;
+			
+			return result;
+		}
 	}
 }
