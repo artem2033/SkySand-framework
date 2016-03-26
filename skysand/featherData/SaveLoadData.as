@@ -17,7 +17,7 @@ package skysand.featherData
 			}
 		}
 		
-		public static function getInstance():SaveLoadData
+		public static function get instance():SaveLoadData
 		{
 			return (_instance == null) ? new SaveLoadData() : _instance;
 		}
@@ -38,7 +38,7 @@ package skysand.featherData
 			}
 			else
 			{
-				Console.getInstance().message("Error saveData empty!", Console.ERROR);
+				//Console.getInstance().message("Error saveData empty!", Console.ERROR);
 			}
 			return variable;
 		}
