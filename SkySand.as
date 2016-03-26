@@ -166,8 +166,8 @@ package
 			keyboard.initialize(_stage);
 			keyboard.addFunctionToKey(SkyKey.F9, setPause, true);
 			
-			watcher = SkyWatcher.instance;
-			watcher.x = 700;
+			//watcher = SkyWatcher.instance;
+			//watcher.x = 700;
 			
 			profiler = SkyProfiler.instance;
 			profiler.visible = false;
@@ -191,7 +191,7 @@ package
 			SkySand.root = value;
 			mainGameClass = value;
 			mainGameClass.addChild(console);
-			mainGameClass.addChild(watcher);
+			//mainGameClass.addChild(watcher);
 			mainGameClass.addChild(profiler);
 			
 			gameUpdatableClass = IUpdatable(mainGameClass);
@@ -228,7 +228,7 @@ package
 			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
 			
 			profiler.totalUpdateTime = getTimer();
-			watcher.update();
+			//watcher.update();
 			keyboard.update();
 			console.update();
 			

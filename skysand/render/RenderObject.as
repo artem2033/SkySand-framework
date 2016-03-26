@@ -528,7 +528,7 @@ package skysand.render
 				children[i] = null;
 			}
 			
-			children.length = 0;
+			//children.length = 0;
 			_numChildren = 0;
 		}
 		
