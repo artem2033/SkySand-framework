@@ -113,7 +113,7 @@ package
 			normalState.graphics.lineTo( -2, 0);
 			
 			var downState:Sprite = new Sprite();
-			downState.graphics.beginFill(0xDBB71E);
+			downState.graphics.beginFill(0x3C447B);
 			downState.graphics.moveTo( -5, -3);
 			downState.graphics.lineTo( -3, -5);
 			downState.graphics.lineTo(3, -5);
@@ -122,7 +122,7 @@ package
 			downState.graphics.lineTo(3, 5);
 			downState.graphics.lineTo( -3, 5);
 			downState.graphics.lineTo( -5, 3);
-			downState.graphics.beginFill(0x151E27);
+			downState.graphics.beginFill(0xDBB71E);
 			downState.graphics.moveTo( -3, -5);
 			downState.graphics.lineTo(3, -5);
 			downState.graphics.lineTo(0, -2);
