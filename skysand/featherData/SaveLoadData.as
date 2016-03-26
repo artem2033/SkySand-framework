@@ -2,7 +2,6 @@ package skysand.featherData
 {
 	import flash.display.Sprite;
 	import flash.net.SharedObject;
-	import code.featherEngine.featherConsole.Console;
 	
 	public class SaveLoadData extends Sprite
 	{
