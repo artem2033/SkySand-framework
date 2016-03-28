@@ -1,4 +1,4 @@
-package skysand.render.hardware
+package skysand.display
 {
 	import flash.display3D.Context3D;
 	
