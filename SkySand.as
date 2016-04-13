@@ -2,12 +2,16 @@ package
 {
 	import flash.display.Stage3D;
 	import flash.display3D.Context3D;
+	import flash.display3D.Context3DProfile;
+	import flash.display3D.Context3DRenderMode;
 	import flash.text.TextField;
 	import skysand.animation.SkyAnimation;
 	import skysand.animation.SkyAnimationCache;
 	import skysand.console.Console;
+	import skysand.display.SkyRenderObject;
 	import skysand.display.SkyRenderObjectContainer;
 	import skysand.render.hardware.SkyHardwareRender;
+	import skysand.utils.SkyFilesCache;
 	import skysand.utils.SkyMath;
 	import skysand.interfaces.IUpdatable;
 	import skysand.keyboard.SkyKeyboard;
@@ -19,7 +23,6 @@ package
 	import skysand.text.TextArea;
 	import skysand.utils.SkyProfiler;
 	import skysand.utils.SkyWatcher;
-	//import src.physics.f2World;
 	import flash.events.Event;
 	import skysand.keyboard.SkyKey;
 	
@@ -32,16 +35,34 @@ package
 	
 	public class SkySand extends Sprite
 	{
-		//date of deleting 9th of december 2016.
-		public static const STAGE_WIDTH:int = 800;
-		public static const STAGE_HEIGHT:int = 600;
-		public static var STAGE:Stage;
+		[Embed(source="skysand/resources/CyrBit.ttf", fontName = "cyrbit", embedAsCFF = "false")]
+		protected var cyrbitFont:Class;
+		
+		[Embed(source="skysand/resources/Just_Square.otf", fontName = "square", embedAsCFF = "false")]
+		protected var squareFont:Class;
+		
+		[Embed(source = "skysand/resources/Inconsolata.ttf", fontName = "inconsolata", embedAsCFF = "false")]
+		protected var inconsolataFont:Class;
+		
+		[Embed(source = "skysand/resources/iFlash.ttf", fontName = "flash", embedAsCFF = "false")]
+		protected var iFlashFont:Class;
+		
+		[Embed(source = "skysand/resources/Hooge.ttf", fontName = "hooge", embedAsCFF = "false")]
+		protected var hoogeFont:Class;
+		
+		[Embed(source="skysand/resources/Anonymous.ttf", fontName = "anonymous", embedAsCFF = "false")]
+		protected var anonymousFont:Class;
+		
+		//date of deleting 9th of december 2015.
+		
 		public static const HARDWARE_RENDER:uint = 1;
 		public static const SOFTWARE_RENDER:uint = 2;
 		
+		public static var STAGE:Stage;
 		public static var NUM_OF_RENDER_OBJECTS:int = 0;
 		public static var NUM_ON_STAGE:int = 0;
 		
+		private var mMain:Class;
 		private var keyboard:SkyKeyboard;
 		private var render:Render;
 		private var mainGameClass:RenderObject;
@@ -57,46 +78,146 @@ package
 		private var hardwareRender:SkyHardwareRender;
 		private var context3D:Context3D;
 		private var stage3D:Stage3D;
-		//public var world:f2World;
 		public var console:Console;
 		private var text:TextArea;
 		private var screenWidth:Number;
 		private var screenHeight:Number;
 		private var _root:SkyRenderObjectContainer;
 		
-		[Embed(source="skysand/resources/CyrBit.ttf", fontName = "cyrbit", embedAsCFF = "false")]
-		protected var cyrbitFont:Class;
-		
-		[Embed(source="skysand/resources/Just_Square.otf", fontName = "square", embedAsCFF = "false")]
-		protected var squareFont:Class;
-		
-		[Embed(source = "skysand/resources/Inconsolata.ttf", fontName = "inconsolota", embedAsCFF = "false")]
-		protected var inconsolataFont:Class;
-		
-		[Embed(source = "skysand/resources/iFlash.ttf", fontName = "flash", embedAsCFF = "false")]
-		protected var iFlashFont:Class;
-		
-		[Embed(source = "skysand/resources/Hooge.ttf", fontName = "hooge", embedAsCFF = "false")]
-		protected var hoogeFont:Class;
-		
-		[Embed(source="skysand/resources/Anonymous.ttf", fontName = "anonymous", embedAsCFF = "false")]
-		protected var anonymousFont:Class;
-		
 		public function SkySand() 
 		{
 			
 		}
 		
-		private function registerFonts():void
+		public function initialize(_stage:Stage, _class:Class, frameRate:int, gameScreenWidth:Number = 800, gameScreenHeight:Number = 600, _fillColor:uint = 0x0, renderType:uint = SOFTWARE_RENDER):void
 		{
-			Font.registerFont(cyrbitFont);
-			Font.registerFont(squareFont);
-			Font.registerFont(inconsolataFont);
-			Font.registerFont(iFlashFont);
-			Font.registerFont(hoogeFont);
-			Font.registerFont(anonymousFont);
+			SkySand.STAGE = _stage;
+			mMain = _class;
+			invFrameRate = 1 / frameRate;
+			
+			screenWidth = gameScreenWidth;
+			screenHeight = gameScreenHeight;
+			
+			registerFonts();
+			prepareFrameworkGraphics();
+			
+			console = Console.instance;
+			console.initialize();
+			console.visible = false;
+			
+			/*render = Render.instance;
+			render.initialize(gameScreenWidth, gameScreenHeight, _fillColor);
+			addChildAt(render, 0);
+			*/
+			SkyMouse.instance.initialize(_stage);
+			keyboard = SkyKeyboard.instance;
+			keyboard.initialize(_stage);
+			keyboard.addFunctionToKey(SkyKey.F9, setPause, true);
+			
+			if (renderType == HARDWARE_RENDER)
+			{
+				stage3D = _stage.stage3Ds[0];
+				stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
+				stage3D.requestContext3D(Context3DRenderMode.AUTO, Context3DProfile.STANDARD_EXTENDED);
+			}
+			
+			
+			
+			//watcher = SkyWatcher.instance;
+			//watcher.x = 700;
+			
+			/*profiler = SkyProfiler.instance;
+			profiler.visible = false;*/
+			
+			/*console.registerCommand("showProfiler", profiler.show, []);
+			console.registerCommand("getNumOfRenderObjects", getNumRenderObjects, []);*/
+			
+			oldTime = 0;
+			newTime = 0;
+			
+			addEventListener(Event.ENTER_FRAME, onEnterFrameHandler);
 		}
 		
+		private function onContext3DCreated(event:Event):void
+		{
+			removeEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
+			
+			context3D = stage3D.context3D;
+			
+			var cache:SkyFilesCache = SkyFilesCache.instance;
+			cache.initialize(stage3D.context3D);
+			
+			var game:SkyRenderObjectContainer = new mMain();
+			
+			hardwareRender = new SkyHardwareRender();
+			hardwareRender.initialize(context3D, screenWidth, screenHeight);
+			hardwareRender.setRoot(game);
+			
+			_root = game;
+		}
+		
+		private function getNumRenderObjects():void
+		{
+			//console.message("Число отрисовываемых объектов: " + String(SkySand.NUM_OF_RENDER_OBJECTS));
+		}
+		
+		public function set mainClass(value:SkyRenderObjectContainer):void
+		{
+			_root = value;
+			hardwareRender.setRoot(value);
+			/*SkySand.root = value;
+			mainGameClass = value;
+			mainGameClass.addChild(console);
+			//mainGameClass.addChild(watcher);
+			mainGameClass.addChild(profiler);
+			
+			gameUpdatableClass = IUpdatable(mainGameClass);
+			
+			render.rootRenderObject = mainGameClass;*/
+		}
+		
+		public function get mainClass():SkyRenderObjectContainer
+		{
+			return _root;
+		}
+		
+		private function setPause():void
+		{
+			pause = !pause;
+		}
+		
+		private function onEnterFrameHandler(event:Event = null):void
+		{
+			oldTime = newTime;
+			newTime = getTimer();
+			deltaTime = (newTime - oldTime) / 1000;
+			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
+			
+			//profiler.totalUpdateTime = getTimer();
+			//watcher.update();
+			keyboard.update();
+			//console.update();
+			
+			//profiler.applicationUpdateTime = getTimer();
+			//if (!pause) gameUpdatableClass.update(deltaTime);
+			//profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
+			
+			//profiler.renderTime = getTimer();
+			//render.update();
+			//profiler.renderTime = getTimer() - profiler.renderTime;
+			
+			//profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
+			//profiler.update();
+			
+			if (hardwareRender != null)
+			{
+				hardwareRender.update();
+			}
+		}
+		
+		/**
+		 * Нарисовать кнопку закрытия окна.
+		 */
 		private function prepareFrameworkGraphics():void
 		{
 			var normalState:Sprite = new Sprite();
@@ -156,132 +277,17 @@ package
 			SkyAnimationCache.instance.addAnimation(animation);
 		}
 		
-		public function initialize(_stage:Stage, frameRate:int, gameScreenWidth:Number = 800, gameScreenHeight:Number = 600, _fillColor:uint = 0x0, renderType:uint = SOFTWARE_RENDER):void
+		/**
+		 * Добавить шрифты.
+		 */
+		private function registerFonts():void
 		{
-			SkySand.STAGE = _stage;
-			invFrameRate = 1 / frameRate;
-			
-			screenWidth = gameScreenWidth;
-			screenHeight = gameScreenHeight;
-			
-			registerFonts();
-			prepareFrameworkGraphics();
-			
-			console = Console.instance;
-			console.initialize();
-			console.visible = false;
-			
-			/*render = Render.instance;
-			render.initialize(gameScreenWidth, gameScreenHeight, _fillColor);
-			addChildAt(render, 0);
-			*/
-			SkyMouse.instance.initialize(_stage);
-			keyboard = SkyKeyboard.instance;
-			keyboard.initialize(_stage);
-			keyboard.addFunctionToKey(SkyKey.F9, setPause, true);
-			
-			if (renderType == HARDWARE_RENDER)
-			{
-				stage3D = _stage.stage3Ds[0];
-				stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
-				stage3D.requestContext3D();
-			}
-			
-			
-			
-			//watcher = SkyWatcher.instance;
-			//watcher.x = 700;
-			
-			/*profiler = SkyProfiler.instance;
-			profiler.visible = false;*/
-			
-			/*console.registerCommand("showProfiler", profiler.show, []);
-			console.registerCommand("getNumOfRenderObjects", getNumRenderObjects, []);*/
-			
-			oldTime = 0;
-			newTime = 0;
-			
-			addEventListener(Event.ENTER_FRAME, onEnterFrameHandler);
-		}
-		
-		private function onContext3DCreated(event:Event):void
-		{
-			removeEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
-			
-			context3D = stage3D.context3D;
-			
-			hardwareRender = new SkyHardwareRender();
-			hardwareRender.initialize(context3D, screenWidth, screenHeight, _root);
-		}
-		
-		private function getNumRenderObjects():void
-		{
-			//console.message("Число отрисовываемых объектов: " + String(SkySand.NUM_OF_RENDER_OBJECTS));
-		}
-		
-		public function set mainClass(value:SkyRenderObjectContainer):void
-		{
-			_root = value;
-			
-			/*SkySand.root = value;
-			mainGameClass = value;
-			mainGameClass.addChild(console);
-			//mainGameClass.addChild(watcher);
-			mainGameClass.addChild(profiler);
-			
-			gameUpdatableClass = IUpdatable(mainGameClass);
-			
-			render.rootRenderObject = mainGameClass;*/
-		}
-		
-		public function get mainClass():SkyRenderObjectContainer
-		{
-			return _root;
-		}
-		
-		private function setPause():void
-		{
-			pause = !pause;
-		}
-		
-		/*public function createPhysicsWorld(gravity:f2Vec, allowSleep:Boolean):void
-		{
-			world = new f2World();
-			world.init(gravity, allowSleep);
-			world.debug_draw();
-			world.createWalls();
-			addChild(world);
-			
-			console.message("Engine: Physics world created.");
-		}*/
-		
-		private function onEnterFrameHandler(event:Event = null):void
-		{
-			oldTime = newTime;
-			newTime = getTimer();
-			deltaTime = (newTime - oldTime) / 1000;
-			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
-			
-			//profiler.totalUpdateTime = getTimer();
-			//watcher.update();
-			keyboard.update();
-			//console.update();
-			
-			//profiler.applicationUpdateTime = getTimer();
-			//if (!pause) gameUpdatableClass.update(deltaTime);
-			//profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
-			
-			//profiler.renderTime = getTimer();
-			//render.update();
-			//profiler.renderTime = getTimer() - profiler.renderTime;
-			
-			//profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
-			//profiler.update();
-			
-			if (hardwareRender != null)
-			{
-				hardwareRender.update();
-			}
+			Font.registerFont(cyrbitFont);
+			Font.registerFont(squareFont);
+			Font.registerFont(inconsolataFont);
+			Font.registerFont(iFlashFont);
+			Font.registerFont(hoogeFont);
+			Font.registerFont(anonymousFont);
 		}
 	}
 }

@@ -4,6 +4,6 @@ package skysand.render.hardware
 	{
 		public static const SIMPLE_SPRITE:uint = 1;
 		
-		public function SkyRenderTypes();
+		public function SkyRenderType(){};
 	}
 }

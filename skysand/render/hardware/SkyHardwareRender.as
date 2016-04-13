@@ -12,15 +12,16 @@ package skysand.render.hardware
 		private var batches:Vector.<SkyQuadBatchBase>;
 		private var nBatches:int;
 		private var root:SkyRenderObjectContainer;
+		//private var 
+		
 		
 		public function SkyHardwareRender() 
 		{
 			
 		}
 		
-		public function initialize(context3D:Context3D, screenWidth:Number, screenHeight:Number, root:SkyRenderObjectContainer):void
+		public function initialize(context3D:Context3D, screenWidth:Number, screenHeight:Number):void
 		{
-			this.root = root;
 			this.context3D = context3D;
 			
 			context3D.configureBackBuffer(screenWidth, screenHeight, 0, false);
@@ -31,9 +32,19 @@ package skysand.render.hardware
 			
 			batches = new Vector.<SkyQuadBatchBase>();
 			nBatches = 0;
+			
+			var batch:SkyStandartQuadBatch = new SkyStandartQuadBatch();
+			batch.initialize(context3D);
+			batches[nBatches] = batch;
+			nBatches++;
 		}
 		
-		private function updateAllChilds(object:SkyRenderObjectContainer):void
+		public function setRoot(root:SkyRenderObjectContainer):void
+		{
+			this.root = root;
+		}
+		
+		/*private function updateAllChilds(object:SkyRenderObjectContainer):void
 		{
 			var length:int = object.children.length;
 			
@@ -64,12 +75,10 @@ package skysand.render.hardware
 				
 				if (object.children) drawAllChilds(objectChild);
 			}
-		}
+		}*/
 		
 		private function prepareBatches():void
 		{
-			
-			
 			if (root.renderType == SkyRenderType.SIMPLE_SPRITE)
 			{
 				if (nBatches == 0)
@@ -84,8 +93,6 @@ package skysand.render.hardware
 		public function update():void
 		{
 			context3D.clear();
-			
-			prepareBatches();
 			
 			for (var i:int = 0; i < nBatches; i++)
 			{
