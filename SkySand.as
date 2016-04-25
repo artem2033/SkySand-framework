@@ -61,6 +61,7 @@ package
 		public static var STAGE:Stage;
 		public static var NUM_OF_RENDER_OBJECTS:int = 0;
 		public static var NUM_ON_STAGE:int = 0;
+		public static var drawCalls:int = 0;
 		
 		private var mMain:Class;
 		private var keyboard:SkyKeyboard;
@@ -83,6 +84,7 @@ package
 		private var screenWidth:Number;
 		private var screenHeight:Number;
 		private var _root:SkyRenderObjectContainer;
+		private var textField:TextField;
 		
 		public function SkySand() 
 		{
@@ -121,7 +123,11 @@ package
 				stage3D.requestContext3D(Context3DRenderMode.AUTO, Context3DProfile.STANDARD_EXTENDED);
 			}
 			
-			
+			textField = new TextField();
+			textField.width = 200;
+			textField.height = 20;
+			textField.textColor = 0xFFFFFF;
+			addChild(textField);
 			
 			//watcher = SkyWatcher.instance;
 			//watcher.x = 700;
@@ -145,13 +151,14 @@ package
 			context3D = stage3D.context3D;
 			
 			var cache:SkyFilesCache = SkyFilesCache.instance;
-			cache.initialize(stage3D.context3D);
+			cache.initialize(context3D);
+			
+			hardwareRender = SkyHardwareRender.instance;
+			hardwareRender.initialize(context3D, screenWidth, screenHeight);
 			
 			var game:SkyRenderObjectContainer = new mMain();
-			
-			hardwareRender = new SkyHardwareRender();
-			hardwareRender.initialize(context3D, screenWidth, screenHeight);
 			hardwareRender.setRoot(game);
+			gameUpdatableClass = game as IUpdatable;
 			
 			_root = game;
 		}
@@ -165,6 +172,7 @@ package
 		{
 			_root = value;
 			hardwareRender.setRoot(value);
+			
 			/*SkySand.root = value;
 			mainGameClass = value;
 			mainGameClass.addChild(console);
@@ -199,7 +207,7 @@ package
 			//console.update();
 			
 			//profiler.applicationUpdateTime = getTimer();
-			//if (!pause) gameUpdatableClass.update(deltaTime);
+			/*if (!pause)*/ if(gameUpdatableClass) gameUpdatableClass.update(deltaTime);
 			//profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
 			
 			//profiler.renderTime = getTimer();
@@ -211,7 +219,9 @@ package
 			
 			if (hardwareRender != null)
 			{
+				drawCalls = 0;
 				hardwareRender.update();
+				textField.text = "Draw calls: " + drawCalls;
 			}
 		}
 		

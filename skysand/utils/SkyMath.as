@@ -64,7 +64,7 @@
 		{
 			return radian * DEGREE_IN_RADIAN;
 		}
-		//Из градусов в радианы.
+		
 		public static function toRadian(angle:Number):Number
 		{
 			return angle * RADIAN_IN_DEGREE;

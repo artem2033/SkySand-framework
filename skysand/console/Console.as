@@ -330,8 +330,6 @@
 				inputField.text = "";
 				updateHelpWindow();
 			}
-			
-			
 		}
 		
 		/**
