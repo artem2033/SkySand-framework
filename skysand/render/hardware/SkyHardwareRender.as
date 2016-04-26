@@ -54,15 +54,15 @@ package skysand.render.hardware
 			this.root = root;
 		}
 		
-		public function addObject(object:SkyRenderObject):void
+		public function addObject(object:SkyRenderObject, textureName:String, spriteName:String):void
 		{
 			for (var i:int = 0; i < nBatches; i++) 
 			{
 				var standartBatch:SkyStandartQuadBatch = batches[i] as SkyStandartQuadBatch;
 				
-				if (standartBatch.name == object.textureName)
+				if (standartBatch.name == textureName)
 				{
-					standartBatch.add(object);
+					standartBatch.add(object, spriteName, textureName);
 					
 					return;
 				}
@@ -71,8 +71,8 @@ package skysand.render.hardware
 			var batch:SkyStandartQuadBatch = new SkyStandartQuadBatch();
 			batch.initialize(context3D);
 			batch.setMatrix(modelViewMatrix);
-			batch.setTexture(object.textureName);
-			batch.add(object);
+			batch.setTexture(textureName, spriteName);
+			batch.add(object, spriteName, textureName);
 			batches[nBatches] = batch;
 			nBatches++;
 		}

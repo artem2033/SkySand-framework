@@ -10,8 +10,6 @@ package skysand.display
 		private static var DEPTH_COUNTER:Number;
 		public var transformMatrix:Matrix
 		
-		private var _x:Number;
-		private var _y:Number;
 		private var _alpha:Number;
 		private var _scaleX:Number;
 		private var _scaleY:Number;
@@ -22,28 +20,31 @@ package skysand.display
 		public var globalX:Number = 0;
 		public var globalY:Number = 0;
 		public var localX:Number = 0;
+		public var localY:Number = 0;
 		private var _depth:Number;
 		public var renderType:uint;
-		
 		public var uv:Vector.<Number>;
 		public var textureName:String;
+		public var atlasName:String;
 		public var id:int;
 		public var visible:Boolean;
 		public var parent:SkyRenderObjectContainer;
 		public var children:Vector.<SkyRenderObjectContainer>;
+		protected var nChildren:int;
+		private var vertecesIndex:int;
 		
 		public function SkyRenderObject()
 		{
 			textureName = "";
+			atlasName = "";
 			id = 0;
 			visible = true;
 			_depth = 0.01;
 			_width = 512;
 			_height = 512;
 			transformMatrix = new Matrix();
-			_x = 0;
-			_y = 0;
 			
+			nChildren = 0;
 		}
 		
 		public function setBatchVertices(vertices:Vector.<Number>, id:uint):void
@@ -56,18 +57,20 @@ package skysand.display
 			_verteces.push(512, 512, _depth);
 			
 			this.id = id;
+			vertecesIndex = id * 12;
 		}
 		
-		public function setSprite(textureName:String):void
+		public function setSprite(textureName:String, spriteName:String = ""):void
 		{
-			this.textureName = textureName;
+			//textureName = name;
+			//atlasName = textureAtlas;
 			
-			SkyHardwareRender.instance.addObject(this);
+			SkyHardwareRender.instance.addObject(this, textureName, spriteName);
 		}
 		
 		public function get x():Number
 		{
-			return _x;
+			return localX;
 		}
 		
 		public function updateChilds(child:SkyRenderObjectContainer):void
@@ -88,54 +91,55 @@ package skysand.display
 			}*/
 		}
 		
-		/*public function calculateGlobalData(child:SkyRenderObject):void
-		{
-			child.globalX = child.x + globalX;
-			child.globalY = child.y + globalY;
-			//child.globalAngle = child.angle + globalAngle;
-		}*/
-		
 		public function set x(value:Number):void
 		{
 			globalX = parent ? parent.globalX + value : value;
 			
-			var index:int = id * 12;
-			
-			if (globalX != _verteces[id * 12])
+			if (globalX != _verteces[vertecesIndex])
 			{
-				_verteces[index] = globalX;
-				_verteces[index + 3] = globalX + _width;
-				_verteces[index + 6] = globalX;
-				_verteces[index + 9] = globalX + _width;
+				_verteces[vertecesIndex] = globalX;
+				_verteces[vertecesIndex + 3] = globalX + _width;
+				_verteces[vertecesIndex + 6] = globalX;
+				_verteces[vertecesIndex + 9] = globalX + _width;
 				
 				if (children)
 				{
-					for (var i:int = 0; i < children.length; i++) 
+					for (var i:int = 0; i < nChildren; i++) 
 					{
-						children[i].x = children[i].x;
+						children[i].x = children[i].localX;
 					}
 				}
 			}
 			
-			_x = value;
+			localX = value;
 		}
 		
 		public function get y():Number
 		{
-			return _y;
+			return localY;
 		}
 		
 		public function set y(value:Number):void
 		{
-			if (value != _y)
+			globalY = parent ? parent.globalY + value : value;
+			
+			if (globalY != _verteces[vertecesIndex + 1])
 			{
-				_verteces[id * 12 + 1] = value;
-				_verteces[id * 12 + 4] = value;
-				_verteces[id * 12 + 7] = value + _height;
-				_verteces[id * 12 + 10] = value + _height;
+				_verteces[vertecesIndex + 1] = globalY;
+				_verteces[vertecesIndex + 4] = globalY;
+				_verteces[vertecesIndex + 7] = globalY + _height;
+				_verteces[vertecesIndex + 10] = globalY + _height;
 				
-				_y = value;
+				if (children)
+				{
+					for (var i:int = 0; i < nChildren; i++) 
+					{
+						children[i].y = children[i].localY;
+					}
+				}
 			}
+			
+			localY = value;
 		}
 		
 		public function get alpha():Number
@@ -222,9 +226,9 @@ package skysand.display
 			//512
 			//256
 			//_verteces[id * 12] = value;
-			_verteces[id * 12 + 3] = _x + value;
+			_verteces[vertecesIndex + 3] = localX + value;
 			//_verteces[id * 12 + 6] = value;
-			_verteces[id * 12 + 9] = _x + value;
+			_verteces[vertecesIndex + 9] = localX + value;
 			
 			_width = value;
 		}
@@ -236,12 +240,10 @@ package skysand.display
 		
 		public function set height(value:Number):void 
 		{
-			var index:int = id * 12;
-			
 			//_verteces[index + 1] = value;
 			//_verteces[index + 4] = value;
-			_verteces[index + 7] = _y + value;
-			_verteces[index + 10] = _y + value;
+			_verteces[vertecesIndex + 7] = localY + value;
+			_verteces[vertecesIndex + 10] = localY + value;
 			
 			_height = value;
 		}

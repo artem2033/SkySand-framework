@@ -14,8 +14,10 @@ package skysand.display
 			if (children == null)
 			{
 				children = new Vector.<SkyRenderObjectContainer>();
+				nChildren = 0;
 			}
 			
+			nChildren++;
 			child.parent = this;
 			
 			children.push(child);
@@ -38,5 +40,10 @@ package skysand.display
 				}
 			}
 		}*/
+		
+		public function get numChildren():int
+		{
+			return nChildren;
+		}
 	}
 }

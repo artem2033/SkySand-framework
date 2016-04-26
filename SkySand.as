@@ -172,8 +172,8 @@ package
 		
 		public function set mainClass(value:SkyRenderObjectContainer):void
 		{
-			_root = value;
-			hardwareRender.setRoot(value);
+			//_root = value;
+			//hardwareRender.setRoot(value);
 			
 			//SkySand.root = value;
 			//mainGameClass = value;
@@ -181,9 +181,9 @@ package
 			//mainGameClass.addChild(watcher);
 		//	mainGameClass.addChild(profiler);
 			
-			gameUpdatableClass = IUpdatable(mainGameClass);
+			//gameUpdatableClass = IUpdatable(mainGameClass);
 			
-			render.rootRenderObject = mainGameClass;
+			//render.rootRenderObject = mainGameClass;
 		}
 		
 		public function get mainClass():SkyRenderObjectContainer

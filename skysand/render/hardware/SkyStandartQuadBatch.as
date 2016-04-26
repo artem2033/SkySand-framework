@@ -37,6 +37,7 @@ package skysand.render.hardware
 		private var matrix:Matrix = new Matrix();
 		private var id:int = 0;
 		private var objects:Vector.<SkyRenderObjectContainer>;
+		private var atlas:SkyTextureAtlas;
 		
 		public function SkyStandartQuadBatch()
 		{
@@ -48,11 +49,19 @@ package skysand.render.hardware
 			mvpMatrix = matrix;
 		}
 		
-		public function setTexture(textureName:String):void
+		public function setTexture(textureName:String, spriteName:String):void
 		{
 			if (texture == null)
 			{
-				texture = SkyFilesCache.instance.getTexture(textureName);
+				if (spriteName == "")
+				{
+					texture = SkyFilesCache.instance.getTexture(textureName).texture;
+				}
+				else
+				{
+					texture = SkyFilesCache.instance.getAtlas(textureName).texture;
+				}
+				
 				this.textureName = textureName;
 			}
 			else throw new Error("Texture for this batch is created!");
@@ -95,7 +104,7 @@ package skysand.render.hardware
 			return textureName;
 		}
 		
-		public function add(object:SkyRenderObject):void
+		public function add(object:SkyRenderObject, spriteName:String, textureName:String):void
 		{
 			object.setBatchVertices(verteces, id);
 			
@@ -103,10 +112,22 @@ package skysand.render.hardware
 			
 			indeces.push(index, index + 1, index + 2, index + 1, index + 3, index + 2);
 			
-			uvs.push(0, 0);
-			uvs.push(1, 0);
-			uvs.push(0, 1);
-			uvs.push(1, 1);
+			if (spriteName == "")
+			{
+				uvs.push(0, 0);
+				uvs.push(1, 0);
+				uvs.push(0, 1);
+				uvs.push(1, 1);
+			}
+			else
+			{
+				var atlasUV:Vector.<Number> = SkyFilesCache.instance.getAtlasUV(spriteName, textureName);
+				
+				uvs.push(atlasUV[0], atlasUV[1]);
+				uvs.push(atlasUV[2], atlasUV[3]);
+				uvs.push(atlasUV[4], atlasUV[5]);
+				uvs.push(atlasUV[6], atlasUV[7]);
+			}
 			
 			fl = false;
 			id++			
