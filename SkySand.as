@@ -103,14 +103,10 @@ package
 			registerFonts();
 			prepareFrameworkGraphics();
 			
-			console = Console.instance;
+			/*console = Console.instance;
 			console.initialize();
-			console.visible = false;
+			console.visible = false;*/
 			
-			/*render = Render.instance;
-			render.initialize(gameScreenWidth, gameScreenHeight, _fillColor);
-			addChildAt(render, 0);
-			*/
 			SkyMouse.instance.initialize(_stage);
 			keyboard = SkyKeyboard.instance;
 			keyboard.initialize(_stage);
@@ -121,6 +117,12 @@ package
 				stage3D = _stage.stage3Ds[0];
 				stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
 				stage3D.requestContext3D(Context3DRenderMode.AUTO, Context3DProfile.STANDARD_EXTENDED);
+			}
+			else
+			{
+				render = Render.instance;
+				render.initialize(gameScreenWidth, gameScreenHeight, _fillColor);
+				addChildAt(render, 0);
 			}
 			
 			textField = new TextField();
@@ -173,15 +175,15 @@ package
 			_root = value;
 			hardwareRender.setRoot(value);
 			
-			/*SkySand.root = value;
-			mainGameClass = value;
-			mainGameClass.addChild(console);
+			//SkySand.root = value;
+			//mainGameClass = value;
+			//mainGameClass.addChild(console);
 			//mainGameClass.addChild(watcher);
-			mainGameClass.addChild(profiler);
+		//	mainGameClass.addChild(profiler);
 			
 			gameUpdatableClass = IUpdatable(mainGameClass);
 			
-			render.rootRenderObject = mainGameClass;*/
+			render.rootRenderObject = mainGameClass;
 		}
 		
 		public function get mainClass():SkyRenderObjectContainer
@@ -207,7 +209,7 @@ package
 			//console.update();
 			
 			//profiler.applicationUpdateTime = getTimer();
-			/*if (!pause)*/ if(gameUpdatableClass) gameUpdatableClass.update(deltaTime);
+			if (!pause) if(gameUpdatableClass) gameUpdatableClass.update(deltaTime);
 			//profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
 			
 			//profiler.renderTime = getTimer();

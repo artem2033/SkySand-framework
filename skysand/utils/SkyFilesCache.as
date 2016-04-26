@@ -5,8 +5,8 @@ package skysand.utils
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DTextureFormat;
 	import flash.display3D.textures.Texture;
-	import flash.filesystem.File;
-	import flash.filesystem.FileStream;
+	//import flash.filesystem.File;
+	//import flash.filesystem.FileStream;
 	import flash.geom.Matrix;
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
@@ -15,8 +15,8 @@ package skysand.utils
 	
 	public class SkyFilesCache extends Object
 	{
-		private var file:File;
-		private var fileStream:FileStream;
+		//private var file:File;
+		//private var fileStream:FileStream;
 		private var files:Vector.<SkyFile>;
 		private var context3D:Context3D;
 		private var nTextures:int;
@@ -69,7 +69,7 @@ package skysand.utils
 		
 		public function addTextureFromLocalFile(path:String, width:Number, height:Number, name:String):void
 		{
-			var file:File = File.applicationDirectory.resolvePath(path);
+			/*var file:File = File.applicationDirectory.resolvePath(path);
 			
 			var bytes:ByteArray = new ByteArray();
 			bytes.endian = Endian.LITTLE_ENDIAN;
@@ -88,7 +88,7 @@ package skysand.utils
 			sfile.file = texture;
 			sfile.name = name;
 			files.push(sfile);
-			nTextures++;
+			nTextures++;*/
 		}
 		
 		public function getTexture(name:String):Texture

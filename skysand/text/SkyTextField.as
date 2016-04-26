@@ -36,6 +36,8 @@ package skysand.text
 		 */
 		private var textFormat:TextFormat;
 		
+		private var _text:String = "";
+		
 		public function SkyTextField()
 		{
 			super();
@@ -379,6 +381,7 @@ package skysand.text
 			if (textField.text != value)
 			{
 				textField.text = value;
+				_text = value;
 				drawText();
 				
 				if (textField.autoSize != "none")

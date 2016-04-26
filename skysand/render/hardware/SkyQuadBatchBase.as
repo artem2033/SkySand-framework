@@ -50,20 +50,20 @@ package skysand.render.hardware
 		
 		public function setShader(vertexShader:String, pixelShader:String):void
 		{
-			/*var assembler:AGALMiniAssembler = new AGALMiniAssembler();
+			var assembler:AGALMiniAssembler = new AGALMiniAssembler();
 			
 			var vertexProgram:ByteArray = assembler.assemble(Context3DProgramType.VERTEX, vertexShader);
 			var pixelProgram:ByteArray = assembler.assemble(Context3DProgramType.FRAGMENT, pixelShader);
-			*/
 			
+			/*
 			var vertexProgram:AGALMiniAssembler = new AGALMiniAssembler();
 			vertexProgram.assemble(Context3DProgramType.VERTEX, vertexShader);
 			
 			var pixelProgram:AGALMiniAssembler = new AGALMiniAssembler();
 			pixelProgram.assemble(Context3DProgramType.FRAGMENT, pixelShader);
-			
+			*/
 			program = context3D.createProgram();
-			program.upload(vertexProgram.agalcode, pixelProgram.agalcode);
+			program.upload(vertexProgram, pixelProgram);
 		}
 		
 		public function get name():String
