@@ -39,7 +39,7 @@ package skysand.render.hardware
 		{
 			this.context3D = context3D;
 			
-			context3D.configureBackBuffer(screenWidth, screenHeight, 2, true);
+			context3D.configureBackBuffer(screenWidth, screenHeight, 0, true);
 			
 			modelViewMatrix = new Matrix3D();
 			modelViewMatrix.appendTranslation(-screenWidth / 2, -screenHeight / 2, 0);

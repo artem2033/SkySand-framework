@@ -12,7 +12,7 @@ package skysand.utils
 	import flash.utils.ByteArray;
 	import flash.utils.CompressionAlgorithm;
 	import flash.utils.Endian;
-	import skysand.display.SkyAtlasData;
+	import skysand.display.SkyAtlasSprite;
 	import skysand.display.SkyTextureAtlas;
 	import skysand.display.SkyTextureData;
 	
@@ -102,6 +102,23 @@ package skysand.utils
 			nTextures++;
 		}
 		
+		public static function loadByteArray(filePath:String, compressionAlgorithm:String = "deflate"):ByteArray
+		{
+			var file:File = File.applicationDirectory.resolvePath(filePath);
+			
+			var bytes:ByteArray = new ByteArray();
+			bytes.endian = Endian.LITTLE_ENDIAN;
+			
+			var fileStream:FileStream = new FileStream();
+			fileStream.open(file, "read");
+			fileStream.readBytes(bytes);
+			fileStream.close();
+			
+			bytes.uncompress(compressionAlgorithm);
+			
+			return bytes;
+		}
+		
 		public function addTextureAtlasFromFile(path:String, width:Number, height:Number, name:String):void
 		{
 			var file:File = File.applicationDirectory.resolvePath(path);
@@ -122,27 +139,18 @@ package skysand.utils
 			var atlas:SkyTextureAtlas = new SkyTextureAtlas();
 			atlas.name = name;
 			atlas.setTexture(texture, width, height);
-			trace(name);
+			
 			atlases[nAtlases] = atlas;
 			nAtlases++;
 		}
 		
-		public function getAtlasUV(name:String, atlasName:String):Vector.<Number>
+		public function addTextureAtlas(atlas:SkyTextureAtlas):void
 		{
-			for (var i:int = 0; i < nAtlases; i++) 
-			{
-				var atlas:SkyTextureAtlas = atlases[i];
-				
-				if (atlas.name == atlasName)
-				{
-					return atlas.getSprite(name).vertices;
-				}
-			}
-			
-			return null;
+			atlases.push(atlas);
+			nAtlases++;
 		}
 		
-		public function getAtlas(name:String):SkyTextureAtlas
+		public function getTextureAtlas(name:String):SkyTextureAtlas
 		{
 			for (var i:int = 0; i < nAtlases; i++) 
 			{
@@ -155,20 +163,6 @@ package skysand.utils
 			}
 			
 			return null;
-		}
-		
-		public function createSpriteForAtlas(name:String, x:Number, y:Number, width:Number, height:Number, spriteName:String):void
-		{
-			for (var i:int = 0; i < nAtlases; i++) 
-			{
-				var atlas:SkyTextureAtlas = atlases[i];
-				
-				if (atlas.name == name)
-				{
-					atlas.createSprite(width, height, x, y, spriteName);
-					return;
-				}
-			}
 		}
 		
 		public function getTexture(name:String):SkyTextureData

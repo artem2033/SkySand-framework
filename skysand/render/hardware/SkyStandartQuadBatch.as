@@ -1,5 +1,7 @@
 package skysand.render.hardware
 {
+	import flash.display3D.Context3DFillMode;
+	import flash.display3D.Context3DTriangleFace;
 	import flash.geom.Matrix;
 	import flash.geom.Matrix3D;
 	import flash.utils.ByteArray;
@@ -12,6 +14,7 @@ package skysand.render.hardware
 	import flash.display3D.Context3DCompareMode;
 	import flash.display3D.Context3DProgramType;
 	import flash.display3D.Context3DVertexBufferFormat;
+	import skysand.display.SkyAtlasSprite;
 	
 	import skysand.utils.SkyFilesCache;
 	import skysand.interfaces.IQuadBatch;
@@ -59,7 +62,8 @@ package skysand.render.hardware
 				}
 				else
 				{
-					texture = SkyFilesCache.instance.getAtlas(textureName).texture;
+					atlas = SkyFilesCache.instance.getTextureAtlas(textureName);
+					texture = atlas.texture;
 				}
 				
 				this.textureName = textureName;
@@ -83,20 +87,13 @@ package skysand.render.hardware
 		
 		public function setShader(vertexShader:String, pixelShader:String):void
 		{
-			/*var assembler:AGALMiniAssembler = new AGALMiniAssembler();
+			var assembler:AGALMiniAssembler = new AGALMiniAssembler();
 			
-			var vertexProgram:ByteArray = assembler.assemble(Context3DProgramType.VERTEX, vertexShader);
-			var pixelProgram:ByteArray = assembler.assemble(Context3DProgramType.FRAGMENT, pixelShader);
-			*/
-			
-			var vertexProgram:AGALMiniAssembler = new AGALMiniAssembler();
-			vertexProgram.assemble(Context3DProgramType.VERTEX, vertexShader);
-			
-			var pixelProgram:AGALMiniAssembler = new AGALMiniAssembler();
-			pixelProgram.assemble(Context3DProgramType.FRAGMENT, pixelShader);
+			var vertexProgram:ByteArray = assembler.assemble(Context3DProgramType.VERTEX, vertexShader, 3, true);
+			var pixelProgram:ByteArray = assembler.assemble(Context3DProgramType.FRAGMENT, pixelShader, 3, true);
 			
 			program = context3D.createProgram();
-			program.upload(vertexProgram.agalcode, pixelProgram.agalcode);
+			program.upload(vertexProgram, pixelProgram);
 		}
 		
 		public function get name():String
@@ -121,12 +118,15 @@ package skysand.render.hardware
 			}
 			else
 			{
-				var atlasUV:Vector.<Number> = SkyFilesCache.instance.getAtlasUV(spriteName, textureName);
+				var data:SkyAtlasSprite = atlas.getSprite(spriteName);
 				
-				uvs.push(atlasUV[0], atlasUV[1]);
-				uvs.push(atlasUV[2], atlasUV[3]);
-				uvs.push(atlasUV[4], atlasUV[5]);
-				uvs.push(atlasUV[6], atlasUV[7]);
+				uvs.push(data.vertices[0], data.vertices[1]);
+				uvs.push(data.vertices[2], data.vertices[3]);
+				uvs.push(data.vertices[4], data.vertices[5]);
+				uvs.push(data.vertices[6], data.vertices[7]);
+				
+				object.width = data.width;
+				object.height = data.height;
 			}
 			
 			fl = false;
@@ -158,16 +158,15 @@ package skysand.render.hardware
 				fl = true;
 			}
 			
+			vertexBuffer.uploadFromVector(verteces, 0, verteces.length / 3);
+			
 			context3D.setProgram(program);
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
-			context3D.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
+			context3D.setBlendFactors(Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);
 			context3D.setTextureAt(0, texture);
-			
-			vertexBuffer.uploadFromVector(verteces, 0, verteces.length / 3);
 			context3D.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 			context3D.setVertexBufferAt(1, uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
-			
 			context3D.drawTriangles(indexBuffer);
 		}
 	}

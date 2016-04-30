@@ -248,6 +248,16 @@ package skysand.display
 			_height = value;
 		}
 		
+		public function get mouseX():Number
+		{
+			return SkySand.STAGE.mouseX;
+		}
+		
+		public function get mouseY():Number
+		{
+			return SkySand.STAGE.mouseY;
+		}
+		
 		public function get verteces():Vector.<Number> 
 		{
 			return _verteces;

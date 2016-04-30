@@ -8,5 +8,10 @@ package skysand.display
 		{
 			renderType = SkyRenderType.SIMPLE_SPRITE;
 		}
+		
+		public function setAtlasSprite(name:String):void
+		{
+			
+		}
 	}
 }

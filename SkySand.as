@@ -62,6 +62,7 @@ package
 		public static var NUM_OF_RENDER_OBJECTS:int = 0;
 		public static var NUM_ON_STAGE:int = 0;
 		public static var drawCalls:int = 0;
+		public static var CONTEXT_3D:Context3D;
 		
 		private var mMain:Class;
 		private var keyboard:SkyKeyboard;
@@ -151,6 +152,7 @@ package
 			removeEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
 			
 			context3D = stage3D.context3D;
+			CONTEXT_3D = stage3D.context3D;
 			
 			var cache:SkyFilesCache = SkyFilesCache.instance;
 			cache.initialize(context3D);
@@ -223,7 +225,7 @@ package
 			{
 				drawCalls = 0;
 				hardwareRender.update();
-				textField.text = "Draw calls: " + drawCalls;
+				textField.text = "Draw calls: " + drawCalls + ", memGPU: " + context3D.totalGPUMemory / 1024 / 1024;
 			}
 		}
 		
