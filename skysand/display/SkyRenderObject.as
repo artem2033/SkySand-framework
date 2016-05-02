@@ -93,25 +93,30 @@ package skysand.display
 		
 		public function set x(value:Number):void
 		{
-			globalX = parent ? parent.globalX + value : value;
-			
-			if (globalX != _verteces[vertecesIndex])
+			if (value != localX)
 			{
-				_verteces[vertecesIndex] = globalX;
-				_verteces[vertecesIndex + 3] = globalX + _width;
-				_verteces[vertecesIndex + 6] = globalX;
-				_verteces[vertecesIndex + 9] = globalX + _width;
+				localX = value;
 				
-				if (children)
+				globalX = parent ? parent.globalX + value : value;
+				
+				if (globalX != _verteces[vertecesIndex])
 				{
-					for (var i:int = 0; i < nChildren; i++) 
+					_verteces[vertecesIndex] = globalX;
+					_verteces[vertecesIndex + 3] = globalX + _width;
+					_verteces[vertecesIndex + 6] = globalX;
+					_verteces[vertecesIndex + 9] = globalX + _width;
+					
+					if (children)
 					{
-						children[i].x = children[i].localX;
+						for (var i:int = 0; i < nChildren; i++) 
+						{
+							children[i].x = children[i].localX;
+						}
 					}
 				}
 			}
 			
-			localX = value;
+			//localX = value;
 		}
 		
 		public function get y():Number

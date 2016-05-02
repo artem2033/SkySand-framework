@@ -152,8 +152,8 @@ package skysand.render.hardware
 				vertexBuffer = context3D.createVertexBuffer(verteces.length / 3, 3);
 				indexBuffer = context3D.createIndexBuffer(indeces.length);
 				uvBuffer = context3D.createVertexBuffer(uvs.length / 2, 2);
-				indexBuffer.uploadFromVector(indeces, 0, indeces.length);
 				uvBuffer.uploadFromVector(uvs, 0, uvs.length / 2);
+				indexBuffer.uploadFromVector(indeces, 0, indeces.length);
 				
 				fl = true;
 			}

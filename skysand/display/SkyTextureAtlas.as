@@ -93,6 +93,8 @@ package skysand.display
 		
 		public function getSprite(spriteName:String):SkyAtlasSprite
 		{
+			if (_texture == null || sprites.length == 0) return null;
+			
 			var length:int = sprites.length;
 			
 			for (var i:int = 0; i < length; i++) 
