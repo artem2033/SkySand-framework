@@ -167,6 +167,7 @@ package
 			_root = game;
 		}
 		
+		//lalka
 		private function getNumRenderObjects():void
 		{
 			//console.message("Число отрисовываемых объектов: " + String(SkySand.NUM_OF_RENDER_OBJECTS));
