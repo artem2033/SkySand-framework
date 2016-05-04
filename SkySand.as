@@ -63,6 +63,7 @@ package
 		public static var NUM_ON_STAGE:int = 0;
 		public static var drawCalls:int = 0;
 		public static var CONTEXT_3D:Context3D;
+		public static var root:RenderObject;
 		
 		private var mMain:Class;
 		private var keyboard:SkyKeyboard;
@@ -75,7 +76,6 @@ package
 		private var invFrameRate:int;
 		private var watcher:SkyWatcher;
 		private var profiler:SkyProfiler;
-		public static var root:RenderObject;
 		private var pause:Boolean = false;
 		private var hardwareRender:SkyHardwareRender;
 		private var context3D:Context3D;
@@ -84,7 +84,7 @@ package
 		private var text:TextArea;
 		private var screenWidth:Number;
 		private var screenHeight:Number;
-		private var _root:SkyRenderObjectContainer;
+		private var _root:RenderObject;
 		private var textField:TextField;
 		
 		public function SkySand() 
@@ -104,9 +104,9 @@ package
 			registerFonts();
 			prepareFrameworkGraphics();
 			
-			/*console = Console.instance;
+			console = Console.instance;
 			console.initialize();
-			console.visible = false;*/
+			console.visible = false;
 			
 			SkyMouse.instance.initialize(_stage);
 			keyboard = SkyKeyboard.instance;
@@ -126,20 +126,20 @@ package
 				addChildAt(render, 0);
 			}
 			
-			textField = new TextField();
+			/*textField = new TextField();
 			textField.width = 200;
 			textField.height = 20;
 			textField.textColor = 0xFFFFFF;
-			addChild(textField);
+			addChild(textField);*/
 			
 			//watcher = SkyWatcher.instance;
 			//watcher.x = 700;
 			
-			/*profiler = SkyProfiler.instance;
-			profiler.visible = false;*/
+			profiler = SkyProfiler.instance;
+			profiler.visible = false;
 			
-			/*console.registerCommand("showProfiler", profiler.show, []);
-			console.registerCommand("getNumOfRenderObjects", getNumRenderObjects, []);*/
+			console.registerCommand("showProfiler", profiler.show, []);
+			console.registerCommand("getNumOfRenderObjects", getNumRenderObjects, []);
 			
 			oldTime = 0;
 			newTime = 0;
@@ -162,9 +162,9 @@ package
 			
 			var game:SkyRenderObjectContainer = new mMain();
 			hardwareRender.setRoot(game);
-			gameUpdatableClass = game as IUpdatable;
+			//gameUpdatableClass = game as IUpdatable;
 			
-			_root = game;
+			//_root = game;
 		}
 		
 		//lalka
@@ -173,23 +173,22 @@ package
 			//console.message("Число отрисовываемых объектов: " + String(SkySand.NUM_OF_RENDER_OBJECTS));
 		}
 		
-		public function set mainClass(value:SkyRenderObjectContainer):void
+		public function set mainClass(value:RenderObject):void
 		{
-			//_root = value;
-			//hardwareRender.setRoot(value);
+			_root = value;
 			
-			//SkySand.root = value;
-			//mainGameClass = value;
-			//mainGameClass.addChild(console);
+			SkySand.root = value;
+			mainGameClass = value;
+			mainGameClass.addChild(console);
 			//mainGameClass.addChild(watcher);
-		//	mainGameClass.addChild(profiler);
+			mainGameClass.addChild(profiler);
 			
-			//gameUpdatableClass = IUpdatable(mainGameClass);
+			gameUpdatableClass = IUpdatable(mainGameClass);
 			
-			//render.rootRenderObject = mainGameClass;
+			render.rootRenderObject = mainGameClass;
 		}
 		
-		public function get mainClass():SkyRenderObjectContainer
+		public function get mainClass():RenderObject
 		{
 			return _root;
 		}
@@ -206,28 +205,27 @@ package
 			deltaTime = (newTime - oldTime) / 1000;
 			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
 			
-			//profiler.totalUpdateTime = getTimer();
-			//watcher.update();
+			profiler.totalUpdateTime = getTimer();
 			keyboard.update();
-			//console.update();
+			console.update();
 			
-			//profiler.applicationUpdateTime = getTimer();
+			profiler.applicationUpdateTime = getTimer();
 			if (!pause) if(gameUpdatableClass) gameUpdatableClass.update(deltaTime);
-			//profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
+			profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
 			
-			//profiler.renderTime = getTimer();
-			//render.update();
-			//profiler.renderTime = getTimer() - profiler.renderTime;
+			profiler.renderTime = getTimer();
+			render.update();
+			profiler.renderTime = getTimer() - profiler.renderTime;
 			
-			//profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
-			//profiler.update();
+			profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
+			profiler.update();
 			
-			if (hardwareRender != null)
+			/*if (hardwareRender != null)
 			{
 				drawCalls = 0;
 				hardwareRender.update();
 				textField.text = "Draw calls: " + drawCalls + ", memGPU: " + context3D.totalGPUMemory / 1024 / 1024;
-			}
+			}*/
 		}
 		
 		/**
