@@ -1,36 +1,53 @@
 ﻿package skysand.utils
 {
-	import flash.display.MovieClip;
-	import flash.display.Sprite;
 	import flash.geom.Point;
-	import flash.utils.ByteArray;
-	import flash.utils.getTimer;
 	
 	public class SkyMath
 	{
-		public const VERSION:String = "Version of MathClass 1.2, 23 June 2015";
-		public static const DEGREE_IN_RADIAN:Number = 180 / Math.PI;
-		public static const RADIAN_IN_DEGREE:Number = Math.PI / 180;
-		private const MOUSE:String = "16:05 in 28.06.2015"
-		private static var time:uint = 0;
+		/**
+		 * Константа хранящее значение 1 радиана в градусах.
+		 */
+		public static const RADIAN_IN_DEGREE:Number = 180 / Math.PI;
+		
+		/**
+		 * Константа хранящее значение 1 градуса в радианах.
+		 */
+		public static const DEGREE_IN_RADIAN:Number = Math.PI / 180;
+		
+		/**
+		 * Точка для расчёта поворота точки.
+		 */
+		private static var point:Point;
 		
 		public function SkyMath()
 		{
+			//time = 0;
+			point = new Point();
+		}
+		
+		/**
+		 * Расстояние между двумя точками.
+		 * @param	a точка 1.
+		 * @param	b точка 2.
+		 * @return возращает результат.
+		 */
+		[Inline]
+		public static function distance(a:Point, b:Point):Number
+		{
+			var dx:Number = a.x - b.x;
+			var dy:Number = a.y - b.y;
 			
+			return Math.sqrt(dx * dx + dy * dy);
 		}
 		
-		public static function min(a:Number, b:Number):Number
-		{
-			return a < b ? a : b;
-		}
-		
-		//растояние между 2-мя точками
-		public static function distance(a:SkyVector2D, b:SkyVector2D):Number
-		{
-			return Math.sqrt(distanceSQR(a, b));
-		}
-		
-		public static function distanceSQR(a:SkyVector2D, b:SkyVector2D):Number
+		/**
+		 * Расстояние между двумя точками в квадрате.
+		 * @param	a точка 1.
+		 * @param	b точка 2.
+		 * @return возращает результат.
+		 */
+		[Inline]
+		public static function distanceSQR(a:Point, b:Point):Number
 		{
 			var dx:Number = a.x - b.x;
 			var dy:Number = a.y - b.y;
@@ -38,7 +55,13 @@
 			return dx * dx + dy * dy;
 		}
 		
-		//радианы 2 обьектами
+		/**
+		 * Угол в радианах между 2 - мя точками.
+		 * @param	a точка 1.
+		 * @param	b точка 2.
+		 * @return возращает угол.
+		 */
+		[Inline]
 		public static function radian(a:Point, b:Point):Number
 		{
 			var dx:Number = a.x - b.x;
@@ -47,65 +70,106 @@
 			return Math.atan2(dy, dx);
 		}
 		
-		//сгенерировать рандомное число
-		public function generateNumber(Max:Number, Min:Number):Number
-		{
-			var num:Number = Math.random() * Max;
-			
-			while (num <= Min)
-			{
-				num = Math.random() * Max;
-			}
-			
-			return num;
-		}
-		//Из радиан в градусы.
+		/**
+		 * Перевод угла из радиан в градусы.
+		 * @param	radian радианы.
+		 * @return возвращает значение угла в градусах.
+		 */
+		[Inline]
 		public static function toDegrees(radian:Number):Number
 		{
-			return radian * DEGREE_IN_RADIAN;
+			return radian * RADIAN_IN_DEGREE;
 		}
 		
-		public static function toRadian(angle:Number):Number
+		/**
+		 * Перевод угла из градусов в радианы.
+		 * @param	degrees градусы.
+		 * @return возвращает значение угла в радианах.
+		 */
+		[Inline]
+		public static function toRadian(degrees:Number):Number
 		{
-			return angle * RADIAN_IN_DEGREE;
+			return degrees * DEGREE_IN_RADIAN;
 		}
 		
-		public static function radianToNormal(radian:Number):Number
+		/**
+		 * Нормализовать угол в градусах, т. е. перевести угол в промежуток от 0 до 360.
+		 * @param	degrees исходное значение.
+		 * @return возвращает результат.
+		 */
+		[Inline]
+		public static function normalizeDegrees(degrees:Number):Number
 		{
-			while (radian < -Math.PI) radian += Math.PI * 2;
-			while (radian > Math.PI) radian -= Math.PI * 2;
+			return degrees % 360;
+		}
+		
+		/**
+		 * Нормализовать угол в радианах, т. е. перевести угол в промежуток от 0 до 2PI.
+		 * @param	radian исходное значение.
+		 * @return возвращает результат.
+		 */
+		[Inline]
+		public static function normalizeRadian(radian:Number):Number
+		{
+			return radian % (Math.PI * 2);
+		}
+		
+		/**
+		 * Повернуть точку относительно заданной оси на определённый угол с уже рассчитанными значениями синуса и косинуса.
+		 * @param	x координата точки.
+		 * @param	y координата точки.
+		 * @param	axisX координата оси.
+		 * @param	axisY координита оси.
+		 * @param	cos косинус угла.
+		 * @param	sin синус угла.
+		 * @return возвращает точку с результирующими координатами.
+		 */
+		[Inline]
+		public static function rotatePointWithConst(x:Number, y:Number, axisX:Number, axisY:Number, cos:Number, sin:Number):Point
+		{
+			var dx:Number = x - axisX;
+			var dy:Number = y - axisY;
 			
-			return radian;
-		}
-		
-		public static function setTime():void
-		{
-			time = getTimer();
-		}
-		
-		public static function getTime():String
-		{
-			return "Time passed: " + String(getTimer() - time) + " ms.";
-		}
-		
-		public static function getSize(object:*):uint
-		{
-			var byteArray:ByteArray = new ByteArray();
-			byteArray.writeObject(object);
+			point.x = axisX + dx * cos - dy * sin;
+			point.y = axisY + dy * cos + dx * sin;
 			
-			return byteArray.length;
+			return point;
 		}
 		
+		/**
+		 * Повернуть точку относительно заданной оси на определённый угол.
+		 * @param	x координата точки.
+		 * @param	y координата точки.
+		 * @param	axisX координата оси.
+		 * @param	axisY координита оси.
+		 * @param	angle угол в радианах.
+		 * @return возвращает точку с результирующими координатами.
+		 */
+		[Inline]
+		public static function rotatePoint(x:Number, y:Number, axisX:Number, axisY:Number, angle:Number):Point
+		{
+			var cos:Number = Math.cos(angle);
+			var sin:Number = Math.sin(angle);
+			
+			var dx:Number = x - axisX;
+			var dy:Number = y - axisY;
+			
+			point.x = axisX + dx * cos - dy * sin;
+			point.y = axisY + dy * cos + dx * sin;
+			
+			return point;
+		}
+		
+		/**
+		 * Получить случайное число в заданном промежутке.
+		 * @param	max максимальное число.
+		 * @param	min минимальное число.
+		 * @return возвращает получившееся число.
+		 */
+		[Inline]
 		public static function generateNumber(max:Number, min:Number):Number
 		{
-			var value:Number = Math.random() * max;
-			
-			while (value < min)
-			{
-				value = Math.random() * max;
-			}
-			
-			return value;
+			return min + Math.random() * (max - min);
 		}
 	}
 }

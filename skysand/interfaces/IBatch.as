@@ -4,7 +4,7 @@ package skysand.interfaces
 	 * ...
 	 * @author codecoregames
 	 */
-	public interface IQuadBatch 
+	public interface IBatch 
 	{
 		function render():void;
 	}

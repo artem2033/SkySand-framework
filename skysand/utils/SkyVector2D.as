@@ -1,14 +1,18 @@
 package skysand.utils  
 {
+	import flash.geom.Point;
+	
 	public class SkyVector2D 
 	{
 		public var x:Number = 0;
 		public var y:Number = 0;
+		private var point:Point;
 		
 		public function SkyVector2D(_x:Number = 0, _y:Number = 0) 
 		{
 			x = _x;
 			y = _y;
+			point = new Point();
 		}
 		
 		public function normalR():SkyVector2D
@@ -19,23 +23,6 @@ package skysand.utils
 		public function normalL():SkyVector2D
 		{
 			return new SkyVector2D( y, -x);
-		}
-		
-		public function set maxX(value:Number):void
-		{
-			if (x > value)
-			{
-				x = value;
-			}
-		}
-		
-		
-		public function set maxY(value:Number):void
-		{
-			if (y > value)
-			{
-				y = value;
-			}
 		}
 		
 		public function normalize():void
@@ -142,6 +129,18 @@ package skysand.utils
 		public function perpDot(vector:SkyVector2D):Number
 		{
 			return x * vector.y - y * vector.x;
+		}
+		
+		/**
+		 * Преобразовать вектор в точку. 
+		 * @return возвращает Point.
+		 */
+		public function toPoint():Point
+		{
+			point.x = x;
+			point.y = y;
+			
+			return point;
 		}
 	}
 }

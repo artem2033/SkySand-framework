@@ -13,8 +13,8 @@ package skysand.utils
 	import flash.utils.CompressionAlgorithm;
 	import flash.utils.Endian;
 	import skysand.display.SkyAtlasSprite;
-	import skysand.display.SkyTextureAtlas;
 	import skysand.display.SkyTextureData;
+	import skysand.display.SkyTextureAtlas;
 	
 	public class SkyFilesCache extends Object
 	{

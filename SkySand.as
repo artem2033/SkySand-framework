@@ -1,6 +1,8 @@
 package  
 {
 	import flash.display.Stage3D;
+	import flash.display.StageAlign;
+	import flash.display.StageScaleMode;
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DProfile;
 	import flash.display3D.Context3DRenderMode;
@@ -15,7 +17,7 @@ package
 	import skysand.utils.SkyMath;
 	import skysand.interfaces.IUpdatable;
 	import skysand.keyboard.SkyKeyboard;
-	import skysand.utils.f2Vec;
+	//import skysand.utils.f2Vec;
 	import skysand.mouse.SkyMouse;
 	import skysand.render.Render;
 	import skysand.render.RenderObject;
@@ -36,27 +38,26 @@ package
 	public class SkySand extends Sprite
 	{
 		[Embed(source="skysand/resources/CyrBit.ttf", fontName = "cyrbit", embedAsCFF = "false")]
-		protected var cyrbitFont:Class;
+		private var cyrbitFont:Class;
 		
 		[Embed(source="skysand/resources/Just_Square.otf", fontName = "square", embedAsCFF = "false")]
-		protected var squareFont:Class;
+		private var squareFont:Class;
 		
 		[Embed(source = "skysand/resources/Inconsolata.ttf", fontName = "inconsolata", embedAsCFF = "false")]
-		protected var inconsolataFont:Class;
+		private var inconsolataFont:Class;
 		
 		[Embed(source = "skysand/resources/iFlash.ttf", fontName = "flash", embedAsCFF = "false")]
-		protected var iFlashFont:Class;
+		private var iFlashFont:Class;
 		
 		[Embed(source = "skysand/resources/Hooge.ttf", fontName = "hooge", embedAsCFF = "false")]
-		protected var hoogeFont:Class;
+		private var hoogeFont:Class;
 		
 		[Embed(source="skysand/resources/Anonymous.ttf", fontName = "anonymous", embedAsCFF = "false")]
-		protected var anonymousFont:Class;
-		
-		//date of deleting 9th of december 2015.
+		private var anonymousFont:Class;
 		
 		public static const HARDWARE_RENDER:uint = 1;
 		public static const SOFTWARE_RENDER:uint = 2;
+		public static const VERSION:String = "Framework version 1.2, 09 June 2016";
 		
 		public static var STAGE:Stage;
 		public static var NUM_OF_RENDER_OBJECTS:int = 0;
@@ -94,6 +95,9 @@ package
 		
 		public function initialize(_stage:Stage, _class:Class, frameRate:int, gameScreenWidth:Number = 800, gameScreenHeight:Number = 600, _fillColor:uint = 0x0, renderType:uint = SOFTWARE_RENDER):void
 		{
+			_stage.align = StageAlign.TOP_LEFT;
+			_stage.scaleMode = StageScaleMode.NO_SCALE;
+			
 			SkySand.STAGE = _stage;
 			mMain = _class;
 			invFrameRate = 1 / frameRate;
@@ -102,7 +106,6 @@ package
 			screenHeight = gameScreenHeight;
 			
 			registerFonts();
-			prepareFrameworkGraphics();
 			
 			console = Console.instance;
 			console.initialize();
@@ -126,11 +129,11 @@ package
 				addChildAt(render, 0);
 			}
 			
-			/*textField = new TextField();
+			textField = new TextField();
 			textField.width = 200;
 			textField.height = 20;
 			textField.textColor = 0xFFFFFF;
-			addChild(textField);*/
+			addChild(textField);
 			
 			//watcher = SkyWatcher.instance;
 			//watcher.x = 700;
@@ -161,8 +164,8 @@ package
 			hardwareRender.initialize(context3D, screenWidth, screenHeight);
 			
 			var game:SkyRenderObjectContainer = new mMain();
-			hardwareRender.setRoot(game);
-			//gameUpdatableClass = game as IUpdatable;
+			//hardwareRender.setRoot(game);
+			gameUpdatableClass = game as IUpdatable;
 			
 			//_root = game;
 		}
@@ -205,89 +208,31 @@ package
 			deltaTime = (newTime - oldTime) / 1000;
 			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
 			
-			profiler.totalUpdateTime = getTimer();
-			keyboard.update();
-			console.update();
-			
-			profiler.applicationUpdateTime = getTimer();
-			if (!pause) if(gameUpdatableClass) gameUpdatableClass.update(deltaTime);
-			profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
-			
-			profiler.renderTime = getTimer();
-			render.update();
-			profiler.renderTime = getTimer() - profiler.renderTime;
-			
-			profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
-			profiler.update();
-			
-			/*if (hardwareRender != null)
+			if (hardwareRender != null)
 			{
+				//SkyUtils.setTime();
 				drawCalls = 0;
 				hardwareRender.update();
-				textField.text = "Draw calls: " + drawCalls + ", memGPU: " + context3D.totalGPUMemory / 1024 / 1024;
-			}*/
-		}
-		
-		/**
-		 * Нарисовать кнопку закрытия окна.
-		 */
-		private function prepareFrameworkGraphics():void
-		{
-			var normalState:Sprite = new Sprite();
-			normalState.graphics.beginFill(0x151E27);
-			normalState.graphics.moveTo( -5, -3);
-			normalState.graphics.lineTo( -3, -5);
-			normalState.graphics.lineTo(3, -5);
-			normalState.graphics.lineTo(5, -3);
-			normalState.graphics.lineTo(5, 3);
-			normalState.graphics.lineTo(3, 5);
-			normalState.graphics.lineTo( -3, 5);
-			normalState.graphics.lineTo( -5, 3);
-			normalState.graphics.beginFill(0xDBB71E);
-			normalState.graphics.moveTo( -3, -5);
-			normalState.graphics.lineTo(3, -5);
-			normalState.graphics.lineTo(0, -2);
-			normalState.graphics.moveTo(5, -3);
-			normalState.graphics.lineTo(5, 3);
-			normalState.graphics.lineTo(2, 0);
-			normalState.graphics.moveTo(3, 5);
-			normalState.graphics.lineTo( -3, 5);
-			normalState.graphics.lineTo(0, 2);
-			normalState.graphics.moveTo( -5, 3);
-			normalState.graphics.lineTo( -5, -3);
-			normalState.graphics.lineTo( -2, 0);
+				textField.text = "Draw calls: " + drawCalls;// + ", " + SkyMath.getTime();
+			}
+			else
+			{
+				profiler.totalUpdateTime = getTimer();
+				keyboard.update();
+				console.update();
+				
+				profiler.applicationUpdateTime = getTimer();
+				profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
+				
+				profiler.renderTime = getTimer();
+				render.update();
+				profiler.renderTime = getTimer() - profiler.renderTime;
+				
+				profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
+				profiler.update();
+			}
 			
-			var downState:Sprite = new Sprite();
-			downState.graphics.beginFill(0x3C447B);
-			downState.graphics.moveTo( -5, -3);
-			downState.graphics.lineTo( -3, -5);
-			downState.graphics.lineTo(3, -5);
-			downState.graphics.lineTo(5, -3);
-			downState.graphics.lineTo(5, 3);
-			downState.graphics.lineTo(3, 5);
-			downState.graphics.lineTo( -3, 5);
-			downState.graphics.lineTo( -5, 3);
-			downState.graphics.beginFill(0xDBB71E);
-			downState.graphics.moveTo( -3, -5);
-			downState.graphics.lineTo(3, -5);
-			downState.graphics.lineTo(0, -2);
-			downState.graphics.moveTo(5, -3);
-			downState.graphics.lineTo(5, 3);
-			downState.graphics.lineTo(2, 0);
-			downState.graphics.moveTo(3, 5);
-			downState.graphics.lineTo( -3, 5);
-			downState.graphics.lineTo(0, 2);
-			downState.graphics.moveTo( -5, 3);
-			downState.graphics.lineTo( -5, -3);
-			downState.graphics.lineTo( -2, 0);
-			
-			var animation:SkyAnimation = new SkyAnimation();
-			animation.makeFrameFromSprite(normalState);
-			animation.makeFrameFromSprite(downState);
-			animation.frames[2] = animation.frames[1];
-			animation.name = "skyCloseButton";
-			
-			SkyAnimationCache.instance.addAnimation(animation);
+			if (!pause) if(gameUpdatableClass) gameUpdatableClass.update(deltaTime);
 		}
 		
 		/**

@@ -7,13 +7,13 @@ package skysand.mouse
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
 	
-	public class SkyMouse extends Sprite
+	public class SkyMouse extends Object
 	{
 		private static var _instance:SkyMouse;
 		
 		public var LBMPressed:Boolean = false;
 		public var RBMPressed:Boolean = false;
-		public var sstage:Stage;
+		private var _stage:Stage;
 		public var isDrag:Boolean = false;
 		private var Anim:SkyAnimation;
 		
@@ -28,11 +28,22 @@ package skysand.mouse
 		
 		public function initialize(_stage:Stage):void
 		{
-			sstage = _stage;
+			this._stage = _stage;
+			
 			_stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseDown);
 			_stage.addEventListener(MouseEvent.MOUSE_UP, mouseUp);
-			//_stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightDown);
-			//_stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, rightUp);
+			_stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, rightDown);
+			_stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, rightUp);
+		}
+		
+		public function get x():Number
+		{
+			return _stage.mouseX;
+		}
+		
+		public function get y():Number
+		{
+			return _stage.mouseY;
 		}
 		
 		public static function get instance():SkyMouse

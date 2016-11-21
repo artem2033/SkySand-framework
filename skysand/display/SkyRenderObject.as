@@ -1,286 +1,187 @@
 package skysand.display
 {
-	import adobe.utils.CustomActions;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import skysand.render.hardware.SkyHardwareRender;
 	import skysand.utils.SkyMath;
 	
 	public class SkyRenderObject extends Object
 	{
-		private static var DEPTH_COUNTER:Number;
-		public var transformMatrix:Matrix
+		private static var DEPTH_COUNTER:Number = 0;
 		
-		private var _alpha:Number;
-		private var _scaleX:Number;
-		private var _scaleY:Number;
-		private var _rotation:Number;
-		private var _width:Number;
-		private var _height:Number;
-		public var _verteces:Vector.<Number>;
-		public var globalX:Number = 0;
-		public var globalY:Number = 0;
-		public var localX:Number = 0;
-		public var localY:Number = 0;
-		private var _depth:Number;
-		public var renderType:uint;
-		public var uv:Vector.<Number>;
-		public var textureName:String;
-		public var atlasName:String;
-		public var id:int;
+		/**
+		 * Координата x.
+		 */
+		public var x:Number;
+		
+		/**
+		 * Координата y.
+		 */
+		public var y:Number;
+		
+		/**
+		 * Ширина.
+		 */
+		public var width:Number;
+		
+		/**
+		 * Высота.
+		 */
+		public var height:Number;
+		
+		/**
+		 * Угол поврота.
+		 */
+		public var rotation:Number;
+		
+		/**
+		 * Прозрачность от 0 до 1.
+		 */
+		public var alpha:Number;
+		
+		/**
+		 * Видимость объекта.
+		 */
 		public var visible:Boolean;
-		public var parent:SkyRenderObjectContainer;
-		public var children:Vector.<SkyRenderObjectContainer>;
-		protected var nChildren:int;
-		private var vertecesIndex:int;
+		
+		/**
+		 * Горизонтальное масштабирование.
+		 */
+		public var scaleX:Number;
+		
+		/**
+		 * Вертикальное масштабирование.
+		 */
+		public var scaleY:Number;
+		
+		/**
+		 * Координата центра по оси x.
+		 */
+		public var pivotX:Number;
+		
+		/**
+		 * Координата центра по оси у.
+		 */
+		public var pivotY:Number;
+		
+		/**
+		 * Глобальная координата х.
+		 */
+		public var globalX:Number;
+		
+		/**
+		 * Глобальная координата у.
+		 */
+		public var globalY:Number;
+		
+		/**
+		 * Глобальный угол поворота.
+		 */
+		public var globalRotation:Number;
+		
+		/**
+		 * Глобальное горизонтальное масштабирование.
+		 */
+		public var globalScaleX:Number;
+		
+		/**
+		 * Глобальное вертикальное масштабирование.
+		 */
+		public var globalScaleY:Number;
+		
+		/**
+		 * Глубина на сцене.
+		 */
+		public var depth:Number;
+		
+		/**
+		 * Глобальная глубина.
+		 */
+		protected var globalDepth:uint;
+		
+		public var globalR:Point;
+		public var localR:Point;
 		
 		public function SkyRenderObject()
 		{
-			textureName = "";
-			atlasName = "";
-			id = 0;
+			x = 0;
+			y = 0;
+			width = 0;
+			height = 0;
+			rotation = 0;
+			alpha = 1;
 			visible = true;
-			_depth = 0.01;
-			_width = 512;
-			_height = 512;
-			transformMatrix = new Matrix();
-			
-			nChildren = 0;
+			depth = 0;
+			scaleX = 1;
+			scaleY = 1;
+			pivotX = 0;
+			pivotY = 0;
+			globalX = 0;
+			globalY = 0;
+			globalRotation = 0;
+			globalDepth = 0;
+			globalScaleX = 1;
+			globalScaleY = 1;
 		}
 		
-		public function setBatchVertices(vertices:Vector.<Number>, id:uint):void
+		/**
+		 * Получить ограничивающий прямоугольник.
+		 * Нужно переделать.
+		 * @param	child дочерний объект
+		 * @return возвращает прямогульник(Rectangle).
+		 */
+		public function getBounds(child:SkyRenderObject):Rectangle
 		{
-			//x y z
-			_verteces = vertices;
-			_verteces.push(0, 0, _depth);
-			_verteces.push(512, 0, _depth);
-			_verteces.push(0, 512, _depth);
-			_verteces.push(512, 512, _depth);
-			
-			this.id = id;
-			vertecesIndex = id * 12;
+			return new Rectangle(globalX, globalY, width, height);
 		}
 		
-		public function setSprite(textureName:String, spriteName:String = ""):void
+		public function getRect(targetCoordinateSpace:SkyRenderObject):Rectangle
 		{
-			//textureName = name;
-			//atlasName = textureAtlas;
-			
-			SkyHardwareRender.instance.addObject(this, textureName, spriteName);
+			return null;
 		}
 		
-		public function get x():Number
+		public function hitTestObject(object:SkyRenderObject):Boolean
 		{
-			return localX;
+			return false;
 		}
 		
-		public function updateChilds(child:SkyRenderObjectContainer):void
+		public function hitTestPoint(x:Number, y:Number):Boolean
 		{
-			if (child.children != null)
-			{
-				for (var i:int = 0; i < child.children.length; i++) 
-				{
-					if(child.parent !=null) child.children[i].x += child.parent.x;
-				}
-			}
+			if (x > globalX + width - pivotX) return false;
+			if (x < globalX - pivotX) return false;
+			if (y > globalY + height - pivotY) return false;
+			if (y < globalY - pivotY) return false;
 			
-			/*child.localX = child.x + localX;
+			return true;
+            // Algorithm & implementation thankfully taken from:
+            // -> http://alienryderflex.com/polygon/
 			
-			if (_verteces)
-			{
+            /*var i:int, j:int = numVertices - 1;
+            var oddNodes:uint = 0;
+			
+            for (i=0; i<numVertices; ++i)
+            {
+                var ix:Number = _coords[i * 2];
+                var iy:Number = _coords[i * 2 + 1];
+                var jx:Number = _coords[j * 2];
+                var jy:Number = _coords[j * 2 + 1];
 				
-			}*/
-		}
-		
-		public function set x(value:Number):void
-		{
-			if (value != localX)
-			{
-				localX = value;
+                if ((iy < y && jy >= y || jy < y && iy >= y) && (ix <= x || jx <= x))
+                    oddNodes ^= uint(ix + (y - iy) / (jy - iy) * (jx - ix) < x);
 				
-				globalX = parent ? parent.globalX + value : value;
-				
-				if (globalX != _verteces[vertecesIndex])
-				{
-					_verteces[vertecesIndex] = globalX;
-					_verteces[vertecesIndex + 3] = globalX + _width;
-					_verteces[vertecesIndex + 6] = globalX;
-					_verteces[vertecesIndex + 9] = globalX + _width;
-					
-					if (children)
-					{
-						for (var i:int = 0; i < nChildren; i++) 
-						{
-							children[i].x = children[i].localX;
-						}
-					}
-				}
-			}
+                j = i;
+            }
 			
-			//localX = value;
-		}
+            return oddNodes != 0;*/
+        }
 		
-		public function get y():Number
+		/**
+		 * override this method.
+		 */
+		public function updateCoordinates():void
 		{
-			return localY;
-		}
-		
-		public function set y(value:Number):void
-		{
-			globalY = parent ? parent.globalY + value : value;
 			
-			if (globalY != _verteces[vertecesIndex + 1])
-			{
-				_verteces[vertecesIndex + 1] = globalY;
-				_verteces[vertecesIndex + 4] = globalY;
-				_verteces[vertecesIndex + 7] = globalY + _height;
-				_verteces[vertecesIndex + 10] = globalY + _height;
-				
-				if (children)
-				{
-					for (var i:int = 0; i < nChildren; i++) 
-					{
-						children[i].y = children[i].localY;
-					}
-				}
-			}
-			
-			localY = value;
-		}
-		
-		public function get alpha():Number
-		{
-			return _alpha;
-		}
-		
-		public function set alpha(value:Number):void
-		{
-			_alpha = value;
-		}
-		
-		public function get scaleX():Number
-		{
-			return _scaleX;
-		}
-		
-		public function set scaleX(value:Number):void
-		{
-			_scaleX = value;
-		}
-		
-		public function get scaleY():Number 
-		{
-			return _scaleY;
-		}
-		
-		public function set scaleY(value:Number):void 
-		{
-			_scaleY = value;
-		}
-		
-		public function get rotation():Number 
-		{
-			return _rotation;
-		}
-		
-		public function set rotation(value:Number):void 
-		{
-			value = SkyMath.toRadian(value);
-			
-			/*transformMatrix.identity();
-			transformMatrix.tx = _verteces[0];
-			transformMatrix.ty = _verteces[1];
-			transformMatrix.rotate(value);
-			
-			_verteces[0] = transformMatrix.tx;
-			_verteces[1] = transformMatrix.ty;
-			
-			transformMatrix.identity();
-			transformMatrix.tx = _verteces[3];
-			transformMatrix.ty = _verteces[4];
-			transformMatrix.rotate(value);
-			
-			_verteces[3] = transformMatrix.tx;
-			_verteces[4] = transformMatrix.ty;
-			
-			transformMatrix.identity();
-			transformMatrix.tx = _verteces[6];
-			transformMatrix.ty = _verteces[7];
-			transformMatrix.rotate(value);
-			
-			_verteces[6] = transformMatrix.tx;
-			_verteces[7] = transformMatrix.ty;
-			
-			transformMatrix.identity();
-			transformMatrix.tx = _verteces[9];
-			transformMatrix.ty = _verteces[10];
-			transformMatrix.rotate(value);
-			
-			_verteces[9] = transformMatrix.tx;
-			_verteces[10] = transformMatrix.ty;
-			*/
-			_rotation = value;
-		}
-		
-		public function get width():Number 
-		{
-			return _width;
-		}
-		
-		public function set width(value:Number):void 
-		{
-			//512
-			//256
-			//_verteces[id * 12] = value;
-			_verteces[vertecesIndex + 3] = localX + value;
-			//_verteces[id * 12 + 6] = value;
-			_verteces[vertecesIndex + 9] = localX + value;
-			
-			_width = value;
-		}
-		
-		public function get height():Number 
-		{
-			return _height;
-		}
-		
-		public function set height(value:Number):void 
-		{
-			//_verteces[index + 1] = value;
-			//_verteces[index + 4] = value;
-			_verteces[vertecesIndex + 7] = localY + value;
-			_verteces[vertecesIndex + 10] = localY + value;
-			
-			_height = value;
-		}
-		
-		public function get mouseX():Number
-		{
-			return SkySand.STAGE.mouseX;
-		}
-		
-		public function get mouseY():Number
-		{
-			return SkySand.STAGE.mouseY;
-		}
-		
-		public function get verteces():Vector.<Number> 
-		{
-			return _verteces;
-		}
-		
-		public function get depth():Number 
-		{
-			return _depth;
-		}
-		
-		public function set depth(value:Number):void 
-		{
-			_verteces[2] = value;
-			_verteces[5] = value;
-			_verteces[8] = value;
-			_verteces[11] = value;
-			
-			_depth = value;
 		}
 	}
 }

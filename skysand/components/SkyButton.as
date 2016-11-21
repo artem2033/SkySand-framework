@@ -9,7 +9,7 @@ package skysand.components
 	import skysand.animation.SkyAnimationCache;
 	import skysand.interfaces.IFrameworkUpdatable;
 	import skysand.text.SkyTextField;
-	import skysand.utils.Utils;
+	import skysand.utils.SkyUtils;
 	
 	public class SkyButton extends RenderObject implements IFrameworkUpdatable
 	{
@@ -102,7 +102,7 @@ package skysand.components
 			usprite.graphics.drawRect( -width * 0.5, -height * 0.5, width, height);
 			
 			var osprite:Sprite = new Sprite();
-			osprite.graphics.beginFill(Utils.changeColorBright(color, 50), alpha);
+			osprite.graphics.beginFill(SkyUtils.changeColorBright(color, 50), alpha);
 			osprite.graphics.drawRect( -width * 0.5, -height * 0.5, width, height);
 			
 			var animation:SkyAnimation = new SkyAnimation();

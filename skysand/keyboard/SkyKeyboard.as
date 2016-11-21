@@ -1,12 +1,10 @@
 package skysand.keyboard
 {
-	import flash.display.InteractiveObject;
 	import flash.display.Stage;
 	import flash.events.TextEvent;
 	import flash.events.KeyboardEvent;
 	import flash.text.TextField;
 	import flash.text.TextFieldType;
-	import skysand.console.Console;
 	
 	public class SkyKeyboard extends Object
 	{
@@ -84,9 +82,6 @@ package skysand.keyboard
 			textField.type = TextFieldType.INPUT;
 			textField.visible = false;
 			textField.addEventListener(TextEvent.TEXT_INPUT, onTextInputHandler);
-			//_stage.addChild(textField);
-			
-			//if (Console.instance) Console.instance.message("System: keyboard class is active.");
 		}
 		
 		/**

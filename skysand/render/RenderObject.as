@@ -578,7 +578,7 @@ package skysand.render
 		 */
 		public function get mouseX():Number
 		{
-			return sprite.mouseX;
+			return SkySand.STAGE.mouseX;
 		}
 		
 		/**
@@ -586,7 +586,7 @@ package skysand.render
 		 */
 		public function get mouseY():Number
 		{
-			return sprite.mouseY;
+			return SkySand.STAGE.mouseY;
 		}
 		
 		/**

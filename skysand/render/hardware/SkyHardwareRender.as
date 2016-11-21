@@ -4,15 +4,18 @@ package skysand.render.hardware
 	import flash.geom.Matrix3D;
 	import skysand.display.SkyRenderObject;
 	import skysand.display.SkyRenderObjectContainer;
-	import skysand.interfaces.IQuadBatch;
+	import skysand.display.SkySprite;
+	import skysand.interfaces.IBatch;
+	import skysand.render.RenderObject;
 	
 	public class SkyHardwareRender extends Object
 	{
 		private var context3D:Context3D;
 		private var modelViewMatrix:Matrix3D;
-		private var batches:Vector.<IQuadBatch>;
+		private var batches:Vector.<IBatch>;
 		private var nBatches:int;
-		private var root:SkyRenderObjectContainer;
+		private var objects:Vector.<SkyRenderObject>;
+		private var nObjects:uint;
 		/**
 		 * Ссылка класса на самого себя.
 		 */
@@ -39,111 +42,69 @@ package skysand.render.hardware
 		{
 			this.context3D = context3D;
 			
-			context3D.configureBackBuffer(screenWidth, screenHeight, 0, true);
+			context3D.configureBackBuffer(screenWidth, screenHeight, 4, true);
 			
 			modelViewMatrix = new Matrix3D();
 			modelViewMatrix.appendTranslation(-screenWidth / 2, -screenHeight / 2, 0);
 			modelViewMatrix.appendScale(2 / screenWidth, -2 / screenHeight, 1);
 			
-			batches = new Vector.<IQuadBatch>();
+			batches = new Vector.<IBatch>();
 			nBatches = 0;
+			
+			objects = new Vector.<SkyRenderObject>;
+			nObjects = 0;
 		}
 		
-		public function setRoot(root:SkyRenderObjectContainer):void
-		{
-			this.root = root;
-		}
-		
-		public function addObject(object:SkyRenderObject, textureName:String, spriteName:String):void
+		public function getBatch(name:String):SkyStandartQuadBatch
 		{
 			for (var i:int = 0; i < nBatches; i++) 
 			{
 				var standartBatch:SkyStandartQuadBatch = batches[i] as SkyStandartQuadBatch;
 				
-				if (standartBatch.name == textureName)
+				if (standartBatch.name == name && standartBatch.verteces.length < 196596)
 				{
-					standartBatch.add(object, spriteName, textureName);
-					
-					return;
+					return standartBatch;
 				}
+				else continue;
 			}
 			
 			var batch:SkyStandartQuadBatch = new SkyStandartQuadBatch();
-			batch.initialize(context3D);
-			batch.setMatrix(modelViewMatrix);
-			batch.setTexture(textureName, spriteName);
-			batch.add(object, spriteName, textureName);
+			batch.initialize(context3D, modelViewMatrix, name);
 			batches[nBatches] = batch;
 			nBatches++;
+			
+			return batch;
 		}
 		
-		private function updateAllChilds(object:SkyRenderObjectContainer):void
+		public function removeObjectFromRender(object:SkyRenderObject):void
 		{
-			var length:int = object.children.length;
+			var index:int = objects.indexOf(object);
 			
-			for (var i:int = 0; i < length; i++) 
-			{
-				var objectChild:SkyRenderObjectContainer = object.children[i];
-				
-				//objectChild.parent.calculateGlobalCoordinates(objectChild);
-				
-				if (objectChild.children) updateAllChilds(objectChild);
-			}
+			if (index == -1) return;
+			
+			objects.splice(index, 1);
+			nObjects--;
 		}
 		
-		/*private function updateAllChilds(object:SkyRenderObjectContainer):void
+		public function addObjectToRender(object:SkyRenderObject):void
 		{
-			var length:int = object.children.length;
-			
-			for (var i:int = 0; i < length; i++) 
-			{
-				var objectChild:SkyRenderObjectContainer = object.children[i];
-				
-				if (!objectChild.visible) continue;
-				
-				if (object.renderType == SkyRenderType.SIMPLE_SPRITE)
-				{
-					if (nBatches == 0)
-					{
-						var batch:SkyStandartQuadBatch = new SkyStandartQuadBatch();
-						batch.initialize(context3D);
-						batches[nBatches] = batch;
-						nBatches++;
-					}
-					else if (nBatches > 0 && batches[0] is SkyStandartQuadBatch)
-					{
-						batches[0].add(object);
-					}
-				}
-				
-				//objectChild.parent.calculateGlobalData(objectChild);//deleted globalX and globalY = 0;
-				
-				//if (objectChild.bitmapData) draw(objectChild);
-				
-				if (object.children) drawAllChilds(objectChild);
-			}
-		}*/
-		
-		/*private function prepareBatches():void
-		{
-			if (root.renderType == SkyRenderType.SIMPLE_SPRITE)
-			{
-				if (nBatches == 0)
-				{
-					var batch:SkyStandartQuadBatch = new SkyStandartQuadBatch();
-					batches[nBatches] = batch;
-					nBatches++;
-				}
-			}
-		}*/
+			objects.push(object);
+			nObjects++;
+		}
 		
 		public function update():void
 		{
 			context3D.clear();
 			
-			//if(nBatches > 0) updateAllChilds(root);
+			var object:SkyRenderObject;
 			
-			for (var i:int = 0; i < nBatches; i++)
+			for (var i:int = 0; i < nObjects; i++)
+			{
+				object = objects[i];
+				object.updateCoordinates();
+			}
+			
+			for (i = 0; i < nBatches; i++)
 			{
 				batches[i].render();
 				SkySand.drawCalls++;
