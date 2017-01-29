@@ -1,5 +1,6 @@
 package skysand.utils 
 {
+	import flash.display.Bitmap;
 	import flash.text.AntiAliasType;
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
@@ -10,6 +11,7 @@ package skysand.utils
 	import flash.system.System;
 	import skysand.components.ComponentColor;
 	import skysand.components.SkyWindow;
+	import skysand.display.SkyGraphics;
 	import skysand.render.RenderObject;
 	import skysand.text.SkyTextField;
 	
@@ -22,6 +24,7 @@ package skysand.utils
 		private const GREEN:uint = 0x91CC20;
 		private const ORANGE:uint = 0xFF611B;
 		private const YELLOW:uint = 0xFFA918;
+		private const PURPLE:uint = 0xD44482;
 		
 		/**
 		 * Максимальная частота кадров.
@@ -109,6 +112,11 @@ package skysand.utils
 		private var matrix:Matrix;
 		
 		/**
+		 * Номер линии.
+		 */
+		private var lineIndex:int;
+		
+		/**
 		 * Текстовое поле для отображения текущего числа кадров в верху профайлера.
 		 */
 		private var fpsTextField:SkyTextField;
@@ -171,27 +179,29 @@ package skysand.utils
 		/**
 		 * Массив с линиями показывающими текущее значение частоты кадров.
 		 */
-		private var fpsLines:Vector.<RenderObject>;
+		private var fpsLines:Vector.<SkyGraphics>;
 		
 		/**
 		 * Массив с линиями показывающими среднее значение частоты кадров.
 		 */
-		private var averageFpsLines:Vector.<RenderObject>;
+		private var averageFpsLines:Vector.<SkyGraphics>;
 		
 		/**
 		 * Массив с линиями показывающими текущую занимаемую оперативную память.
 		 */
-		private var memoryLines:Vector.<RenderObject>;
+		private var memoryLines:Vector.<SkyGraphics>;
+		
+		private var gpuMemoryLines:Vector.<SkyGraphics>;
 		
 		/**
 		 * Массив с линиями показывающими время отрисовки кадра.
 		 */
-		private var renderTimeLines:Vector.<RenderObject>;
+		private var renderTimeLines:Vector.<SkyGraphics>;
 		
 		/**
 		 * Массив с линиями показывающими время обновления цикла приложения.
 		 */
-		private var applicationTimeLines:Vector.<RenderObject>;
+		private var applicationTimeLines:Vector.<SkyGraphics>;
 		
 		/**
 		 * Ссылка на класс.
@@ -240,9 +250,19 @@ package skysand.utils
 			{
 				var fps:Number = nFrames / deltaTime * 1000;
 				
+				for (var i:int = 0; i < 29; i++)
+				{
+					applicationTimeLines[i].x += 7;
+					averageFpsLines[i].x += 7;
+					renderTimeLines[i].x += 7;
+					fpsLines[i].x += 7;
+				}
+				
 				updateFps(fps);
 				updateMemory();
 				updateFrameTime();
+				
+				lineIndex = lineIndex - 1 < 0 ? 28 : lineIndex - 1;
 				
 				nFrames = 0;
 				beginTime = endTime;
@@ -304,7 +324,7 @@ package skysand.utils
 			sourceTextField.free();
 			sourceTextField = null;
 			
-			for (var i:int = 0; i < 29; i++) 
+			/*for (var i:int = 0; i < 29; i++) 
 			{
 				removeChild(applicationTimeLines[i]);
 				removeChild(averageFpsLines[i]);
@@ -326,7 +346,7 @@ package skysand.utils
 				
 				fpsLines[i].bitmapData.dispose();
 				fpsLines[i].bitmapData = null;
-			}
+			}*/
 			
 			applicationTimeLines.length = 0;
 			averageFpsLines.length = 0;
@@ -349,38 +369,34 @@ package skysand.utils
 		 */
 		private function updateFps(count:Number):void
 		{
-			count = count > 60 ? 60 : count;
+			count = count > maxFrameRate ? maxFrameRate : count;
 			
-			for (var i:int = 0; i < 29; i++)
-			{
-				averageFpsLines[i].x += 7;
-				fpsLines[i].x += 7;
-			}
-			
-			var greenLine:RenderObject = fpsLines.pop();
-			greenLine.x = fpsLines[0].x - 7;
+			var greenLine:SkyGraphics = fpsLines[lineIndex];
 			greenLine.height = Math.ceil((count / maxFrameRate) * 78);
-			greenLine.y = 149 - greenLine.height;
-			fpsLines.unshift(greenLine);
+			greenLine.x = 13;
+			greenLine.y = 319 - greenLine.height;
 			
 			updateFpsCount++;
 			totalFps += count;
 			averageFps = totalFps / updateFpsCount;
 			
-			var blueLine:RenderObject = averageFpsLines.pop();
-			blueLine.x = averageFpsLines[0].x - 7;
+			var blueLine:SkyGraphics = averageFpsLines[lineIndex];
 			blueLine.height = Math.ceil((averageFps / maxFrameRate) * 78);
-			blueLine.y = 149 - blueLine.height;
-			averageFpsLines.unshift(blueLine);
+			blueLine.x = 13;
+			blueLine.y = 319 - blueLine.height;
 			
 			var index0:int = getChildIndex(greenLine);
 			var index1:int = getChildIndex(blueLine);
 			
-			if (greenLine.height <= blueLine.height && index0 < index1) swapChildren(greenLine, blueLine);
+			if (greenLine.height <= blueLine.height && index0 < index1) swapChildren(blueLine, greenLine);
 			
-			currentFpsField.text = count.toFixed(1);
-			averageFpsField.text = averageFps.toFixed(1);
-			fpsTextField.text = count.toFixed(1) + " fps";
+			currentFpsField.text = "current\t\t\t             " + count.toFixed(1);
+			averageFpsField.text = "average\t\t\t             " + averageFps.toFixed(1);
+			
+			fpsTextField.text = "frame rate\n" + count.toFixed(1) + " fps";
+			fpsTextField.setLeading( -6);
+			fpsTextField.setSize(15, 0, 11);
+			trace(fpsTextField.getTextFormat().leading);
 			
 			maxFps = maxFps < count ? count : maxFps;
 			minFps = minFps > count ? count : minFps;
@@ -388,11 +404,11 @@ package skysand.utils
 			var minLength:int = minFps.toFixed(1).length;
 			var maxLength:int = maxFps.toFixed(1).length;
 			
-			minMaxFpsField.text = maxFps.toFixed(1) + '\n' + minFps.toFixed(1);	
+			minMaxFpsField.text = maxFps.toFixed(1) + '\n' + minFps.toFixed(1);
 			minMaxFpsField.setColor(GREEN, 0, minLength);
 			minMaxFpsField.setColor(ORANGE, minLength + 1, minLength + maxLength + 1);
 		}
-		
+		private var f:Boolean = false;
 		/**
 		 * Обновить график и данные о занимаемой памяти приложения.
 		 */
@@ -400,15 +416,15 @@ package skysand.utils
 		{
 			var memory:Number = System.totalMemory / 1024 / 1024;
 			
-			for (var i:int = 0; i < 29; i++)
+			for (var i:int = 0; i < 29; i++) 
 			{
-				var line:RenderObject = memoryLines[i];
+				var line:SkyGraphics = memoryLines[i];
 				line.x += 7;
 				
 				if (memory >= maxMemoryLength)
 				{
 					line.height = Math.ceil(line.height * 0.5);
-					line.y = 149 - line.height;
+					line.y = 319 - line.height;
 				}
 			}
 			
@@ -417,11 +433,11 @@ package skysand.utils
 			line = memoryLines.pop();
 			line.x = memoryLines[0].x - 7;
 			line.height = Math.ceil((memory / maxMemoryLength) * 78);
-			line.y = 149 - line.height;
+			line.y = 319 - line.height;
 			memoryLines.unshift(line);
 			
 			memoryField.text = memory.toFixed(2) + " mb";
-			currentMemoryField.text = memory.toFixed(2);
+			currentMemoryField.text = "memory\t\t\t" + memory.toFixed(2);
 			
 			maxMemory = maxMemory < memory ? memory : maxMemory;
 			minMemory = minMemory > memory ? memory : minMemory;
@@ -439,26 +455,26 @@ package skysand.utils
 		 */
 		private function updateFrameTime():void
 		{
-			for (var i:int = 0; i < 29; i++)
+			/*for (var i:int = 0; i < 29; i++)
 			{
 				applicationTimeLines[i].x += 7;
 				renderTimeLines[i].x += 7;
-			}
+			}*/
 			
-			var renderLine:RenderObject = renderTimeLines.pop();
+			var renderLine:SkyGraphics = renderTimeLines.pop();
 			renderLine.x = renderTimeLines[0].x - 7;
 			renderLine.height = Math.ceil((renderTime / totalUpdateTime) * 78);
 			renderLine.y = 149 - renderLine.height;
 			renderTimeLines.unshift(renderLine);
 			
-			var appLine:RenderObject = applicationTimeLines.pop();
+			var appLine:SkyGraphics = applicationTimeLines.pop();
 			appLine.x = applicationTimeLines[0].x - 7;
 			appLine.height = Math.ceil((applicationUpdateTime / totalUpdateTime) * 78);
 			appLine.y = 149 - appLine.height - renderLine.height;
 			applicationTimeLines.unshift(appLine);
 			
-			renderTimeField.text = String(renderTime);
-			applicationTimeField.text = String(applicationUpdateTime);
+			renderTimeField.text = "render\t\t\t\t" + String(renderTime);
+			applicationTimeField.text = "application\t\t\t" + String(applicationUpdateTime);
 			frameTimeField.text = String(totalUpdateTime) + " ms";
 			
 			var seconds:int = int((getTimer() - startTime) / 1000);
@@ -480,7 +496,7 @@ package skysand.utils
 		 */
 		private function initialize():void
 		{
-			create(651, 207, ComponentColor.YELLOW_COLOR, "PROFILER", "verdana");
+			create(651, 376, ComponentColor.YELLOW_COLOR, "PROFILER", "verdana");
 			
 			applicationUpdateTime = 0;
 			beginTime = getTimer();
@@ -490,7 +506,7 @@ package skysand.utils
 			totalUpdateTime = 0;
 			minMemory = 1000000;
 			updateFpsCount = 0;
-			maxFrameRate = 60;
+			maxFrameRate = SkySand.FRAME_RATE;
 			maxMemory = -1;
 			averageFps = 0;
 			renderTime = 0;
@@ -498,105 +514,132 @@ package skysand.utils
 			totalFps = 0;
 			nFrames = 0;
 			maxFps = -1;
+			lineIndex = 28;
 			
-			sourceTextField = createTextField();
+			drawLabel(ORANGE, "render", 11, 160);
+			drawLabel(GREEN, "application", 11, 180);
+			drawLabel(GREEN, "current", 11, 330);
+			drawLabel(BLUE, "average", 11, 350);
+			drawLabel(YELLOW, "ram memory", 223, 330);
+			drawLabel(PURPLE, "gpu memory", 435, 330);
 			
-			fpsTextField = createTextField();
-			fpsTextField.x = 9;
-			fpsTextField.y = 42;
-			fpsTextField.size = 20;
-			addChild(fpsTextField);
-			
-			minMaxFpsField = createTextField();
-			minMaxFpsField.x = 160;
-			minMaxFpsField.y = 30;
-			minMaxFpsField.height = 40;
-			addChild(minMaxFpsField);
-			
-			currentFpsField = createTextField();
-			currentFpsField.textColor = GREEN;
-			currentFpsField.x = 179;
-			currentFpsField.y = 158;
-			addChild(currentFpsField);
-			
-			averageFpsField = createTextField();
-			averageFpsField.textColor = BLUE;
-			averageFpsField.x = 179;
-			averageFpsField.y = 178;
-			addChild(averageFpsField);
+			var line:SkyGraphics = new SkyGraphics();
+			line.color = GREY;
+			line.drawRect(0, 0, 629, 1);
+			line.x = 11;
+			line.y = 200;
+			addChild(line);
 			
 			frameTimeField = createTextField();
-			frameTimeField.x = 221;
+			frameTimeField.x = 9;
 			frameTimeField.y = 42;
 			frameTimeField.size = 20;
 			addChild(frameTimeField);
 			
+			timeField = createTextField();
+			timeField.x = 128;
+			timeField.y = 42;
+			timeField.size = 20;
+			addChild(timeField);
+			
 			renderTimeField = createTextField();
 			renderTimeField.textColor = ORANGE;
-			renderTimeField.x = 394;
+			renderTimeField.x = 20;
 			renderTimeField.y = 158;
 			addChild(renderTimeField);
 			
 			applicationTimeField = createTextField();
 			applicationTimeField.textColor = GREEN;
-			applicationTimeField.x = 394;
+			applicationTimeField.x = 20;
 			applicationTimeField.y = 178;
 			addChild(applicationTimeField);
 			
-			timeField = createTextField();
-			timeField.x = 340;
-			timeField.y = 42;
-			timeField.size = 20;
-			addChild(timeField);
+			fpsTextField = createTextField();
+			fpsTextField.height = 80;
+			fpsTextField.x = 9;
+			fpsTextField.y = 200;//212;
+			fpsTextField.size = 20;
+			addChild(fpsTextField);
+			
+			minMaxFpsField = createTextField();
+			minMaxFpsField.x = 160;
+			minMaxFpsField.y = 201;
+			minMaxFpsField.height = 40;
+			addChild(minMaxFpsField);
+			
+			currentFpsField = createTextField();
+			currentFpsField.textColor = GREEN;
+			currentFpsField.x = 20;
+			currentFpsField.y = 328;
+			addChild(currentFpsField);
+			
+			averageFpsField = createTextField();
+			averageFpsField.textColor = BLUE;
+			averageFpsField.x = 20;
+			averageFpsField.y = 348;
+			addChild(averageFpsField);
 			
 			memoryField = createTextField();
-			memoryField.x = 433;
-			memoryField.y = 42;
+			memoryField.x = 220;
+			memoryField.y = 212;
 			memoryField.size = 20;
 			addChild(memoryField);
 			
 			minMaxMemoryField = createTextField();
-			minMaxMemoryField.x = 560;
-			minMaxMemoryField.y = 30;
+			minMaxMemoryField.x = 380;
+			minMaxMemoryField.y = 201;
 			minMaxMemoryField.height = 40;
 			addChild(minMaxMemoryField);
 			
 			currentMemoryField = createTextField();
 			currentMemoryField.textColor = YELLOW;
-			currentMemoryField.x = 579;
-			currentMemoryField.y = 158;
+			currentMemoryField.x = 232;//444
+			currentMemoryField.y = 328;
 			addChild(currentMemoryField);
 			
-			var sprite:Sprite = new Sprite();
-			sprite.graphics.lineStyle(2, GREY);
-			sprite.graphics.drawRect(0, 0, 203, 80);
+			drawFrame(11, 69);
+			drawFrame(11, 239);
+			drawFrame(223, 239);
+			drawFrame(435, 239);
 			
-			matrix = new Matrix();
-			matrix.translate(12, 70);
-			bitmapData.draw(sprite, matrix);
-			matrix.translate(212, 0);
-			bitmapData.draw(sprite, matrix);
-			matrix.translate(212, 0);
-			bitmapData.draw(sprite, matrix);
-			matrix.identity();
+			//drawStaticText("frame rate", 9, 200);
+			drawStaticText("frame time", 9, 30);
+			drawStaticText("active time", 128, 30);
+			drawStaticText("ram memory", 221, 200);
+			drawStaticText("gpu memory", 433, 200);
 			
-			drawStaticText("frame rate", 9, 30);
-			drawStaticText("frame time", 221, 30);
-			drawStaticText("active time", 340, 30);
-			drawStaticText("memory", 433, 30);
-			
-			drawLabel(GREEN, "current", 11, 160);
-			drawLabel(BLUE, "average", 11, 180);
-			drawLabel(ORANGE, "render", 223, 160);
-			drawLabel(GREEN, "application", 223, 180);
-			drawLabel(YELLOW, "memory", 435, 160);
-			
-			drawTringle(GREEN, 150, 40, 270);
-			drawTringle(ORANGE, 160, 55, 90);
-			drawTringle(GREEN, 560, 55, 90);
-			drawTringle(ORANGE, 550, 40, 270);
+			drawTringle(GREEN, 150, 212, 270);
+			drawTringle(ORANGE, 160, 227, 90);
+			drawTringle(GREEN, 380, 227, 90);
+			drawTringle(ORANGE, 370, 212, 270);
+			drawTringle(GREEN, 560, 227, 90);
+			drawTringle(ORANGE, 550, 212, 270);
 			
 			createLineArrays();
+		}
+		
+		/**
+		 * Нарисовать рамку.
+		 * @param	x расположение рамки по оси х.
+		 * @param	y расположение рамки по оси у.
+		 */
+		private function drawFrame(x:Number, y:Number):void
+		{
+			var frame:SkyGraphics = new SkyGraphics();
+			frame.color = GREY;
+			frame.addVertex(2, 2);
+			frame.addVertex(0, 0);
+			frame.addVertex(205, 0);
+			frame.addVertex(205, 82);
+			frame.addVertex(0, 82);
+			frame.addVertex(0, 0);
+			frame.addVertex(2, 2);
+			frame.addVertex(2, 80);
+			frame.addVertex(203, 80);
+			frame.addVertex(203, 2);
+			frame.x = x;
+			frame.y = y;
+			addChild(frame);
 		}
 		
 		/**
@@ -622,71 +665,60 @@ package skysand.utils
 		 */
 		private function createLineArrays():void
 		{
-			fpsLines = new Vector.<RenderObject>();
-			memoryLines = new Vector.<RenderObject>();
-			averageFpsLines = new Vector.<RenderObject>();
-			renderTimeLines = new Vector.<RenderObject>();
-			applicationTimeLines = new Vector.<RenderObject>();
-			
-			var sourceBlueLine:BitmapData = new BitmapData(5, 78, false, BLUE);
-			sourceBlueLine.fillRect(new Rectangle(0, 0, 5, 2), 0x151E27);
-			
-			var sourceGreenLine:BitmapData = new BitmapData(5, 78, false, GREEN);
-			sourceGreenLine.fillRect(new Rectangle(0, 0, 5, 2), 0x151E27);
-			
-			var sourceYellowLine:BitmapData = new BitmapData(5, 78, false, YELLOW);
-			sourceYellowLine.fillRect(new Rectangle(0, 0, 5, 2), 0x151E27);
-			
-			var sourceOrangeLine:BitmapData = new BitmapData(5, 78, false, ORANGE);
-			sourceOrangeLine.fillRect(new Rectangle(0, 0, 5, 2), 0x151E27);
+			fpsLines = new Vector.<SkyGraphics>();
+			memoryLines = new Vector.<SkyGraphics>();
+			averageFpsLines = new Vector.<SkyGraphics>();
+			renderTimeLines = new Vector.<SkyGraphics>();
+			applicationTimeLines = new Vector.<SkyGraphics>();
 			
 			for (var i:int = 0; i < 29; i++)
 			{
-				var line:RenderObject = new RenderObject();
-				line.bitmapData = sourceGreenLine;
-				line.width = 5;
+				var line = new SkyGraphics();
+				line.color = ORANGE;
+				line.drawRect(0, 0, 5, 78);
 				line.height = 0;
 				line.y = 71;
+				line.x = 13 + i * 7;
+				renderTimeLines[i] = line;
+				addChild(line);
+				
+				line = new SkyGraphics();
+				line.color = GREEN;
+				line.drawRect(0, 0, 5, 78);
+				line.height = 0;
+				line.y = 71;
+				line.x = 13 + i * 7;
+				applicationTimeLines[i] = line;
+				addChild(line);
+				
+				line = new SkyGraphics();
+				line.color = GREEN;
+				line.drawRect(0, 0, 5, 78);
+				line.height = 0;
+				line.y = 319;
 				line.x = 13 + i * 7;
 				fpsLines[i] = line;
 				addChild(line);
 				
-				line = new RenderObject();
-				line.bitmapData = sourceBlueLine;
-				line.width = 5;
+				line = new SkyGraphics();
+				line.color = BLUE;
+				line.drawRect(0, 0, 5, 78);
 				line.height = 0;
-				line.y = 71;
+				line.y = 319;
 				line.x = 13 + i * 7;
+				line.visible = false;
 				averageFpsLines[i] = line;
 				addChild(line);
 				
-				line = new RenderObject();
-				line.bitmapData = sourceOrangeLine;
-				line.width = 5;
+				line = new SkyGraphics();
+				line.color = YELLOW;
+				line.drawRect(0, 0, 5, 78);
 				line.height = 0;
-				line.y = 71;
-				line.x = 225 + i * 7;
-				renderTimeLines[i] = line;
-				addChild(line);
-				
-				line = new RenderObject();
-				line.bitmapData = sourceGreenLine;
-				line.width = 5;
-				line.height = 0;
-				line.y = 71;
-				line.x = 225 + i * 7;
-				applicationTimeLines[i] = line;
-				addChild(line);
-				
-				line = new RenderObject();
-				line.bitmapData = sourceYellowLine;
-				line.width = 5;
-				line.height = 0;
-				line.y = 71;
-				line.x = 437 + i * 7;
+				line.y = 319;
+				line.x = 225 + i * 7;//437 + i * 7;
 				memoryLines[i] = line;
 				addChild(line);
-			}	
+			}
 		}
 		
 		/**
@@ -697,8 +729,11 @@ package skysand.utils
 		 */
 		private function drawStaticText(text:String, x:int, y:int):void
 		{
-			sourceTextField.text = text;
-			bitmapData.copyPixels(sourceTextField.bitmapData, sourceTextField.bitmapData.rect, new Point(x, y), null, null, true);
+			var textField:SkyTextField = createTextField();
+			textField.text = text;
+			textField.x = x;
+			textField.y = y;
+			addChild(textField);
 		}
 		
 		/**
@@ -710,18 +745,19 @@ package skysand.utils
 		 */
 		private function drawLabel(color:uint, text:String, x:int, y:int):void
 		{
-			var sprite:Sprite = new Sprite();
-			sprite.graphics.beginFill(GREY);
-			sprite.graphics.drawRect(0, 0, 205, 16);
-			sprite.graphics.beginFill(color);
-			sprite.graphics.drawRect(0, 0, 5, 16);
+			var sprite:SkyGraphics = new SkyGraphics();
+			sprite.color = GREY;
+			sprite.drawRect(0, 0, 205, 16);
+			sprite.x = x;
+			sprite.y = y;
+			addChild(sprite);
 			
-			matrix.translate(x, y);
-			bitmapData.draw(sprite, matrix);
-			matrix.identity();
-			
-			sourceTextField.textColor = color;
-			drawStaticText(text, x + 9, y - 2);
+			sprite = new SkyGraphics();
+			sprite.color = color;
+			sprite.drawRect(0, 0, 5, 16);
+			sprite.x = x;
+			sprite.y = y;
+			addChild(sprite);
 		}
 		
 		/**
@@ -733,17 +769,15 @@ package skysand.utils
 		 */
 		private function drawTringle(color:uint, x:int, y:int, angle:Number):void
 		{
-			var sprite:Sprite = new Sprite();
-			sprite.graphics.beginFill(color);
-			sprite.graphics.lineTo(5, 5);
-			sprite.graphics.lineTo(0, 10);
-			
-			matrix.identity();
-			angle = SkyMath.toRadian(angle);
-			matrix.rotate(angle);
-			matrix.translate(x, y);
-			
-			bitmapData.draw(sprite, matrix);
+			var sprite:SkyGraphics = new SkyGraphics();
+			sprite.color = color;
+			sprite.addVertex(0, 0);
+			sprite.addVertex(5, 5);
+			sprite.addVertex(0, 10);
+			sprite.rotation = angle;
+			sprite.x = x;
+			sprite.y = y;
+			addChild(sprite);
 		}
 	}
 }

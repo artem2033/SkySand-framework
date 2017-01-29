@@ -1,5 +1,7 @@
 package skysand.display
 {
+	import air.update.states.HSM;
+	import flash.display.Stage;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -93,18 +95,28 @@ package skysand.display
 		/**
 		 * Глубина на сцене.
 		 */
-		public var depth:Number;
+		public var depth:uint;
 		
 		/**
 		 * Глобальная глубина.
 		 */
 		protected var globalDepth:uint;
 		
+		public var isOk:Boolean;
 		public var globalR:Point;
 		public var localR:Point;
 		
+		public var isAdded:Boolean;
+		public var isVisible:Boolean;
+		private var _stage:Stage;
+		public var globalVisible:uint;
+		
 		public function SkyRenderObject()
 		{
+			globalVisible = 1;
+			isOk = false;
+			isAdded = false;
+			isVisible = false;
 			x = 0;
 			y = 0;
 			width = 0;
@@ -123,6 +135,24 @@ package skysand.display
 			globalDepth = 0;
 			globalScaleX = 1;
 			globalScaleY = 1;
+			globalR = new Point();
+			localR = new Point();
+			_stage = SkySand.STAGE;
+		}
+		
+		public function remove():void
+		{
+			
+		}
+		
+		public function init():void
+		{
+			
+		}
+		
+		public function get stage():Stage
+		{
+			return _stage;
 		}
 		
 		/**
@@ -154,32 +184,12 @@ package skysand.display
 			if (y < globalY - pivotY) return false;
 			
 			return true;
-            // Algorithm & implementation thankfully taken from:
-            // -> http://alienryderflex.com/polygon/
-			
-            /*var i:int, j:int = numVertices - 1;
-            var oddNodes:uint = 0;
-			
-            for (i=0; i<numVertices; ++i)
-            {
-                var ix:Number = _coords[i * 2];
-                var iy:Number = _coords[i * 2 + 1];
-                var jx:Number = _coords[j * 2];
-                var jy:Number = _coords[j * 2 + 1];
-				
-                if ((iy < y && jy >= y || jy < y && iy >= y) && (ix <= x || jx <= x))
-                    oddNodes ^= uint(ix + (y - iy) / (jy - iy) * (jx - ix) < x);
-				
-                j = i;
-            }
-			
-            return oddNodes != 0;*/
         }
 		
 		/**
 		 * override this method.
 		 */
-		public function updateCoordinates():void
+		public function updateData():void
 		{
 			
 		}

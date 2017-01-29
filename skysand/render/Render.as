@@ -133,7 +133,7 @@ package skysand.render
 			buffer.fillRect(fillRectangle, fillColor);
 			
 			SkySand.NUM_ON_STAGE = 0;
-			SkyWindow.N = 0;
+			//SkyWindow.N = 0;
 			id = 0;
 			drawAllChilds(mainRenderObject);
 			//trace(SkyWindow.N);

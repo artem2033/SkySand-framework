@@ -23,6 +23,8 @@ package skysand.keyboard
 		 */
 		public var anyCharKeyDown:Boolean;
 		
+		public var isActive:Boolean;
+		
 		/**
 		 * Текстовое поле для получения символов.
 		 */
@@ -77,7 +79,8 @@ package skysand.keyboard
 			anyKeyDown = false;
 			anyCharKeyDown = false;
 			char = "";
-			
+			isActive = true;
+			trace("help");
 			textField = new TextField();
 			textField.type = TextFieldType.INPUT;
 			textField.visible = false;
@@ -93,7 +96,7 @@ package skysand.keyboard
 		{
 			var key:SkyKeyData = keys[keyID];
 			
-			if(key.state == 1)
+			if(key.state == 1 && isActive)
 			{
 				key.state = 0;
 				return true;
@@ -109,7 +112,7 @@ package skysand.keyboard
 		 */
 		public function isDown(keyID:uint):Boolean
 		{
-			return keys[keyID].state == 1 ? true : false;
+			return keys[keyID].state == 1 && isActive ? true : false;
 		}
 		
 		/**
@@ -164,6 +167,8 @@ package skysand.keyboard
 		 */
 		public function update():void
 		{
+			if (!isActive) return;
+			
 			for (var i:int = 0; i < NUM_KEYS; i++) 
 			{
 				var key:SkyKeyData = keys[i];
@@ -324,8 +329,8 @@ package skysand.keyboard
 			}
 			
 			anyKeyDown = true;
+			
 			if (keyboardEvent.charCode != 0) anyCharKeyDown = true;
-			//stage.focus = textField;
 		}
 		
 		/**

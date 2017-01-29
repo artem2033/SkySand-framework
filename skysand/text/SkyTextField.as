@@ -1,21 +1,37 @@
 package skysand.text
 {
-	import flash.display.BitmapData;
+	import flash.display3D.Context3DTextureFormat;
+	import flash.display3D.textures.Texture;
 	import flash.display.DisplayObject;
-	import flash.display.StageQuality;
-	import flash.geom.Matrix;
+	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.text.TextLineMetrics;
+	import flash.text.TextFormat;
 	import flash.text.StyleSheet;
 	import flash.text.TextField;
-	import flash.text.TextFormat;
-	import flash.text.TextLineMetrics;
-	import skysand.mouse.SkyMouse;
-	import skysand.console.Console;
-	import skysand.render.RenderObject;
-	import skysand.interfaces.IFrameworkUpdatable;
 	
-	public class SkyTextField extends RenderObject implements IFrameworkUpdatable
+	import skysand.display.SkyRenderObjectContainer;
+	import skysand.display.SkyOldData;
+	import skysand.render.hardware.SkyHardwareRender;
+	import skysand.render.hardware.SkyTextBatch;
+	import skysand.keyboard.SkyKeyboard;
+	import skysand.mouse.SkyMouse;
+	import skysand.utils.SkyMath;
+	
+	public class SkyTextField extends SkyRenderObjectContainer
 	{
+		/**
+		 * Индекс с которого начинаются считываться вершины. 
+		 */
+		public var indexID:uint;
+		
+		/**
+		 * Растровое представление текстового поля.
+		 */
+		private var bitmapData:BitmapData;
+		
 		/**
 		 * Проверка на фокуса на текстовом поле.
 		 */
@@ -36,7 +52,70 @@ package skysand.text
 		 */
 		private var textFormat:TextFormat;
 		
+		/**
+		 * Текст.
+		 */
 		private var _text:String = "";
+		
+		/**
+		 * Пакет для отрисовки текстового поля.
+		 */
+		private var batch:SkyTextBatch;
+		
+		/**
+		 * Старые данные для оптимизации рендера.
+		 */
+		private var old:SkyOldData;
+		
+		/**
+		 * Ссылка на вершины.
+		 */
+		private var verteces:Vector.<Number>;
+		
+		/**
+		 * Ссылка на текстурные координаты.
+		 */
+		private var uv:Vector.<Number>;
+		
+		/**
+		 * Массив для хранения временных данных трансформированных вершин.
+		 */
+		private var v:Vector.<Number>;
+		
+		/**
+		 * Ссылка на мышь.
+		 */
+		private var mouse:SkyMouse;
+		
+		/**
+		 * Ссылка на клавиатуру.
+		 */
+		private var keyboard:SkyKeyboard;
+		
+		/**
+		 * Перетаскивать или нет.
+		 */
+		private var drag:Boolean;
+		
+		/**
+		 * Точка смещения перетаскивания объекта.
+		 */
+		private var offsetDragPoint:Point;
+		
+		/**
+		 * Перетаскивается ли сейчас объект.
+		 */
+		private static var isDrag:Boolean;
+		
+		/**
+		 * Стандартные размеры текстур.
+		 */
+		private var sizes:Vector.<uint>;
+		
+		/**
+		 * Текущий размер текстуры.
+		 */
+		private var currentSizeOfTexture:uint;
 		
 		public function SkyTextField()
 		{
@@ -49,20 +128,58 @@ package skysand.text
 		 */
 		private function initialize():void
 		{
-			bitmapData = new BitmapData(1, 1, true, 0x00FFFFFF);
+			bitmapData = new BitmapData(2, 2, true, 0x00FFFFFF);
 			textFormat = new TextFormat();
 			matrix = new Matrix();
 			
 			textField = new TextField();
+			textField.width = 10;
+			textField.height = 1;
 			textField.visible = false;
-			stage.addChild(textField);
+			SkySand.STAGE.addChild(textField);
+			
+			v = new Vector.<Number>(8, true);
+			sizes = new Vector.<uint>(9, true);
+			sizes[0] = 4;
+			sizes[1] = 16;
+			sizes[2] = 32;
+			sizes[3] = 64;
+			sizes[4] = 128;
+			sizes[5] = 256;
+			sizes[6] = 512;
+			sizes[7] = 1024;
+			sizes[8] = 2048;
+			
+			offsetDragPoint = new Point();
+			old = new SkyOldData();
 			
 			focusOn = false;
+			isDrag = false;
+			drag = false;
 			
-			super.width = 1;
-			super.height = 1;
+			currentSizeOfTexture = 2;
+			indexID = 0;
+			height = 2;
+			width = 2;
 			
-			Console.instance.message("Framework: Создано новое текстовое поле, ID: " + textField.name.substring(8) + '.', Console.GREY);
+			mouse = SkyMouse.instance;
+			keyboard = SkyKeyboard.instance;
+		}
+		
+		/**
+		 * Найходит ближайшмй размер для текстуры, исходя из размеров текстового поля.
+		 * @return возвращает это значение.
+		 */
+		private function findClosestSize():int
+		{
+			var max:Number = width < height ? height : width;
+			
+			for (var i:int = 0; i < 9; i++) 
+			{
+				if (max < sizes[i]) return sizes[i];
+			}
+			
+			return 2;
 		}
 		
 		/**
@@ -74,25 +191,269 @@ package skysand.text
 			bitmapData.fillRect(bitmapData.rect, textField.backgroundColor);
 			bitmapData.draw(textField, matrix);
 			bitmapData.unlock();
+			
+			if (batch) batch.texture.uploadFromBitmapData(bitmapData);
+		}
+		
+		/**
+		 * Удалить из пакета.
+		 */
+		override public function remove():void 
+		{
+			if (batch != null)
+			{
+				batch.remove(this);
+			}
+			
+			SkyHardwareRender.instance.removeObjectFromRender(this);
+		}
+		
+		/**
+		 * Добавить в пакет для рендера.
+		 */
+		override public function init():void 
+		{
+			batch = SkyHardwareRender.instance.getBatch("textField") as SkyTextBatch;
+			verteces = batch.verteces;
+			uv = batch.uvs;
+			batch.add(this);
+		}
+		
+		/**
+		 * Начать перетаскивание объекта за курсором мыши.
+		 * @param	lockCentr перетаскивание без учёта смещения объекта от курсора.
+		 */
+		public function startDrag(lockCentr:Boolean = false):void
+		{
+			if (!drag && !isDrag)
+			{
+				if (!lockCentr)
+				{
+					offsetDragPoint.x = mouse.x - x;
+					offsetDragPoint.y = mouse.y - y;
+				}
+				else
+				{
+					offsetDragPoint.x = 0;
+					offsetDragPoint.y = 0;
+				}
+				
+				drag = true;
+				isDrag = true;
+			}
+		}
+		
+		/**
+		 * Остановить перетаскивание объекта.
+		 * Объект следует за мышью.
+		 */
+		public function stopDrag():void
+		{
+			if (drag)
+			{
+				drag = false;
+				isDrag = false;
+			}
+		}
+		
+		/**
+		 * Функция обновления координат и других данных.
+		 */
+		override public function updateData():void 
+		{
+			globalVisible = visible ? 1 * parent.globalVisible : 0 * parent.globalVisible;
+			
+			if (globalVisible == 1 && isVisible)
+			{
+				if (type == SkyTextConst.INPUT)
+				{
+					if (hitTestPoint(mouse.x, mouse.y) && mouse.LBMPressed)
+					{
+						focusOn = true;
+						SkySand.STAGE.focus = textField;
+						textField.setSelection(textField.length, textField.length);
+						
+						keyboard.isActive = false;
+						mouse.LBMPressed = false;
+					}
+					
+					if (mouse.LBMPressed && focusOn)
+					{
+						keyboard.isActive = true;
+						focusOn = false;
+						drawText();
+					}
+					
+					if (focusOn)
+					{
+						drawText();
+					}
+				}
+				
+				if (textField.autoSize != "none")
+				{
+					width = textField.width != width ? textField.width : width;
+					height = textField.height != height ? textField.height : height;
+				}
+				
+				if (drag)
+				{
+					x = mouse.x - offsetDragPoint.x;
+					y = mouse.y - offsetDragPoint.y;
+				}
+				
+				globalX = parent.globalX + x;
+				globalY = parent.globalY + y;
+				globalScaleX = parent.globalScaleX * scaleX;
+				globalScaleY = parent.globalScaleY * scaleY;
+				globalRotation = parent.globalRotation + rotation;
+				
+				var w:Number = globalScaleX * width;
+				var h:Number = globalScaleY * height;
+				
+				var px:Number = pivotX * globalScaleX;
+				var py:Number = pivotY * globalScaleY;
+				
+				if (verteces == null) return;
+				
+				if (old.rotation != globalRotation || old.width != width || old.height != height)
+				{
+					var angle:Number = SkyMath.toRadian(parent.globalRotation);
+					
+					localR = SkyMath.rotatePoint(x, y, 0, 0, angle);
+					globalR.x = localR.x + parent.globalR.x - x;
+					globalR.y = localR.y + parent.globalR.y - y;
+					
+					angle = SkyMath.toRadian(globalRotation);
+					
+					matrix.rotate(angle);
+					
+					v[0] = globalR.x - px * matrix.a - py * matrix.c;
+					v[1] = globalR.x + (w - px) * matrix.a - py * matrix.c;
+					v[2] = globalR.x - px * matrix.a + (h - py) * matrix.c;
+					v[3] = globalR.x + (w - px) * matrix.a + (h - py) * matrix.c;
+					v[4] = globalR.y - px * matrix.b - py * matrix.d;
+					v[5] = globalR.y + (w - px) * matrix.b - py * matrix.d;
+					v[6] = globalR.y - px * matrix.b + (h - py) * matrix.d;
+					v[7] = globalR.y + (w - px) * matrix.b + (h - py) * matrix.d;
+					
+					matrix.rotate( -angle);
+					matrix.identity();
+					
+					if (width > currentSizeOfTexture || height > currentSizeOfTexture)
+					{
+						currentSizeOfTexture = findClosestSize();
+						
+						batch.texture.dispose();
+						batch.texture = SkySand.CONTEXT_3D.createTexture(currentSizeOfTexture, currentSizeOfTexture, Context3DTextureFormat.BGRA, false);
+					}
+					
+					if (old.width != width)
+					{
+						uv[3] = width / currentSizeOfTexture;
+						uv[9] = width / currentSizeOfTexture;
+						
+						bitmapData.dispose();
+						bitmapData = new BitmapData(width, old.height, true, 0x000000);
+						textField.width = width;
+						
+						drawText();
+						
+						old.width = width;
+					}
+					
+					if (old.height != height)
+					{
+						uv[7] = height / currentSizeOfTexture;
+						uv[10] = height / currentSizeOfTexture;
+						
+						bitmapData.dispose();
+						bitmapData = new BitmapData(old.width, height, true, 0x000000);
+						textField.height = height;
+						
+						drawText();
+						
+						old.height = height;
+					}
+					
+					old.x--;
+					old.y--;
+					old.rotation = rotation;
+				}
+				
+				if (old.x != globalX)
+				{
+					verteces[indexID] = globalX + v[0];
+					verteces[indexID + 3] = globalX + v[1];
+					verteces[indexID + 6] = globalX + v[2];
+					verteces[indexID + 9] = globalX + v[3];
+					
+					old.x = globalX;
+				}
+				
+				if (old.y != globalY)
+				{
+					verteces[indexID + 1] = globalY + v[4];
+					verteces[indexID + 4] = globalY + v[5];
+					verteces[indexID + 7] = globalY + v[6];
+					verteces[indexID + 10] = globalY + v[7];
+					
+					old.y = globalY;
+				}
+				
+				if (old.depth != depth)
+				{
+					verteces[indexID + 2] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[indexID + 5] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[indexID + 8] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[indexID + 11] = depth / SkyHardwareRender.MAX_DEPTH;
+					
+					old.depth = depth;
+				}
+			}
+			else
+			{
+				verteces[indexID] = 0;
+				verteces[indexID + 1] = 0;
+				verteces[indexID + 3] = 0;
+				verteces[indexID + 4] = 0;
+				verteces[indexID + 6] = 0;
+				verteces[indexID + 7] = 0;
+				verteces[indexID + 9] = 0;
+				verteces[indexID + 10] = 0;
+				
+				old.x--;
+				old.y--;
+			}
 		}
 		
 		/**
 		 * Деструктор.
 		 */
-		override public function free():void
+		public function free():void
 		{
-			Console.instance.message("Framework: Текстовое поле с номером ID: " + textField.name.substring(8) + " удалено.", Console.RED);
+			SkySand.STAGE.removeChild(textField);
 			
-			stage.removeChild(textField);
-			
-			textField = null;
-			textFormat = null;
-			matrix = null;
+			offsetDragPoint = null;
 			bitmapData.dispose();
 			bitmapData = null;
-			focusOn = false;
+			textFormat = null;
+			textField = null;
+			verteces = null;
+			keyboard = null;
+			matrix = null;
+			batch = null;
+			mouse = null;
+			old = null;	
+			uv = null;
 			
-			super.free();
+			v.fixed = false;
+			v.length = 0;
+			v = null;
+			
+			sizes.fixed = false;
+			sizes.length = 0;
+			sizes = null;
 		}
 		
 		/**
@@ -104,6 +465,26 @@ package skysand.text
 		public function setColor(color:uint, beginIndex:int = -1, endIndex:int = -1):void
 		{
 			textFormat.color = color;
+			textField.setTextFormat(textFormat, beginIndex, endIndex);
+			drawText();
+		}
+		
+		public function setLeading(leading:int):void
+		{
+			textFormat.leading = leading;
+			textField.setTextFormat(textFormat);
+			drawText();
+		}
+		
+		/**
+		 * Сделать отдельные символы разного размера.
+		 * @param	size размер.
+		 * @param	beginIndex номер символа с которого нужно начать.
+		 * @param	endIndex конечный символ.
+		 */
+		public function setSize(size:uint, beginIndex:int = -1, endIndex:int = -1):void
+		{
+			textFormat.size = size;
 			textField.setTextFormat(textFormat, beginIndex, endIndex);
 			drawText();
 		}
@@ -301,42 +682,6 @@ package skysand.text
 		{
 			textField.setTextFormat(format, beginIndex, endIndex);
 			drawText();
-		}
-		
-		/**
-		 * Обновить текстовое поле (используется движком).
-		 */
-		override public function updateByFramework():void 
-		{
-			if (type == SkyTextConst.INPUT)
-			{
-				if (hitTestMouse() && SkyMouse.instance.LBMPressed)
-				{
-					focusOn = true;
-					stage.focus = textField;
-					textField.setSelection(textField.length, textField.length);
-					
-					SkyMouse.instance.LBMPressed = false;
-				}
-				else
-				{
-					focusOn = false;
-					drawText();
-				}
-				
-				if (focusOn)
-				{
-					drawText();
-				}
-			}
-			
-			if (textField.autoSize != "none")
-			{
-				width = textField.width != width ? textField.width : width;
-				height = textField.height != height ? textField.height : height;
-			}
-			
-			super.updateByFramework();
 		}
 		
 		/**
@@ -954,32 +1299,6 @@ package skysand.text
 		public function get size():Object
 		{
 			return textField.defaultTextFormat.size;
-		}
-		
-		/**
-		 * Высота текстового поля.
-		 */
-		override public function set height(value:Number):void 
-		{
-			bitmapData.dispose();
-			bitmapData = new BitmapData(width, value, true, 0x000000);
-			textField.height = value;
-			drawText();
-			
-			super.height = value;
-		}
-		
-		/**
-		 * Ширина тестового поля.
-		 */
-		override public function set width(value:Number):void 
-		{
-			bitmapData.dispose();
-			bitmapData = new BitmapData(value, height, true, 0x000000);
-			textField.width = value;
-			drawText();
-			
-			super.width = value;
 		}
 	}
 }

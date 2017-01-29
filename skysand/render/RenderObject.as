@@ -56,7 +56,7 @@ package skysand.render
 		/**
 		 * Пока в разработке...
 		 */
-		public var _graphics:SkyGraphics;
+		//public var _graphics:SkyGraphics;
 		
 		/**
 		 * Прозрачность объекта.
@@ -217,7 +217,7 @@ package skysand.render
 		{
 			var childs:Vector.<RenderObject> = new Vector.<RenderObject>();
 			
-			getChilds(SkySand.root, childs, x, y);
+			//getChilds(SkySand.root, childs, x, y);
 			return childs;
 		}
 		
@@ -517,7 +517,7 @@ package skysand.render
 		{
 			parent = null;
 			sprite = null;
-			_graphics = null;
+			//_graphics = null;
 			firstHitPoint = null;
 			secondHitPoint = null;
 			offsetDragPoint = null;
@@ -621,7 +621,7 @@ package skysand.render
 			return _width;
 		}
 		
-		public function get graphics():SkyGraphics
+		/*public function get graphics():SkyGraphics
 		{
 			if (!graphicsObject)
 			{
@@ -634,7 +634,7 @@ package skysand.render
 			
 			return _graphics;
 		}
-		
+		*/
 		/**
 		 * Получить количество дочерних объектов.
 		 */

@@ -50,9 +50,9 @@ package skysand.utils
 			textField.background = true;
 			textField.backgroundColor = 0x000000;
 			textField.textColor = 0xFFFFFF;
-			textField.width = 100;
-			textField.height = 20;
-			addChild(textField);
+			//textField.width = 100;
+			//textField.height = 20;
+			//addChild(textField);
 			
 			Console.instance.registerCommand("-sv_watcherVisible", setVisible, []);
 		}

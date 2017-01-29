@@ -70,7 +70,7 @@
 		/**
 		 * Текущий цветовой набор.
 		 */
-		private var color:ComponentColor;
+		private var colorScheme:ComponentColor;
 		
 		/**
 		 * Ссылка на клавиатуру.
@@ -112,13 +112,13 @@
 			helpWordsCount = 0;
 			currentItemWord = 0;
 			
-			color = ColorStorage.instance.getColor(ComponentColor.YELLOW_COLOR);
+			colorScheme = ColorStorage.instance.getColor(ComponentColor.YELLOW_COLOR);
 			keyboard = SkyKeyboard.instance;
 			
 			create(400, 480, ComponentColor.YELLOW_COLOR, "DEVELOPER CONSOLE", "verdana");
 			
 			displayField = new SkyTextField();
-			displayField.textColor = color.dark;
+			displayField.textColor = colorScheme.dark;
 			displayField.width = 400;
 			displayField.height = 455;
 			displayField.y = 25;
@@ -132,16 +132,16 @@
 			inputField.background = true;
 			inputField.width = 400;
 			inputField.height = 20;
-			inputField.backgroundColor = color.dark;
-			inputField.textColor = color.bright;
+			inputField.backgroundColor = colorScheme.dark;
+			inputField.textColor = colorScheme.bright;
 			inputField.y = 480;
 			inputField.font = "Consolas";
 			addChild(inputField);
 			
 			helpField = new SkyTextField();
-			helpField.textColor = color.bright;
+			helpField.textColor = colorScheme.bright;
 			helpField.y = 500;
-			helpField.backgroundColor = color.dark;
+			helpField.backgroundColor = colorScheme.dark;
 			helpField.background = true;
 			helpField.alpha = 0.8;
 			helpField.visible = false;
@@ -192,7 +192,7 @@
 			displayField = null;
 			
 			keyboard = null;
-			color = null;
+			colorScheme = null;
 			
 			for (var i:int = 0; i < commandLength; i++) 
 			{
@@ -219,7 +219,7 @@
 		{
 			if (displayField == null) return;
 			
-			_color = _color == 0 ? color.dark : _color;
+			_color = _color == 0 ? colorScheme.dark : _color;
 			displayField.appendText(String(stringCount) + ": " + text + '\n');
 			displayField.setColor(_color, displayField.length - text.length - 1, displayField.length);
 			displayField.scrollV = displayField.maxScrollV;
@@ -255,6 +255,8 @@
 		 */
 		public function update():void
 		{
+			keyboard.isActive = true;
+			
 			if (helpWords.length > 0)
 			{
 				if (keyboard.isPressed(SkyKey.DOWN))
@@ -288,8 +290,10 @@
 			}
 			
 			applyCommand(inputField.text);
-			visibleControl();
 			scrolling();
+			visibleControl();
+			
+			keyboard.isActive = false;
 		}
 		
 		/**

@@ -1,10 +1,12 @@
 package skysand.display 
 {
 	import flash.geom.Point;
+	import skysand.render.hardware.SkyHardwareRender;
+	
 	public class SkyRenderObjectContainer extends SkyRenderObject
 	{
 		public var parent:SkyRenderObjectContainer;
-		protected var children:Vector.<SkyRenderObjectContainer>;
+		public var children:Vector.<SkyRenderObjectContainer>;
 		protected var nChildren:int;
 		
 		public function SkyRenderObjectContainer() 
@@ -25,9 +27,12 @@ package skysand.display
 			child.parent = this;
 			children.push(child);
 			
-			nChildren++;
+			child.init();
+			isAdded = true;
+			SkyHardwareRender.instance.updateDepth = true;
+			SkyHardwareRender.instance.addObjectToRender(child);
 			
-			child.depth = nChildren;
+			nChildren++;
 		}
 		
 		/**
@@ -47,10 +52,12 @@ package skysand.display
 			
 			child.parent = this;
 			children.splice(index, 0, child);
+			child.init();
+			
+			SkyHardwareRender.instance.updateDepth = true;
+			SkyHardwareRender.instance.addObjectToRender(child);
 			
 			nChildren++;
-			
-			child.depth = nChildren;
 		}
 		
 		/**
@@ -125,9 +132,13 @@ package skysand.display
 			
 			if (index == -1) return;
 			
-			children[index].parent = null;
 			children[index] = null;
-			children.splice(index, 1);
+			children.removeAt(index);
+			
+			child.remove();
+			
+			SkyHardwareRender.instance.removeObjectFromRender(child);
+			
 			nChildren--;
 		}
 		
@@ -144,9 +155,12 @@ package skysand.display
 				throw new Error("Ошибка, элемента с номером " + index + " нет в массиве!");
 			}
 			
-			children[index].parent = null;
+			children[index].remove();
+			
+			SkyHardwareRender.instance.removeObjectFromRender(children[index]);
+			
 			children[index] = null;
-			children.splice(index, 1);
+			children.removeAt(index);
 			nChildren--;
 		}
 		
@@ -187,9 +201,10 @@ package skysand.display
 			var temp:SkyRenderObjectContainer = children[index0];
 			children[index0] = children[index1];
 			children[index1] = temp;
-			child0.depth ^= child1.depth;
-			child1.depth ^= child0.depth;
-			child0.depth ^= child1.depth;
+			
+			var t:uint = child0.depth;
+			child0.depth = child1.depth;
+			child1.depth = t;
 		}
 		
 		/**
@@ -206,6 +221,10 @@ package skysand.display
 			var temp:SkyRenderObjectContainer = children[index0];
 			children[index0] = children[index1];
 			children[index1] = temp;
+			
+			var t:uint = children[index0].depth;
+			children[index0].depth = children[index1].depth;
+			children[index1].depth = t;
 		}
 		
 		/**

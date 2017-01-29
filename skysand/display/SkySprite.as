@@ -53,56 +53,37 @@ package skysand.display
 			v = new Vector.<Number>(8, true);
 		}
 		
+		override public function remove():void 
+		{
+			if (batch != null)
+			{
+				batch.removeSprite(this);
+			}
+			
+			super.remove();
+		}
+		
+		override public function init():void 
+		{
+			if (batch != null)
+			{
+				batch.add(this);
+				verteces = batch.verteces;
+				uv = batch.uvs;
+			}
+			
+			super.init();
+		}
+		
 		public function setAtlasFromCache(name:String):void
 		{
 			atlas = SkyFilesCache.instance.getTextureAtlas(name);
-			batch = SkyHardwareRender.instance.getBatch(name);
+			batch = SkyHardwareRender.instance.getBatch(name) as SkyStandartQuadBatch;
 			texture = atlas.texture;
 			this.name = name;
 		}
 		
-		override public function addChild(child:SkyRenderObjectContainer):void 
-		{
-			super.addChild(child);
-			
-			var sprite:SkySprite = (child as SkySprite);
-			
-			if (sprite.batch != null)
-			{
-				sprite.batch.addSprite(sprite);
-				sprite.verteces = sprite.batch.verteces;
-				sprite.uv = sprite.batch.uvs;
-			}
-			
-			SkyHardwareRender.instance.addObjectToRender(child);
-		}
 		
-		override public function addChildAt(child:SkyRenderObjectContainer, index:int):void 
-		{
-			super.addChildAt(child, index);
-			
-			var sprite:SkySprite = (child as SkySprite);
-			
-			if (sprite.batch != null)
-			{
-				sprite.batch.addSpriteAt(sprite, index);
-				sprite.verteces = sprite.batch.verteces;
-				sprite.uv = sprite.batch.uvs;
-			}
-			
-			SkyHardwareRender.instance.addObjectToRender(child);
-		}
-		
-		override public function removeChild(child:SkyRenderObjectContainer):void 
-		{
-			super.removeChild(child);
-			
-			var sprite:SkySprite = (child as SkySprite);
-			
-			sprite.batch.removeSprite(sprite);
-			
-			SkyHardwareRender.instance.removeObjectFromRender(child);
-		}
 		
 		/*public function setAtlas(atlas:SkyTextureAtlas):void
 		{
@@ -114,11 +95,17 @@ package skysand.display
 		{
 			
 		}
-		
+		*/
 		public function setTextureFromCache(name:String):void
 		{
+			var data:SkyTextureData = SkyFilesCache.instance.getTexture(name);
 			
-		}*/
+			texture = data.texture;
+			width = data.width;
+			height = data.height;
+			
+			batch = SkyHardwareRender.instance.getBatch(name) as SkyStandartQuadBatch;
+		}
 		
 		public function setSprite(name:String):void
 		{
@@ -130,19 +117,6 @@ package skysand.display
 				pivotX = spriteData.pivotX;
 				pivotY = spriteData.pivotY;
 			}
-		}
-		
-		override public function swapChildren(child0:SkyRenderObjectContainer, child1:SkyRenderObjectContainer):void 
-		{
-			batch = (child0 as SkySprite).batch;
-			batch.swapSprites(child0 as SkySprite, child1 as SkySprite);
-			super.swapChildren(child0, child1);
-		}
-		
-		override public function swapChildrenAt(index0:int, index1:int):void 
-		{
-			swapChildren(children[index0] as SkySprite, children[index1] as SkySprite);
-			super.swapChildrenAt(index0, index1);
 		}
 		
 		/**
@@ -185,9 +159,11 @@ package skysand.display
 		/**
 		 * Функция обновления координат и других данных.
 		 */
-		override public function updateCoordinates():void 
+		override public function updateData():void 
 		{
-			if (parent.visible && visible)
+			globalVisible = visible ? 1 * parent.globalVisible : 0 * parent.globalVisible;
+			
+			if (globalVisible == 1 && isVisible)
 			{
 				if (drag)
 				{
@@ -214,7 +190,7 @@ package skysand.display
 				{
 					var angle:Number = SkyMath.toRadian(parent.globalRotation);
 					
-					localR = SkyMath.rotatePointFromAngle(x, y, 0, 0, angle);
+					localR = SkyMath.rotatePoint(x, y, 0, 0, angle);
 					globalR.x = localR.x + parent.globalR.x - x;
 					globalR.y = localR.y + parent.globalR.y - y;
 					
@@ -273,10 +249,10 @@ package skysand.display
 				}
 				//max 1
 				//min 0
-				verteces[indexID + 2] = 1 - (depth + parent.depth) / 100000;//globalDepth;
-				verteces[indexID + 5] = 1 - (depth + parent.depth) / 100000;//globalDepth;
-				verteces[indexID + 8] = 1 - (depth + parent.depth) / 100000;//globalDepth;
-				verteces[indexID + 11] = 1 - (depth + parent.depth) / 100000;//globalDepth;
+				verteces[indexID + 2] = depth / 100000;//globalDepth;
+				verteces[indexID + 5] = depth / 100000;//globalDepth;
+				verteces[indexID + 8] = depth / 100000;//globalDepth;
+				verteces[indexID + 11] = depth / 100000;//globalDepth;
 			}
 			else
 			{

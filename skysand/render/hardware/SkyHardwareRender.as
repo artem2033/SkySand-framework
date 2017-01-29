@@ -5,17 +5,21 @@ package skysand.render.hardware
 	import skysand.display.SkyRenderObject;
 	import skysand.display.SkyRenderObjectContainer;
 	import skysand.display.SkySprite;
+	import skysand.display.SkyGraphics;
 	import skysand.interfaces.IBatch;
 	import skysand.render.RenderObject;
 	
 	public class SkyHardwareRender extends Object
 	{
+		public static const MAX_DEPTH:uint = 100000;
+		public var updateDepth:Boolean = false;
 		private var context3D:Context3D;
 		private var modelViewMatrix:Matrix3D;
-		private var batches:Vector.<IBatch>;
+		private var batches:Vector.<SkyBatchBase>;
 		private var nBatches:int;
-		private var objects:Vector.<SkyRenderObject>;
+		private var objects:Vector.<SkyRenderObjectContainer>;
 		private var nObjects:uint;
+		private var depthCount:uint;
 		/**
 		 * Ссылка класса на самого себя.
 		 */
@@ -38,6 +42,17 @@ package skysand.render.hardware
 			return _instance == null ? new SkyHardwareRender() : _instance;
 		}
 		
+		public function removeBatch(batch:SkyBatchBase):void
+		{
+			var index:int = batches.indexOf(batch);
+			
+			if (index < 0) return;
+			
+			batches[index] = null;
+			batches.removeAt(index);
+			nBatches--;
+		}
+		
 		public function initialize(context3D:Context3D, screenWidth:Number, screenHeight:Number):void
 		{
 			this.context3D = context3D;
@@ -48,27 +63,41 @@ package skysand.render.hardware
 			modelViewMatrix.appendTranslation(-screenWidth / 2, -screenHeight / 2, 0);
 			modelViewMatrix.appendScale(2 / screenWidth, -2 / screenHeight, 1);
 			
-			batches = new Vector.<IBatch>();
+			batches = new Vector.<SkyBatchBase>();
 			nBatches = 0;
 			
-			objects = new Vector.<SkyRenderObject>;
+			objects = new Vector.<SkyRenderObjectContainer>();
 			nObjects = 0;
 		}
 		
-		public function getBatch(name:String):SkyStandartQuadBatch
+		public function getBatch(name:String):SkyBatchBase
 		{
+			var batch:SkyBatchBase;
+			
 			for (var i:int = 0; i < nBatches; i++) 
 			{
-				var standartBatch:SkyStandartQuadBatch = batches[i] as SkyStandartQuadBatch;
+				batch = batches[i] as SkyBatchBase;
 				
-				if (standartBatch.name == name && standartBatch.verteces.length < 196596)
+				if (name != "textField" && batch.name == name && batch.verteces.length < 196596)
 				{
-					return standartBatch;
+					return batch;
 				}
 				else continue;
 			}
 			
-			var batch:SkyStandartQuadBatch = new SkyStandartQuadBatch();
+			if (name == "vector")
+			{
+				batch = new SkyGraphicsBatch();
+			}
+			else if (name == "textField")
+			{
+				batch = new SkyTextBatch();
+			}
+			else
+			{
+				batch = new SkyStandartQuadBatch();
+			}
+			
 			batch.initialize(context3D, modelViewMatrix, name);
 			batches[nBatches] = batch;
 			nBatches++;
@@ -76,7 +105,7 @@ package skysand.render.hardware
 			return batch;
 		}
 		
-		public function removeObjectFromRender(object:SkyRenderObject):void
+		public function removeObjectFromRender(object:SkyRenderObjectContainer):void
 		{
 			var index:int = objects.indexOf(object);
 			
@@ -86,22 +115,64 @@ package skysand.render.hardware
 			nObjects--;
 		}
 		
-		public function addObjectToRender(object:SkyRenderObject):void
+		public function addObjectToRender(object:SkyRenderObjectContainer):void
 		{
-			objects.push(object);
+			if (object.parent)
+			{
+				var index:int = objects.indexOf(object.parent) + 1;
+				
+				objects.splice(index, 0, object);
+			}
+			else
+			{
+				objects.push(object);
+			}
+			
+			object.updateData();
 			nObjects++;
+		}
+		
+		private function calculateDepth(child:SkyRenderObjectContainer):void
+		{
+			if (!child)
+			{
+				return;
+			}
+			
+			if (child.parent)
+			{
+				child.isVisible = child.parent.isAdded ? true : false;
+			}
+			else child.isVisible = true;
+			
+			child.depth = MAX_DEPTH - depthCount;
+			depthCount++;
+			
+			if (child.children)
+			{
+				for (var i:int = 0; i < child.numChildren; i++) 
+				{
+					calculateDepth(child.children[i]);
+				}
+			}
 		}
 		
 		public function update():void
 		{
 			context3D.clear();
 			
-			var object:SkyRenderObject;
-			
+			if (updateDepth)
+			{
+				depthCount = 0;
+				calculateDepth(SkySand.root);
+				
+				updateDepth = false;
+			}
+			//trace("-------------");
 			for (var i:int = 0; i < nObjects; i++)
 			{
-				object = objects[i];
-				object.updateCoordinates();
+				objects[i].updateData();
+				//trace(objects[i].visible, objects[i].globalVisible);
 			}
 			
 			for (i = 0; i < nBatches; i++)

@@ -1,5 +1,8 @@
 package skysand.render.hardware
 {
+	import flash.display3D.Context3DMipFilter;
+	import flash.display3D.Context3DTextureFilter;
+	import flash.display3D.Context3DWrapMode;
 	import flash.geom.Matrix3D;
 	import flash.utils.ByteArray;
 	import flash.display3D.Context3D;
@@ -13,6 +16,8 @@ package skysand.render.hardware
 	import flash.display3D.Context3DProgramType;
 	import flash.display3D.Context3DTriangleFace;
 	import flash.display3D.Context3DVertexBufferFormat;
+	import skysand.keyboard.SkyKey;
+	import skysand.keyboard.SkyKeyboard;
 	
 	import skysand.display.SkySprite;
 	import skysand.display.SkyAtlasSprite;
@@ -58,9 +63,9 @@ package skysand.render.hardware
 		 * @param	mvpMatrix model view матрица
 		 * @param	name название пакета.
 		 */
-		public function initialize(context3D:Context3D, mvpMatrix:Matrix3D, name:String):void
+		override public function initialize(context3D:Context3D, mvpMatrix:Matrix3D, name:String):void
 		{
-			initBase(context3D, mvpMatrix);
+			super.initialize(context3D, mvpMatrix, name);
 			
 			isChanged = false;
 			_name = name;
@@ -80,26 +85,18 @@ package skysand.render.hardware
 			setShader(vertexShader, pixelShader);
 		}
 		
+		
+		public function addSprite(sprite:SkySprite):void
+		{
+			//addSpriteAt(sprite, verteces.length);
+		}
+		
 		/**
 		 * Добавить спрайт в пакет.
 		 * @param	sprite спрайт.
 		 */
-		public function addSprite(sprite:SkySprite):void
+		public function add(sprite:SkySprite):void
 		{
-			addSpriteAt(sprite, verteces.length);
-		}
-		
-		/**
-		 * Добавить спрайт в пакет на определённую позицию.
-		 * @param	sprite спрайт.
-		 * @param	index позиция от 0 до numChildren.
-		 */
-		public function addSpriteAt(sprite:SkySprite, index:int):void
-		{
-			index *= index < verteces.length - 1 ? 12 : 1;
-			
-			//if (index > verteces.length) return;
-			
 			if (texture == null) texture = sprite.texture;
 			
 			sprite.indexID = id * 12;

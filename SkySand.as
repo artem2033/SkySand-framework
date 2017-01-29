@@ -57,14 +57,15 @@ package
 		
 		public static const HARDWARE_RENDER:uint = 1;
 		public static const SOFTWARE_RENDER:uint = 2;
-		public static const VERSION:String = "Framework version 1.2, 09 June 2016";
+		public static const VERSION:String = "Framework version 1.45, 18 January 2017";
 		
 		public static var STAGE:Stage;
 		public static var NUM_OF_RENDER_OBJECTS:int = 0;
 		public static var NUM_ON_STAGE:int = 0;
 		public static var drawCalls:int = 0;
 		public static var CONTEXT_3D:Context3D;
-		public static var root:RenderObject;
+		public static var root:SkyRenderObjectContainer;
+		public static var FRAME_RATE:uint = 0;
 		
 		private var mMain:Class;
 		private var keyboard:SkyKeyboard;
@@ -85,8 +86,7 @@ package
 		private var text:TextArea;
 		private var screenWidth:Number;
 		private var screenHeight:Number;
-		private var _root:RenderObject;
-		private var textField:TextField;
+		private var _root:SkyRenderObject;
 		
 		public function SkySand() 
 		{
@@ -96,9 +96,10 @@ package
 		public function initialize(_stage:Stage, _class:Class, frameRate:int, gameScreenWidth:Number = 800, gameScreenHeight:Number = 600, _fillColor:uint = 0x0, renderType:uint = SOFTWARE_RENDER):void
 		{
 			_stage.align = StageAlign.TOP_LEFT;
-			_stage.scaleMode = StageScaleMode.NO_SCALE;
+			//_stage.scaleMode = StageScaleMode.SHOW_ALL;
 			
 			SkySand.STAGE = _stage;
+			SkySand.FRAME_RATE = frameRate;
 			mMain = _class;
 			invFrameRate = 1 / frameRate;
 			
@@ -106,10 +107,6 @@ package
 			screenHeight = gameScreenHeight;
 			
 			registerFonts();
-			
-			console = Console.instance;
-			console.initialize();
-			console.visible = false;
 			
 			SkyMouse.instance.initialize(_stage);
 			keyboard = SkyKeyboard.instance;
@@ -129,24 +126,6 @@ package
 				addChildAt(render, 0);
 			}
 			
-			textField = new TextField();
-			textField.width = 200;
-			textField.height = 20;
-			textField.textColor = 0xFFFFFF;
-			addChild(textField);
-			
-			//watcher = SkyWatcher.instance;
-			//watcher.x = 700;
-			
-			profiler = SkyProfiler.instance;
-			profiler.visible = false;
-			
-			console.registerCommand("showProfiler", profiler.show, []);
-			console.registerCommand("getNumOfRenderObjects", getNumRenderObjects, []);
-			
-			oldTime = 0;
-			newTime = 0;
-			
 			addEventListener(Event.ENTER_FRAME, onEnterFrameHandler);
 		}
 		
@@ -157,17 +136,29 @@ package
 			context3D = stage3D.context3D;
 			CONTEXT_3D = stage3D.context3D;
 			
+			/*
 			var cache:SkyFilesCache = SkyFilesCache.instance;
 			cache.initialize(context3D);
-			
+			*/
 			hardwareRender = SkyHardwareRender.instance;
 			hardwareRender.initialize(context3D, screenWidth, screenHeight);
 			
-			var game:SkyRenderObjectContainer = new mMain();
-			//hardwareRender.setRoot(game);
-			gameUpdatableClass = game as IUpdatable;
+			console = Console.instance;
+			console.initialize();
+			//console.visible = false;
 			
-			//_root = game;
+			profiler = SkyProfiler.instance;
+			//profiler.visible = false;
+			
+			var game:SkyRenderObjectContainer = new mMain();
+			gameUpdatableClass = game as IUpdatable;
+			SkySand.root = game;
+			
+			game.isAdded = true;
+			game.addChild(profiler);
+			game.addChild(console);
+			
+			console.registerCommand("showProfiler", profiler.show, []);
 		}
 		
 		//lalka
@@ -178,7 +169,7 @@ package
 		
 		public function set mainClass(value:RenderObject):void
 		{
-			_root = value;
+			/*_root = value;
 			
 			SkySand.root = value;
 			mainGameClass = value;
@@ -188,49 +179,49 @@ package
 			
 			gameUpdatableClass = IUpdatable(mainGameClass);
 			
-			render.rootRenderObject = mainGameClass;
+			render.rootRenderObject = mainGameClass;*/
 		}
 		
-		public function get mainClass():RenderObject
+		/*public function get mainClass():RenderObject
 		{
 			return _root;
-		}
+		}*/
 		
 		private function setPause():void
 		{
 			pause = !pause;
 		}
 		
+		public static var nPolygons:int = 0;
+		
 		private function onEnterFrameHandler(event:Event = null):void
 		{
-			oldTime = newTime;
-			newTime = getTimer();
-			deltaTime = (newTime - oldTime) / 1000;
-			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
-			
-			if (hardwareRender != null)
-			{
-				//SkyUtils.setTime();
-				drawCalls = 0;
-				hardwareRender.update();
-				textField.text = "Draw calls: " + drawCalls;// + ", " + SkyMath.getTime();
-			}
-			else
-			{
+			/*if (hardwareRender != null)
+			{*/
 				profiler.totalUpdateTime = getTimer();
 				keyboard.update();
-				console.update();
 				
 				profiler.applicationUpdateTime = getTimer();
 				profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
 				
 				profiler.renderTime = getTimer();
-				render.update();
+				drawCalls = 0;
+				hardwareRender.update();
+				console.update();
 				profiler.renderTime = getTimer() - profiler.renderTime;
-				
 				profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
 				profiler.update();
-			}
+			/*}
+			else
+			{
+				
+				
+				
+				render.update();
+				
+				
+				
+			}*/
 			
 			if (!pause) if(gameUpdatableClass) gameUpdatableClass.update(deltaTime);
 		}

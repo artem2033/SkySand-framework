@@ -1,17 +1,12 @@
 package skysand.components
 {
-	import flash.display.BitmapData;
-	import flash.display.Sprite;
 	import flash.text.TextFieldAutoSize;
+	import skysand.display.SkyGraphics;
 	import skysand.mouse.SkyMouse;
-	import skysand.render.RenderObject;
-	import skysand.animation.SkyAnimation;
-	import skysand.animation.SkyAnimationCache;
-	import skysand.interfaces.IFrameworkUpdatable;
 	import skysand.text.SkyTextField;
 	import skysand.utils.SkyUtils;
 	
-	public class SkyButton extends RenderObject implements IFrameworkUpdatable
+	public class SkyButton extends SkyGraphics
 	{
 		/**
 		 * Режим, при котором одно нажатие включить, ещё одно выключить.
@@ -41,17 +36,26 @@ package skysand.components
 		/**
 		 * Картинка когда курсор находится над кнопкой.
 		 */
-		private var overState:BitmapData;
+		private var overState:SkyGraphics;
 		
 		/**
 		 * Картинка когда пользователь нажал на кнопку.
 		 */
-		private var downState:BitmapData;
+		private var downState:SkyGraphics;
 		
 		/**
 		 * Картинка когда курсор не находится над кнопкой.
 		 */
-		private var normalState:BitmapData;
+		private var normalState:SkyGraphics;
+		
+		private var upColor:uint;
+		private var overColor:uint;
+		private var downColor:uint;
+		
+		private const UP_STATE:int = 0;
+		private const OVER_STATE:int = 1;
+		private const DOWN_STATE:int = 2;
+		private var isSimple:Boolean;
 		
 		public function SkyButton() 
 		{
@@ -63,28 +67,68 @@ package skysand.components
 		 * @param	animName имя кэшированной анимации, которая должна состоять из минимум 2 кадров.
 		 * @param	_function функция, которую нужно выполнять во время нажатия кнопки.
 		 */
-		public function create(animationName:String, _function:Function):void
+		public function create(_function:Function, normalState:SkyGraphics, overState:SkyGraphics = null, downState:SkyGraphics = null):void
 		{
-			var animation:SkyAnimation = SkyAnimationCache.instance.getAnimation(animationName);
-			
-			normalState = animation.frames[0].bitmapData;
-			downState	= animation.frames[1].bitmapData;
-			overState	= animation.frames[2].bitmapData == null ? downState : animation.frames[2].bitmapData;
-			bitmapData 	= normalState;
-			
+			this.normalState = normalState;
+			this.downState = downState;
+			this.overState = overState;
 			this._function = _function;
+			
+			addChild(this.normalState);
+			
+			if (this.downState)
+			{
+				addChild(this.downState);
+				
+				this.downState.visible = false;
+			}
+			
+			if (this.overState) 
+			{
+				addChild(this.overState);
+				
+				this.overState.visible = false;
+			}
+			
 			mouse = SkyMouse.instance;
 			
 			toggleMode = false;
 			isPressed = false;
 			isActive = false;
+			isSimple = false;
 			
-			super.width = normalState.width;
-			super.height = normalState.height;
+			//super.width = normalState.width;
+			//super.height = normalState.height;
+		}
+		
+		public function createSimpleButtonWithPreset(normalState:SkyGraphics, upColor:uint, overColor:uint, downColor:uint, _function:Function):void
+		{
+			this.normalState = normalState;
+			this.upColor = upColor;
+			this.overColor = overColor;
+			this.downColor = downColor;
+			this._function = _function;
+			
+			addChild(normalState);
+			
+			mouse = SkyMouse.instance;
+			
+			toggleMode = false;
+			isPressed = false;
+			isActive = false;
+			isSimple = true;
+			
+			//width = normalState.width;
+			//height = normalState.height;
 		}
 		
 		public function createSimpleButton(color:uint, width:Number, height:Number, _function:Function, alpha:Number = 1, name:String = "", textColor:uint = 0xFFFFFF):void
 		{
+			normalState = new SkyGraphics();
+			normalState.color = color;
+			normalState.drawRect( -width * 0.5, -height * 0.5, width, height);
+			addChild(normalState);
+			
 			var textField:SkyTextField = new SkyTextField();
 			textField.autoSize = TextFieldAutoSize.LEFT;
 			textField.textColor = textColor;
@@ -92,28 +136,14 @@ package skysand.components
 			textField.embedFonts = true;
 			textField.font = "hooge";
 			textField.text = name;
-			trace(textField.width);
-			textField.x = width * 0.5 - textField.width * 0.5;
-			textField.y = height * 0.5 - textField.height * 0.5;
+			textField.x = -textField.width * 0.5;
+			textField.y = -textField.height * 0.5;
+			textField.autoSize = TextFieldAutoSize.NONE;
 			addChild(textField);
 			
-			var usprite:Sprite = new Sprite();
-			usprite.graphics.beginFill(color, alpha);
-			usprite.graphics.drawRect( -width * 0.5, -height * 0.5, width, height);
-			
-			var osprite:Sprite = new Sprite();
-			osprite.graphics.beginFill(SkyUtils.changeColorBright(color, 50), alpha);
-			osprite.graphics.drawRect( -width * 0.5, -height * 0.5, width, height);
-			
-			var animation:SkyAnimation = new SkyAnimation();
-			animation.makeFrameFromSprite(usprite);
-			animation.makeFrameFromSprite(usprite);
-			animation.makeFrameFromSprite(osprite);
-			
-			normalState = animation.frames[0].bitmapData;
-			downState	= animation.frames[1].bitmapData;
-			overState	= animation.frames[2].bitmapData == null ? downState : animation.frames[2].bitmapData;
-			bitmapData 	= normalState;
+			upColor = color;
+			overColor = SkyUtils.changeColorBright(color, 50);
+			downColor = SkyUtils.changeColorBright(color, -50);
 			
 			this._function = _function;
 			mouse = SkyMouse.instance;
@@ -121,9 +151,10 @@ package skysand.components
 			toggleMode = false;
 			isPressed = false;
 			isActive = false;
+			isSimple = true;
 			
-			super.width = normalState.width;
-			super.height = normalState.height;
+			super.width = width;
+			super.height = height;
 		}
 		
 		/**
@@ -136,7 +167,7 @@ package skysand.components
 			isActive = false;
 			
 			normalState = null;
-			bitmapData = null;
+			//bitmapData = null;
 			overState = null;
 			downState = null;
 			_function = null;
@@ -164,21 +195,23 @@ package skysand.components
 		/**
 		 * Обновить отрисовываемы объект (используется движком).
 		 */
-		override public function updateByFramework():void 
+		override public function updateData():void 
 		{
-			if (hitTestMouse())
+			//if (normalState.hitTestMouse() && mouse.LBMPressed) return;
+			
+			if (normalState.hitTestMouse())// || overState.hitTestMouse() || downState.hitTestMouse())
 			{
 				if (mouse.LBMPressed)
 				{
 					if (toggleMode) 
 					{
 						isActive = isActive ? false : true;
-						bitmapData = isActive ? downState : overState;
+						changeState(isActive ? DOWN_STATE : OVER_STATE);
 						mouse.LBMPressed = false;
 					}
 					else
 					{
-						bitmapData = downState;
+						changeState(DOWN_STATE);
 						isPressed = true;
 						isActive = false;
 					}
@@ -190,19 +223,18 @@ package skysand.components
 						if (isPressed) isActive = true;
 						
 						isPressed = false;
-						bitmapData = overState;
-						
+						changeState(OVER_STATE);
 					}
 					else if (!isActive)
 					{
-						bitmapData = overState;
+						changeState(OVER_STATE);
 					}
 				}
 			}
 			else
 			{
-				if (!toggleMode) bitmapData = normalState;
-				else if (!isActive) bitmapData = normalState;
+				if (!toggleMode) changeState(UP_STATE);
+				else if (!isActive) changeState(UP_STATE);
 			}
 			
 			if (isActive)
@@ -211,7 +243,40 @@ package skysand.components
 				if (!toggleMode) isActive = false;
 			}
 			
-			super.updateByFramework();
+			super.updateData();
+		}
+		
+		private function changeState(state:int):void
+		{
+			if (isSimple) normalState.color = state == UP_STATE ? upColor : state == OVER_STATE ? overColor : downColor;
+			else
+			{
+				if (state == UP_STATE)
+				{
+					normalState.visible = true;
+					
+					if (downState) downState.visible = false;
+					if (overState) overState.visible = false;
+				}
+				else if (state == OVER_STATE)
+				{
+					if (downState) downState.visible = false;
+					if (overState)
+					{
+						overState.visible = true;
+						normalState.visible = false;
+					}
+				}
+				else
+				{
+					if (overState) overState.visible = false;
+					if (downState) 
+					{
+						normalState.visible = false;
+						downState.visible = true;
+					}
+				}
+			}
 		}
 	}
 }

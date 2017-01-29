@@ -17,14 +17,38 @@
 		/**
 		 * Точка для расчёта поворота точки.
 		 */
-		private static var point:Point;
+		private static var point:Point = new Point();
 		
 		public function SkyMath()
 		{
 			//time = 0;
-			point = new Point();
+			//point = new Point();
 		}
-		
+		/*
+		public function contains(x:Number, y:Number):Boolean
+        {
+            // Algorithm & implementation thankfully taken from:
+            // -> http://alienryderflex.com/polygon/
+
+            var i:int, j:int = numVertices - 1;
+            var oddNodes:uint = 0;
+
+            for (i=0; i<numVertices; ++i)
+            {
+                var ix:Number = _coords[i * 2];
+                var iy:Number = _coords[i * 2 + 1];
+                var jx:Number = _coords[j * 2];
+                var jy:Number = _coords[j * 2 + 1];
+
+                if ((iy < y && jy >= y || jy < y && iy >= y) && (ix <= x || jx <= x))
+                    oddNodes ^= uint(ix + (y - iy) / (jy - iy) * (jx - ix) < x);
+
+                j = i;
+            }
+
+            return oddNodes != 0;
+        }
+		*/
 		/**
 		 * Расстояние между двумя точками.
 		 * @param	a точка 1.
