@@ -10,9 +10,34 @@ package skysand.utils
 		 */
 		private static var time:int = 0;
 		
+		/**
+		 * Тон.
+		 */
+		public static var hue:Number = 0;
+		
+		/**
+		 * Насыщенность.
+		 */
+		public static var saturation:Number = 0;
+		
+		/**
+		 * Яркость.
+		 */
+		public static var value:Number = 0;
+		
 		public function SkyUtils()
 		{
 			
+		}
+		
+		/**
+		 * Конвертировать строку в булево значение.
+		 * @param	string строка.
+		 * @return возращает результат.
+		 */
+		public static function stringToBool(string:String):Boolean
+		{
+			return string == "false" ? false : true;
 		}
 		
 		/**
@@ -26,6 +51,16 @@ package skysand.utils
 			byteArray.writeObject(object);
 			
 			return byteArray.length;
+		}
+		
+		/**
+		 * Получить имя класса через объект.
+		 * @param	object ссылка на объект.
+		 * @return возвращает строку.
+		 */
+		public static function getClassName(object:*):String
+		{
+			return Object(object).constructor;
 		}
 		
 		/**
@@ -60,6 +95,17 @@ package skysand.utils
 			return result;
 		}
 		
+		public static function setColor(red:uint, green:uint, blue:uint):uint
+		{
+			return (red << 16) | (green << 8) | blue;
+		}
+		
+		[Inline]
+		public static function isPowerOfTwo(value:int):Boolean
+		{
+			return !(value & (value - 1));
+		}
+		
 		public static function getRed(color:uint):uint
 		{
 			return (color >> 16) & 0xFF;
@@ -73,6 +119,89 @@ package skysand.utils
 		public static function getBlue(color:uint):uint
 		{
 			return color & 0xFF;
+		}
+		
+		/**
+		 * Получить значение цвета из hsv схемы в rgb.
+		 * @param	hue значение от 0 до 360.
+		 * @param	saturation значение от 0 до 1.
+		 * @param	value значение от 0 до 1.
+		 * @return возвращает rgb цвет. 
+		 */
+		[Inline]
+		public static function HSVToRGB(hue:Number, saturation:Number, value:Number):uint
+		{
+			var c:Number = saturation * value;
+			var x:Number = c * (1 - Math.abs((hue / 60) % 2 - 1));
+			var m:Number = value - c;
+			
+			var red:Number = (hue < 60) ? c : (hue < 120) ? x : (hue < 240) ? 0 : (hue < 300) ? x : c;
+			var green:Number = (hue < 60) ? x : (hue < 180) ? c : (hue < 240) ? x : 0;
+			var blue:Number = (hue < 120) ? 0 : (hue < 180) ? x : (hue < 300) ? c : x;
+			
+			return ((red + m) * 255 << 16) | ((green + m) * 255 << 8) | (blue + m) * 255;
+		}
+		
+		/**
+		 * Преобразовать цвет из rgb в hsv.
+		 * @param	color
+		 */
+		public static function RGBToHSV(color:uint):void
+		{
+			var r:Number = ((color >> 16) & 0xFF) / 255;
+			var g:Number = ((color >> 8) & 0xFF) / 255;
+			var b:Number = (color & 0xFF) / 255;
+			
+			var cmax:Number = Math.max(Math.max(r, g), b);
+			var cmin:Number = Math.min(Math.min(r, g), b);
+			var delta:Number = cmax - cmin;
+			
+			saturation = cmax != 0 ? delta / cmax : 0;
+			value = cmax;
+			
+			if (delta == 0)
+			{
+				hue = 0;
+				return;
+			}
+			
+			if (cmax == r)
+			{
+				hue = ((g - b) / delta) % 6 * 60;
+				hue = hue < 0 ? 360 + hue : hue;
+				
+				return;
+			}
+			
+			if (cmax == g)
+			{
+				hue = (((b - r) / delta) + 2) * 60;
+				hue = hue < 0 ? 360 + hue : hue;
+				
+				return;
+			}
+			
+			if (cmax == b)
+			{
+				hue = (((r - g) / delta) + 4) * 60;
+				hue = hue < 0 ? 360 + hue : hue;
+				
+				return;
+			}
+		}
+		
+		
+		public static function closestPowerOfTwo(value:Number):Number
+		{
+			value--;
+			value |= value >> 1;
+			value |= value >> 2;
+			value |= value >> 4;
+			value |= value >> 8;
+			value |= value >> 16;
+			value++;
+			
+			return value;
 		}
 		
 		public static function findMax(array:Vector.<uint>):uint

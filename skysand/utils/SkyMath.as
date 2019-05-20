@@ -4,6 +4,9 @@
 	
 	public class SkyMath
 	{
+		public static const PI_2:Number = Math.PI * 2;
+		public static const HALF_PI:Number = Math.PI / 2;
+		
 		/**
 		 * Константа хранящее значение 1 радиана в градусах.
 		 */
@@ -56,10 +59,10 @@
 		 * @return возращает результат.
 		 */
 		[Inline]
-		public static function distance(a:Point, b:Point):Number
+		public static function distance(ax:Number, ay:Number, bx:Number, by:Number):Number
 		{
-			var dx:Number = a.x - b.x;
-			var dy:Number = a.y - b.y;
+			var dx:Number = ax - bx;
+			var dy:Number = ay - by;
 			
 			return Math.sqrt(dx * dx + dy * dy);
 		}
@@ -71,10 +74,10 @@
 		 * @return возращает результат.
 		 */
 		[Inline]
-		public static function distanceSQR(a:Point, b:Point):Number
+		public static function distanceSQR(ax:Number, ay:Number, bx:Number, by:Number):Number
 		{
-			var dx:Number = a.x - b.x;
-			var dy:Number = a.y - b.y;
+			var dx:Number = ax - bx;
+			var dy:Number = ay - by;
 			
 			return dx * dx + dy * dy;
 		}
@@ -86,10 +89,10 @@
 		 * @return возращает угол.
 		 */
 		[Inline]
-		public static function radian(a:Point, b:Point):Number
+		public static function radian(ax:Number, ay:Number, bx:Number, by:Number):Number
 		{
-			var dx:Number = a.x - b.x;
-			var dy:Number = a.y - b.y;
+			var dx:Number = ax - bx;
+			var dy:Number = ay - by;
 			
 			return Math.atan2(dy, dx);
 		}

@@ -2,133 +2,179 @@ package skysand.utils
 {
 	import flash.geom.Point;
 	
-	public class SkyVector2D 
+	import skysand.display.SkyShape;
+	
+	public class SkyVector2D extends Object
 	{
-		public var x:Number = 0;
-		public var y:Number = 0;
-		private var point:Point;
+		/**
+		 * Координата х.
+		 */
+		public var x:Number;
 		
-		public function SkyVector2D(_x:Number = 0, _y:Number = 0) 
+		/**
+		 * Координата у.
+		 */
+		public var y:Number;
+		
+		public function SkyVector2D(x:Number = 0, y:Number = 0) 
 		{
-			x = _x;
-			y = _y;
-			point = new Point();
+			this.x = x;
+			this.y = y;
 		}
 		
-		public function normalR():SkyVector2D
+		/**
+		 * Равны ли векторы между собой.
+		 * @param	vector второй вектор.
+		 */
+		public function equals(vector:SkyVector2D):Boolean
 		{
-			return new SkyVector2D( -y, x);;
+			return vector.x == x && vector.y == y;
 		}
 		
-		public function normalL():SkyVector2D
+		/**
+		 * Расстояние между векторами.
+		 * @param	vector второй вектор.
+		 * @return возвращает расстояние между векторами.
+		 */
+		public function distance(vector:SkyVector2D):Number
 		{
-			return new SkyVector2D( y, -x);
+			var dx:Number = vector.x - x;
+			var dy:Number = vector.y - y;
+			
+			return Math.sqrt(dx * dx + dy * dy);
 		}
 		
+		/**
+		 * Расстояние между векторами в квадрате.
+		 * @param	vector второй вектор.
+		 * @return возвращает расстояние между векторами в квадрате.
+		 */
+		public function distanceSQR(vector:SkyVector2D):Number
+		{
+			var dx:Number = vector.x - x;
+			var dy:Number = vector.y - y;
+			
+			return dx * dx + dy * dy;
+		}
+		
+		/**
+		 * Присвоить координаты другого вектора.
+		 * @param	vector вектор, чьи координаты нужно присвоить.
+		 */
+		public function setFrom(vector:SkyVector2D):void
+		{
+			x = vector.x;
+			y = vector.y;
+		}
+		
+		/**
+		 * Обнулить вектор.
+		 */
+		public function setZero():void
+		{
+			x = 0;
+			y = 0;
+		}
+		
+		/**
+		 * Норамализовать вектор.
+		 */
 		public function normalize():void
 		{
-			var len:Number = length;
+			var length:Number = Math.sqrt(x * x + y * y);
 			
-			if (len != 0)
-			{
-				x /= len;
-				y /= len;
-			}
-			else
-			{
-				x = 0;
-				y = 0;
-			}
+			x = length != 0 ? x / length : 0;
+			y = length != 0 ? y / length : 0;
 		}
 		
-		public function get length():Number
+		/**
+		 * Инвертировать вектор.
+		 */
+		public function negate():void
 		{
-			return Math.sqrt(x * x + y * y);
+			x = -x;
+			y = -y;
 		}
 		
+		/**
+		 * Прибавить вектор.
+		 */
+		public function add(vector:SkyVector2D):void
+		{
+			x += vector.x;
+			y += vector.y;
+		}
+		
+		/**
+		 * Вычесть вектор.
+		 */
+		public function subtract(vector:SkyVector2D):void
+		{
+			x -= vector.x;
+			y -= vector.y;
+		}
+		
+		/**
+		 * Умножить вектор на скаляр.
+		 * @param	value число.
+		 */
 		public function multiply(value:Number):void
 		{
 			x *= value;
 			y *= value;
 		}
 		
-		public function multiplyVec(vec:SkyVector2D):void
-		{
-			x *= vec.x;
-			y *= vec.y;
-		}
-		
-		public function set length(value:Number):void
-		{
-			var a:Number = angle();
-			x = Math.cos(a) * value;
-			y = Math.sin(a) * value;
-		}
-		
-		public function set maxXY(value:Number):void
-		{
-			var a:Number = angle();
-			
-			x = x > value ? value * Math.cos(a) : x;
-			y = y > value ? value * Math.sin(a) : y;
-		}
-		
-		public function trancate(value:Number):void
-		{
-			length = Math.min(value, length);
-		}
-		
-		public function add(vec:SkyVector2D):void
-		{
-			x += vec.x;
-			y += vec.y;
-		}
-		
-		public function remove(vec:SkyVector2D):SkyVector2D
-		{
-			return new SkyVector2D(x - vec.x, y - vec.y);
-		}
-		
+		/**
+		 * Поделить вектор на скаляр.
+		 * @param	value число.
+		 */
 		public function divide(value:Number):void
 		{
 			x /= value;
 			y /= value;
 		}
 		
-		public function subtract(vector:SkyVector2D):SkyVector2D
+		/**
+		 * Скалярное произведение векторов.
+		 * @param	vector 2-ой вектор.
+		 * @return возвращает результат.
+		 */
+		public function dotProduct(vector:SkyVector2D):Number
 		{
-			return new SkyVector2D(x - vector.x, y - vector.y);
+			return x * vector.x + y * vector.y;
 		}
 		
-		public function plusNumber(value:Number):SkyVector2D
+		/**
+		 * Угол между векторами.
+		 * @param	vector второй вектор.
+		 * @return возвращает угол в радианах.
+		 */
+		public function angleBetween(vector:SkyVector2D):Number
 		{
-			return new SkyVector2D(x + value, y + value);
+			var l:Number = vector.length * length;
+			
+			return Math.acos((x * vector.x + y * vector.y) / l);
 		}
 		
-		public function print():void
-		{
-			trace("x: " + x + ", " + "y: " + y);
-		}
-		
+		/**
+		 * Задать значения.
+		 * @param	x координата х.
+		 * @param	y координата у.
+		 */
 		public function setTo(x:Number, y:Number):void
 		{
 			this.x = x;
 			this.y = y;
 		}
 		
-		public function angle():Number
+		/**
+		 * Задать значения из точки.
+		 * @param	point точка.
+		 */
+		public function fromPoint(point:Point):void
 		{
-			return Math.atan2(y, x);
-		}
-		
-		public function dotProduct(vec:SkyVector2D):Number
-		{
-			return x * vec.x + y * vec.y;
-		}
-		
-		public function perpDot(vector:SkyVector2D):Number
-		{
-			return x * vector.y - y * vector.x;
+			x = point.x;
+			y = point.y;
 		}
 		
 		/**
@@ -137,10 +183,95 @@ package skysand.utils
 		 */
 		public function toPoint():Point
 		{
-			point.x = x;
-			point.y = y;
+			return new Point(x, y);
+		}
+		
+		/**
+		 * Преобразовать в строку.
+		 */
+		public function toString():String
+		{
+			return "x: " + x.toString() + ", " + "y: " + y.toString();
+		}
+		
+		/**
+		 * Нарисовать вектор.
+		 * @param	shape форма с помощью которой отображать вектор.
+		 * @param	x координата из которой рисовать вектор.
+		 * @param	y координата из которой рисовать вектор.
+		 */
+		public function draw(shape:SkyShape, x:Number, y:Number):void
+		{
+			shape.x = x;
+			shape.y = y;
+			shape.width = length;
+			shape.rotation = SkyMath.toDegrees(angle);
+		}
+		
+		/**
+		 * Получить правую нормаль от вектора.
+		 */
+		public function set normalR(vector:SkyVector2D):void
+		{
+			x = -vector.y;
+			y = vector.x;
+		}
+		
+		/**
+		 * Получить левую нормаль от вектора.
+		 */
+		public function set normalL(vector:SkyVector2D):void
+		{
+			x = vector.y;
+			y = -vector.x;
+		}
+		
+		/**
+		 * Получть угол.
+		 */
+		public function get angle():Number
+		{
+			return Math.atan2(y, x);
+		}
+		
+		/**
+		 * Задать угол.
+		 */
+		public function set angle(value:Number):void
+		{
+			var cos:Number = Math.cos(value);
+			var sin:Number = Math.sin(value);
+			var dx:Number = x;
+			var dy:Number = y;
 			
-			return point;
+			x = dx * cos - dy * sin;
+			y = dy * cos + dx * sin;
+		}
+		
+		/**
+		 * Получить длину вектора.
+		 */
+		public function get length():Number
+		{
+			return Math.sqrt(x * x + y * y);
+		}
+		
+		/**
+		 * Задать длину вектора.
+		 */
+		public function set length(value:Number):void
+		{
+			var scale:Number = value / length;
+			x *= scale;
+			y *= scale;
+		}
+		
+		/**
+		 * Получить квадрат длины данного вектора.
+		 */
+		public function get lengthSquared():Number
+		{
+			return x * x + y * y;
 		}
 	}
 }

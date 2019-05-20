@@ -1,13 +1,25 @@
 package skysand.display 
 {
 	import flash.geom.Point;
-	import skysand.render.hardware.SkyHardwareRender;
 	
+	import skysand.input.SkyMouse;
+	import skysand.render.SkyHardwareRender;
+	
+	/**
+	 * ...
+	 * @author CodeCoreGames
+	 */
 	public class SkyRenderObjectContainer extends SkyRenderObject
 	{
-		public var parent:SkyRenderObjectContainer;
+		/**
+		 * Массив дочерних объектов.
+		 */
 		public var children:Vector.<SkyRenderObjectContainer>;
-		protected var nChildren:int;
+		
+		/**
+		 * Количество детей.
+		 */
+		private var nChildren:int;
 		
 		public function SkyRenderObjectContainer() 
 		{
@@ -18,7 +30,7 @@ package skysand.display
 		
 		/**
 		 * Добавить объект в конец списка отображения.
-		 * @param	child объект для отрисовки(у объекта не обязательно должна bitmapData != null).
+		 * @param	child объект для отрисовки.
 		 */
 		public function addChild(child:SkyRenderObjectContainer):void
 		{
@@ -28,9 +40,11 @@ package skysand.display
 			children.push(child);
 			
 			child.init();
-			isAdded = true;
-			SkyHardwareRender.instance.updateDepth = true;
+			child.isAdded = true;
+			
 			SkyHardwareRender.instance.addObjectToRender(child);
+			SkyHardwareRender.instance.updateDepth = true;
+			SkyMouse.instance.addObjectToClosestTest(child);
 			
 			nChildren++;
 		}
@@ -51,11 +65,13 @@ package skysand.display
 			if (child.parent) child.parent.removeChild(child);
 			
 			child.parent = this;
-			children.splice(index, 0, child);
+			children.insertAt(index, child);
 			child.init();
+			child.isAdded = true;
 			
-			SkyHardwareRender.instance.updateDepth = true;
 			SkyHardwareRender.instance.addObjectToRender(child);
+			SkyHardwareRender.instance.updateDepth = true;
+			SkyMouse.instance.addObjectToClosestTest(child);
 			
 			nChildren++;
 		}
@@ -113,12 +129,11 @@ package skysand.display
 		 */
 		public function contains(child:SkyRenderObjectContainer):Boolean
 		{
-			if (children != null) return false;
+			if (children == null) return false;
 			if (children.indexOf(child) < 0) return false;
 			
 			return true;
 		}
-		
 		
 		/**
 		 * Удалить объект из списка отображения.
@@ -135,9 +150,12 @@ package skysand.display
 			children[index] = null;
 			children.removeAt(index);
 			
+			child.isAdded = false;
 			child.remove();
 			
 			SkyHardwareRender.instance.removeObjectFromRender(child);
+			SkyHardwareRender.instance.updateDepth = true;
+			SkyMouse.instance.removeObjectFromClosestTest(child);
 			
 			nChildren--;
 		}
@@ -158,7 +176,10 @@ package skysand.display
 			children[index].remove();
 			
 			SkyHardwareRender.instance.removeObjectFromRender(children[index]);
+			SkyHardwareRender.instance.updateDepth = true;
+			SkyMouse.instance.removeObjectFromClosestTest(children[index]);
 			
+			children[index].isAdded = false;
 			children[index] = null;
 			children.removeAt(index);
 			nChildren--;
@@ -205,6 +226,9 @@ package skysand.display
 			var t:uint = child0.depth;
 			child0.depth = child1.depth;
 			child1.depth = t;
+			
+			SkyMouse.instance.sortMouseChilds();
+			SkyHardwareRender.instance.updateDepth = true;
 		}
 		
 		/**
@@ -225,6 +249,9 @@ package skysand.display
 			var t:uint = children[index0].depth;
 			children[index0].depth = children[index1].depth;
 			children[index1].depth = t;
+			
+			SkyMouse.instance.sortMouseChilds();
+			SkyHardwareRender.instance.updateDepth = true;
 		}
 		
 		/**

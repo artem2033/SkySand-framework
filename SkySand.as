@@ -1,242 +1,374 @@
-package  
+package
 {
+	import flash.geom.Matrix3D;
+	import flash.geom.Point;
+	import flash.events.Event;
+	import flash.utils.getTimer;
+	import flash.display.Stage;
+	import flash.display.Sprite;
 	import flash.display.Stage3D;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
+	import flash.display.StageDisplayState;
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DProfile;
 	import flash.display3D.Context3DRenderMode;
-	import flash.text.TextField;
-	import skysand.animation.SkyAnimation;
-	import skysand.animation.SkyAnimationCache;
-	import skysand.console.Console;
+	import skysand.debug.SkyOutput;
+	import skysand.display.SkyCamera;
+	import skysand.input.SkyKey;
+	import skysand.ui.SkyUI;
+	
+	import skysand.text.SkyFont;
+	import skysand.debug.Console;
+	import skysand.input.SkyMouse;
+	import skysand.input.SkyKeyboard;
+	import skysand.debug.SkyProfiler;
+	import skysand.file.SkyFilesCache;
+	import skysand.interfaces.IUpdatable;
 	import skysand.display.SkyRenderObject;
 	import skysand.display.SkyRenderObjectContainer;
-	import skysand.render.hardware.SkyHardwareRender;
-	import skysand.utils.SkyFilesCache;
-	import skysand.utils.SkyMath;
-	import skysand.interfaces.IUpdatable;
-	import skysand.keyboard.SkyKeyboard;
-	//import skysand.utils.f2Vec;
-	import skysand.mouse.SkyMouse;
-	import skysand.render.Render;
-	import skysand.render.RenderObject;
-	import skysand.text.SkyTextField;
-	import skysand.text.TextArea;
-	import skysand.utils.SkyProfiler;
-	import skysand.utils.SkyWatcher;
-	import flash.events.Event;
-	import skysand.keyboard.SkyKey;
-	
-	import flash.display.Sprite;
-	import flash.display.Stage;
-	import flash.utils.getTimer;
-	import flash.system.Capabilities;
-	import flash.text.Font;
-	import skysand.interfaces.IFrameworkUpdatable;
+	import skysand.render.SkyHardwareRender;
 	
 	public class SkySand extends Sprite
 	{
-		[Embed(source="skysand/resources/CyrBit.ttf", fontName = "cyrbit", embedAsCFF = "false")]
-		private var cyrbitFont:Class;
+		/**
+		 * Версия фреймворка.
+		 */
+		public static const VERSION:String = "SKYSAND framework version 0.85, 8 December 2017";
 		
-		[Embed(source="skysand/resources/Just_Square.otf", fontName = "square", embedAsCFF = "false")]
-		private var squareFont:Class;
-		
-		[Embed(source = "skysand/resources/Inconsolata.ttf", fontName = "inconsolata", embedAsCFF = "false")]
-		private var inconsolataFont:Class;
-		
-		[Embed(source = "skysand/resources/iFlash.ttf", fontName = "flash", embedAsCFF = "false")]
-		private var iFlashFont:Class;
-		
-		[Embed(source = "skysand/resources/Hooge.ttf", fontName = "hooge", embedAsCFF = "false")]
-		private var hoogeFont:Class;
-		
-		[Embed(source="skysand/resources/Anonymous.ttf", fontName = "anonymous", embedAsCFF = "false")]
-		private var anonymousFont:Class;
-		
-		public static const HARDWARE_RENDER:uint = 1;
-		public static const SOFTWARE_RENDER:uint = 2;
-		public static const VERSION:String = "Framework version 1.45, 18 January 2017";
-		
+		/**
+		 * Ссылка на сцену.
+		 */
 		public static var STAGE:Stage;
-		public static var NUM_OF_RENDER_OBJECTS:int = 0;
-		public static var NUM_ON_STAGE:int = 0;
-		public static var drawCalls:int = 0;
+		
+		/**
+		 * Ссылка на контекст для рендера.
+		 */
 		public static var CONTEXT_3D:Context3D;
-		public static var root:SkyRenderObjectContainer;
-		public static var FRAME_RATE:uint = 0;
 		
-		private var mMain:Class;
+		/**
+		 * Частота кадров приложения.
+		 */
+		public static var FRAME_RATE:uint;
+		
+		/**
+		 * Текущий размер окна приложения в ширину.
+		 */
+		public static var SCREEN_WIDTH:Number;
+		
+		/**
+		 * Текущий размер окна приложения в высоту.
+		 */
+		public static var SCREEN_HEIGHT:Number;
+		
+		/**
+		 * Переключить движок в режим разработки.
+		 */
+		public var isDevelopMode:Boolean;
+		
+		/**
+		 * Кэш для файлов.
+		 */
+		private static var mCache:SkyFilesCache;
+		
+		/**
+		 * Окно для отображения откладочной информации.
+		 */
+		private static var output:SkyOutput;
+		
+		/**
+		 * Главный класс приложения.
+		 */
+		private var mainClass:Class;
+		
+		/**
+		 * Ссылка на класс с клавиатурой.
+		 */
 		private var keyboard:SkyKeyboard;
-		private var render:Render;
-		private var mainGameClass:RenderObject;
-		private var gameUpdatableClass:IUpdatable;
-		private var newTime:Number;
-		private var oldTime:Number;
-		private var deltaTime:Number;
-		private var invFrameRate:int;
-		private var watcher:SkyWatcher;
-		private var profiler:SkyProfiler;
-		private var pause:Boolean = false;
-		private var hardwareRender:SkyHardwareRender;
-		private var context3D:Context3D;
-		private var stage3D:Stage3D;
-		public var console:Console;
-		private var text:TextArea;
-		private var screenWidth:Number;
-		private var screenHeight:Number;
-		private var _root:SkyRenderObject;
 		
-		public function SkySand() 
+		/**
+		 * Ссылка на мышь.
+		 */
+		private var mouse:SkyMouse;
+		
+		/**
+		 * Класс для обновления.
+		 */
+		private var applicationUpdatableClass:IUpdatable;
+		
+		/**
+		 * Время прошедшея с прошлого обновления кадра.
+		 */
+		private var newTime:Number;
+		
+		/**
+		 * Время до обновления кадра.
+		 */
+		private var oldTime:Number;
+		
+		/**
+		 * Разница во времени между кадрами.
+		 */
+		private var deltaTime:Number;
+		
+		/**
+		 * Инвертированная частота кадров.
+		 */
+		private var invFrameRate:int;
+		
+		/**
+		 * Профайлер для откладки.
+		 */
+		private var profiler:SkyProfiler;
+		
+		/**
+		 * Косоль для откладки.
+		 */
+		private var console:Console;
+		
+		/**
+		 * Ссылка на рендер.
+		 */
+		private var hardwareRender:SkyHardwareRender;
+		
+		/**
+		 * Ссылка на 3-х мерную сцену.
+		 */
+		private var stage3D:Stage3D;
+		
+		public function SkySand()
 		{
-			
+			isDevelopMode = false;
+			newTime = 0;
+			oldTime = 0;
+			deltaTime = 0;
+			invFrameRate = 0;
 		}
 		
-		public function initialize(_stage:Stage, _class:Class, frameRate:int, gameScreenWidth:Number = 800, gameScreenHeight:Number = 600, _fillColor:uint = 0x0, renderType:uint = SOFTWARE_RENDER):void
+		/**
+		 * Задать камеру.
+		 * @param	camera ссылка на камеру.
+		 */
+		public static function setCamera(camera:SkyCamera):void
 		{
-			_stage.align = StageAlign.TOP_LEFT;
-			//_stage.scaleMode = StageScaleMode.SHOW_ALL;
+			SkyHardwareRender.instance.setCamera(camera);
+		}
+		
+		/**
+		 * Задать минимальные размеры окна
+		 * @param	width ширина.
+		 * @param	height высота.
+		 */
+		public static function setWindowMinSize(width:Number, height:Number):void
+		{
+			SCREEN_WIDTH = width;
+			SCREEN_HEIGHT = height;
 			
-			SkySand.STAGE = _stage;
-			SkySand.FRAME_RATE = frameRate;
-			mMain = _class;
-			invFrameRate = 1 / frameRate;
+			STAGE.nativeWindow.minSize = new Point(width, height);
+			STAGE.nativeWindow.width = width;
+			STAGE.nativeWindow.height = height;
+		}
+		
+		/**
+		 * Задать максимальные размеры окна
+		 * @param	width ширина.
+		 * @param	height высота.
+		 */
+		public static function setWindowMaxSize(width:Number, height:Number):void
+		{
+			STAGE.nativeWindow.maxSize = new Point(width, height);
+		}
+		
+		/**
+		 * Задать разрешение приложения.
+		 * @param	width ширина.
+		 * @param	height высота.
+		 */
+		public static function setApplicationResolution(width:Number, height:Number):void
+		{
+			SkyHardwareRender.instance.setResolution(width, height);
+		}
+		
+		/**
+		 * Перейти в полноэкранный режим.
+		 */
+		public static function enableFullscreen():void
+		{
+			STAGE.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+		}
+		
+		/**
+		 * Выйти из полноэкранного режима.
+		 */
+		public static function disableFullscreen():void
+		{
+			STAGE.displayState = StageDisplayState.NORMAL;
+		}
+		
+		/**
+		 * Получить доступ к глобальному кэшу.
+		 */
+		public static function get cache():SkyFilesCache
+		{
+			return mCache;
+		}
+		
+		/**
+		 * Отображать любую информацию в окне вывода.
+		 * @param	value данные.
+		 */
+		public static function watch(value:*):void
+		{
+			output.watch(value);
+		}
+		
+		/**
+		 * Настроить внешний вид окна вывода информации.
+		 * @param	width ширина.
+		 * @param	height высота.
+		 * @param	headColor цвет верхней панели окна.
+		 * @param	bodyColor цвет окна.
+		 * @param	textColor цвет текста.
+		 * @param	font шрифт.
+		 * @param	fontSize размер шрифта.
+		 */
+		public static function setOutputViewsetOutputView(width:Number, height:Number, headColor:uint, bodyColor:uint, textColor:uint, font:String, fontSize:int):void
+		{
+			output.setOutputView(width, height, headColor, bodyColor, textColor, font, fontSize);
+		}
+		
+		/**
+		 * Инициализация фреймворка.
+		 * @param	mStage ссылка на сцену.
+		 * @param	mainClass класс приложения.
+		 * @param	contextProfile профиль контекста.
+		 */
+		public function initialize(mStage:Stage, mainClass:Class, contextProfile:String = Context3DProfile.ENHANCED):void
+		{
+			SCREEN_HEIGHT = mStage.stageHeight;
+			SCREEN_WIDTH = mStage.stageWidth;
+			FRAME_RATE = mStage.frameRate;
+			STAGE = mStage;
 			
-			screenWidth = gameScreenWidth;
-			screenHeight = gameScreenHeight;
+			invFrameRate = 1 / FRAME_RATE;
+			this.mainClass = mainClass;
 			
-			registerFonts();
+			mStage.align = StageAlign.TOP_LEFT;
+			mStage.scaleMode = StageScaleMode.NO_SCALE;
 			
-			SkyMouse.instance.initialize(_stage);
+			SkyFont.register();
+			
+			mouse = SkyMouse.instance;
+			mouse.initialize(mStage);
+			
 			keyboard = SkyKeyboard.instance;
-			keyboard.initialize(_stage);
-			keyboard.addFunctionToKey(SkyKey.F9, setPause, true);
+			keyboard.initialize(mStage);
 			
-			if (renderType == HARDWARE_RENDER)
-			{
-				stage3D = _stage.stage3Ds[0];
-				stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
-				stage3D.requestContext3D(Context3DRenderMode.AUTO, Context3DProfile.STANDARD_EXTENDED);
-			}
-			else
-			{
-				render = Render.instance;
-				render.initialize(gameScreenWidth, gameScreenHeight, _fillColor);
-				addChildAt(render, 0);
-			}
+			mCache = new SkyFilesCache();
+			mCache.initialize();
+			
+			stage3D = mStage.stage3Ds[0];
+			stage3D.addEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
+			stage3D.requestContext3D(Context3DRenderMode.AUTO, contextProfile);
 			
 			addEventListener(Event.ENTER_FRAME, onEnterFrameHandler);
 		}
 		
+		/**
+		 * Событие при запросе на создание контекста.
+		 * @param	event событие.
+		 */
 		private function onContext3DCreated(event:Event):void
 		{
 			removeEventListener(Event.CONTEXT3D_CREATE, onContext3DCreated);
 			
-			context3D = stage3D.context3D;
 			CONTEXT_3D = stage3D.context3D;
 			
-			/*
-			var cache:SkyFilesCache = SkyFilesCache.instance;
-			cache.initialize(context3D);
-			*/
 			hardwareRender = SkyHardwareRender.instance;
-			hardwareRender.initialize(context3D, screenWidth, screenHeight);
+			hardwareRender.initialize();
 			
-			console = Console.instance;
-			console.initialize();
-			//console.visible = false;
-			
-			profiler = SkyProfiler.instance;
-			//profiler.visible = false;
-			
-			var game:SkyRenderObjectContainer = new mMain();
-			gameUpdatableClass = game as IUpdatable;
-			SkySand.root = game;
-			
-			game.isAdded = true;
-			game.addChild(profiler);
-			game.addChild(console);
-			
-			console.registerCommand("showProfiler", profiler.show, []);
-		}
-		
-		//lalka
-		private function getNumRenderObjects():void
-		{
-			//console.message("Число отрисовываемых объектов: " + String(SkySand.NUM_OF_RENDER_OBJECTS));
-		}
-		
-		public function set mainClass(value:RenderObject):void
-		{
-			/*_root = value;
-			
-			SkySand.root = value;
-			mainGameClass = value;
-			mainGameClass.addChild(console);
-			//mainGameClass.addChild(watcher);
-			mainGameClass.addChild(profiler);
-			
-			gameUpdatableClass = IUpdatable(mainGameClass);
-			
-			render.rootRenderObject = mainGameClass;*/
-		}
-		
-		/*public function get mainClass():RenderObject
-		{
-			return _root;
-		}*/
-		
-		private function setPause():void
-		{
-			pause = !pause;
-		}
-		
-		public static var nPolygons:int = 0;
-		
-		private function onEnterFrameHandler(event:Event = null):void
-		{
-			/*if (hardwareRender != null)
-			{*/
-				profiler.totalUpdateTime = getTimer();
-				keyboard.update();
+			if (isDevelopMode)
+			{
+				profiler = SkyProfiler.instance;
+				profiler.visible = false;
 				
-				profiler.applicationUpdateTime = getTimer();
-				profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
+				console = Console.instance;
+				console.initialize();
+				console.visible = false;
+				console.message(VERSION, Console.GREEN);
+				console.registerCommand("showProfiler", profiler.show, []);
 				
-				profiler.renderTime = getTimer();
-				drawCalls = 0;
-				hardwareRender.update();
-				console.update();
-				profiler.renderTime = getTimer() - profiler.renderTime;
-				profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
-				profiler.update();
-			/*}
+				output = new SkyOutput();
+				output.initialize(200, 200, 0xDBB71E, 0x151E27, 0xFFFFFF, SkyFont.HOOGE, 15);
+				output.visible = false;
+				
+				var application:SkyRenderObjectContainer = new mainClass();
+				application.isAdded = true;
+				applicationUpdatableClass = application as IUpdatable;
+				
+				var root:SkyRenderObjectContainer = new SkyRenderObjectContainer();
+				root.isAdded = true;
+				root.addChild(application);
+				root.addChild(profiler);
+				root.addChild(console);
+				root.addChild(output);
+				hardwareRender.setRoot(root);
+			}
 			else
 			{
-				
-				
-				
-				render.update();
-				
-				
-				
-			}*/
-			
-			if (!pause) if(gameUpdatableClass) gameUpdatableClass.update(deltaTime);
+				application = new mainClass();
+				application.isAdded = true;
+				applicationUpdatableClass = application as IUpdatable;
+				hardwareRender.setRoot(application);
+			}
 		}
 		
+		private var pause:Boolean = false;
+		
 		/**
-		 * Добавить шрифты.
+		 * Обработчик событий на каждый кадр.
+		 * @param	event событие.
 		 */
-		private function registerFonts():void
+		private function onEnterFrameHandler(event:Event):void
 		{
-			Font.registerFont(cyrbitFont);
-			Font.registerFont(squareFont);
-			Font.registerFont(inconsolataFont);
-			Font.registerFont(iFlashFont);
-			Font.registerFont(hoogeFont);
-			Font.registerFont(anonymousFont);
+			oldTime = newTime;
+			newTime = getTimer();
+			deltaTime = (newTime - oldTime) / 1000;
+			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
+			
+			if (keyboard.isPressed(SkyKey.F9)) pause = !pause;
+			
+			if (isDevelopMode)
+			{
+				if (!pause)
+				{
+					CONTEXT_3D.clear();//
+					profiler.totalUpdateTime = getTimer();
+					keyboard.update();
+					console.update();
+					
+					profiler.applicationUpdateTime = getTimer();
+					applicationUpdatableClass.update(deltaTime);
+					profiler.applicationUpdateTime = getTimer() - profiler.applicationUpdateTime;
+					
+					profiler.renderTime = getTimer();
+					hardwareRender.update(deltaTime);
+					profiler.renderTime = getTimer() - profiler.renderTime;
+					
+					output.update();
+					mouse.reset();
+					
+					profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
+					profiler.update();
+				}
+			}
+			else
+			{
+				CONTEXT_3D.clear();//
+				keyboard.update();
+				applicationUpdatableClass.update(deltaTime);
+				mouse.reset();
+			}
 		}
 	}
 }
