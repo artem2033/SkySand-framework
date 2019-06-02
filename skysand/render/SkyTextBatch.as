@@ -2,12 +2,10 @@ package skysand.render
 {
 	import flash.display.BitmapData;
 	import flash.display3D.Context3DBufferUsage;
-	
 	import flash.display3D.Context3DVertexBufferFormat;
 	import flash.display3D.textures.RectangleTexture;
 	import flash.display3D.Context3DTextureFormat;
 	import flash.display3D.Context3DBlendFactor;
-	
 	import flash.display3D.Context3DProgramType;
 	import flash.display3D.VertexBuffer3D;
 	import flash.display3D.Context3D;
@@ -30,7 +28,7 @@ package skysand.render
 		/**
 		 * Текстура.
 		 */
-		private var texture:RectangleTexture;
+		private var texture:SkyTexture;
 		
 		/**
 		 * Буффер текстурных координат + альфа канал.
@@ -46,16 +44,6 @@ package skysand.render
 		 * Коэффициент, на который умножается целевой цвет.
 		 */
 		private var destinationBlendFactor:String;
-		
-		/**
-		 * Ширина текстуры.
-		 */
-		private var textureWidth:Number;
-		
-		/**
-		 * Высота текстуры.
-		 */
-		private var textureHeight:Number;
 		
 		public function SkyTextBatch()
 		{
@@ -79,19 +67,8 @@ package skysand.render
 		 */
 		public function uploadToTexture(bitmapData:BitmapData):void
 		{
-			if (texture == null)
-			{
-				texture = context3D.createRectangleTexture(bitmapData.width, bitmapData.height, Context3DTextureFormat.BGRA, false);
-				textureWidth = bitmapData.width;
-				textureHeight = bitmapData.height;
-			}
-			else if (textureWidth != bitmapData.width || textureHeight != bitmapData.height)
-			{
-				texture.dispose();
-				texture = context3D.createRectangleTexture(bitmapData.width, bitmapData.height, Context3DTextureFormat.BGRA, false);
-				textureWidth = bitmapData.width;
-				textureHeight = bitmapData.height;
-			}
+			if (texture == null) texture = new SkyTexture(bitmapData.width, bitmapData.height);
+			else texture.setSize(bitmapData.width, bitmapData.height);
 			
 			texture.uploadFromBitmapData(bitmapData);
 		}
@@ -117,8 +94,6 @@ package skysand.render
 			destinationBlendFactor = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
 			sourceBlendFactor = Context3DBlendFactor.ONE;
 			isNeedToRender = true;
-			textureHeight = 0;
-			textureWidth = 0;
 			
 			var vertexShader:String = "";
 			vertexShader += "m44 op, va0, vc0 \n";
@@ -167,7 +142,7 @@ package skysand.render
 			
 			if (texture != null)
 			{
-				texture.dispose();
+				texture.free();
 				texture = null;
 			}
 			
@@ -187,7 +162,7 @@ package skysand.render
 			
 			context3D.setProgram(program);
 			context3D.setBlendFactors(sourceBlendFactor, destinationBlendFactor);
-			context3D.setTextureAt(0, texture);
+			context3D.setTextureAt(0, texture.data);
 			context3D.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 			context3D.setVertexBufferAt(1, vertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_1);
 			context3D.setVertexBufferAt(2, uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);

@@ -200,7 +200,7 @@ package skysand.text
 				for (var i:int = 0; i < length - symbolsLength; i++) 
 				{
 					var char:SkySprite = new SkySprite();
-					char.setAtlasFromCache(atlas.name);
+					char.setAtlas(atlas);
 					char.setSpriteByIndex(33);
 					char.verticesColor.setColor(mTextColor);
 					char.visible = false;
@@ -417,7 +417,7 @@ package skysand.text
 					for (var i:int = 0; i < length - symbolsLength; i++) 
 					{
 						var char:SkySprite = new SkySprite();
-						char.setAtlasFromCache(atlas.name);
+						char.setAtlas(atlas);
 						char.setSpriteByIndex(33);
 						char.verticesColor.setColor(mTextColor);
 						char.visible = false;

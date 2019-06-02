@@ -12,8 +12,9 @@ package skysand.file
 	import flash.filesystem.File;
 	
 	import skysand.utils.SkyUtils;
-	import skysand.file.SkyFilesCache;
 	import skysand.utils.SkyPictureConverter;
+	import skysand.file.SkyFilesCache;
+	import skysand.render.SkyTexture;
 	
 	public class SkyTextureAtlas extends Object
 	{
@@ -25,7 +26,7 @@ package skysand.file
 		/**
 		 * Тестура.
 		 */
-		private var mTexture:TextureBase;
+		private var mTexture:SkyTexture;
 		
 		/**
 		 * Ширина.
@@ -272,14 +273,35 @@ package skysand.file
 		 * @param	height высота.
 		 * @param	name название атласа.
 		 */
-		public function setTexture(texture:TextureBase, width:Number, height:Number, name:String):void
+		public function setTexture(texture:SkyTexture, name:String):void
 		{
-			if (mTexture == null)
+			if (mTexture != null) mTexture.free();
+			
+			mWidth = texture.width;
+			mHeight = texture.height;
+			mTexture = texture;
+			mName = name;
+		}
+		
+		/**
+		 * Удалить анимацию из атласа.
+		 * @param	name имя анимации.
+		 */
+		public function removeAnimation(name:String):void
+		{
+			var length:int = animations.length;
+			
+			for (var i:int = 0; i < length; i++) 
 			{
-				mWidth = width;
-				mHeight = height;
-				mTexture = texture;
-				mName = name;
+				var animation:SkyAnimationData = animations[i];
+				
+				if (animation.name == name)
+				{
+					animation.free();
+					animations[i] = null;
+					animations.removeAt(i);
+					return;
+				}
 			}
 		}
 		
@@ -313,6 +335,30 @@ package skysand.file
 		public function getAnimationByIndex(index:int):Vector.<SkyAtlasSprite>
 		{
 			return animations[index].frames;
+		}
+		
+		/**
+		 * Удалить спрайт.
+		 * @param	name имя спрайта.
+		 */
+		public function removeSprite(name:String):void
+		{
+			if (texture == null || sprites.length == 0) return;
+			
+			var length:int = sprites.length;
+			
+			for (var i:int = 0; i < length; i++) 
+			{
+				var data:SkyAtlasSprite = sprites[i];
+				
+				if (data.name == name)
+				{
+					data.uvs.length = 0;
+					data.uvs = null;
+					sprites.removeAt(i);
+					return;
+				}
+			}
 		}
 		
 		/**
@@ -354,7 +400,7 @@ package skysand.file
 		 */
 		public function free():void
 		{
-			mTexture.dispose();
+			mTexture.free();
 			mTexture = null;
 			
 			bytes.clear();
@@ -391,20 +437,12 @@ package skysand.file
 		/**
 		 * Получить текстуру.
 		 */
-		public function get texture():TextureBase
+		public function get texture():SkyTexture
 		{
 			if (mTexture == null)
 			{
-				if (mWidth == mHeight && SkyUtils.isPowerOfTwo(mWidth))
-				{
-					mTexture = SkySand.CONTEXT_3D.createTexture(mWidth, mHeight, Context3DTextureFormat.BGRA, false);
-					Texture(mTexture).uploadFromByteArray(bytes, 0);
-				}
-				else
-				{
-					mTexture = SkySand.CONTEXT_3D.createRectangleTexture(mWidth, mHeight, Context3DTextureFormat.BGRA, false);
-					RectangleTexture(mTexture).uploadFromByteArray(bytes, 0);
-				}
+				mTexture = new SkyTexture(mWidth, mHeight);
+				mTexture.uploadFromByteArray(bytes);
 			}
 			
 			return mTexture;
@@ -443,7 +481,7 @@ package skysand.file
 		}
 		
 		/**
-		 * Получить имя атласа.
+		 * Имя атласа.
 		 */
 		public function get name():String
 		{
@@ -451,7 +489,7 @@ package skysand.file
 		}
 		
 		/**
-		 * Получить имя атласа.
+		 * Имя атласа.
 		 */
 		public function set name(value:String):void
 		{

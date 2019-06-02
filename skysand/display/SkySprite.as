@@ -21,6 +21,8 @@ package skysand.display
 	 */
 	public class SkySprite extends SkyRenderObjectContainer
 	{
+		public var batchName:String;
+		
 		/**
 		 * Пакет отрисовки.
 		 */
@@ -89,9 +91,9 @@ package skysand.display
 		 */
 		public function setAtlas(atlas:SkyTextureAtlas):void
 		{
+			if (atlas == this.atlas) return;
 			if (batch != null) batch.remove(this);
 			
-			this.atlas = atlas
 			batch = SkyHardwareRender.instance.getBatch(atlas.name) as SkyStandartQuadBatch;
 			
 			if (batch == null)
@@ -100,6 +102,7 @@ package skysand.display
 				SkyHardwareRender.instance.addBatch(batch, atlas.name);
 			}
 			
+			this.atlas = atlas
 			batch.setTexture(atlas.texture);
 		}
 		
@@ -150,7 +153,7 @@ package skysand.display
 		 * @param	texture текстура.
 		 * @param	name имя пакета отрисовки.
 		 */
-		public function setTexture(texture:TextureBase, width:Number, height:Number, name:String):void
+		/*public function setTexture(texture:TextureBase, width:Number, height:Number, name:String):void
 		{
 			if (batch == null) 
 			{
@@ -172,14 +175,14 @@ package skysand.display
 				data.uvs[7] = 1;
 			}
 			
-			batch.setTexture(texture);
+			//batch.setTexture(texture);
 			
 			this.width = width;
 			this.height = height;
 			
 			data.width = width;
 			data.height = height;
-		}
+		}*/
 		
 		/**
 		 * Задать спрайт из текстурного атласа.

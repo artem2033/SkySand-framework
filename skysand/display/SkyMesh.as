@@ -44,7 +44,7 @@ package skysand.display
 			if (batch == null)
 			{
 				batch = new SkyShapeBatch();
-				batch.setTexture(atlas.texture);
+				//batch.setTexture(atlas.texture);
 				SkyHardwareRender.instance.addBatch(batch, name);
 			}
 		}
@@ -61,7 +61,7 @@ package skysand.display
 			if (batch == null)
 			{
 				batch = new SkyShapeBatch();
-				batch.setTexture(atlas.texture);
+				//batch.setTexture(atlas.texture);
 				SkyHardwareRender.instance.addBatch(batch, atlas.name);
 			}
 		}

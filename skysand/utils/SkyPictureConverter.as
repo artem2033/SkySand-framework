@@ -4,6 +4,7 @@ package skysand.utils
 	import flash.utils.CompressionAlgorithm;
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
+	import skysand.file.SkyTextureAtlas;
 	
 	/**
 	 * ...
@@ -88,6 +89,11 @@ package skysand.utils
 			picture.writeByte(0);
 			
 			return picture;
+		}
+		
+		public function getBytesFromAtlas(atlas:SkyTextureAtlas):void
+		{
+			//atlas.
 		}
 		
 		/**

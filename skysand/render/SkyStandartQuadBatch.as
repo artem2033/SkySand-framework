@@ -1,29 +1,23 @@
 package skysand.render
 {
-	import flash.display.BitmapData;
-	import flash.display3D.Context3DMipFilter;
-	import flash.display3D.Context3DRenderMode;
-	import flash.display3D.Context3DTextureFormat;
-	import flash.display3D.Context3DWrapMode;
-	import flash.display3D.textures.RectangleTexture;
-	import flash.display3D.textures.Texture;
 	import flash.geom.Matrix3D;
-	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
+	import flash.display.BitmapData;
 	import flash.display3D.Context3D;
 	import flash.display3D.Program3D;
 	import flash.display3D.IndexBuffer3D;
 	import flash.display3D.VertexBuffer3D;
-	import flash.display3D.textures.TextureBase;
+	import flash.display3D.Context3DWrapMode;
+	import flash.display3D.Context3DMipFilter;
+	import flash.display3D.Context3DRenderMode;
 	import flash.display3D.Context3DBlendFactor;
 	import flash.display3D.Context3DCompareMode;
 	import flash.display3D.Context3DProgramType;
 	import flash.display3D.Context3DTriangleFace;
 	import flash.display3D.Context3DTextureFilter;
+	import flash.display3D.textures.RectangleTexture;
 	import flash.display3D.Context3DVertexBufferFormat;
-	import skysand.display.SkySprite;
-	import skysand.utils.SkyUtils;
 	
 	import skysand.display.SkyRenderObject;
 	import skysand.file.SkyAtlasSprite;
@@ -38,7 +32,7 @@ package skysand.render
 		/**
 		 * Текстура.
 		 */
-		public var texture:TextureBase;
+		protected var texture:SkyTexture;
 		
 		/**
 		 * Буффер текстурных координат + альфа канал.
@@ -154,13 +148,12 @@ package skysand.render
 		
 		/**
 		 * Задать текстуру.
-		 * @param	texture текстура, disposeTexture очистить данные предыдущей текстуры.
+		 * @param	texture ссылка на текстуру.
 		 */
-		public function setTexture(texture:TextureBase, disposeTexture:Boolean = false):void
+		public function setTexture(texture:SkyTexture):void
 		{
-			if (this.texture != null && disposeTexture) this.texture.dispose();
-			
-			this.texture = texture;
+			if (this.texture == null)
+				this.texture = texture;
 		}
 		
 		/**
@@ -169,22 +162,10 @@ package skysand.render
 		 */
 		public function setTextureFromBitmapData(bitmapData:BitmapData):void
 		{
-			if (texture != null)
-			{
-				texture.dispose();
-				texture = null;
-			}
+			if (texture == null) texture = new SkyTexture(bitmapData.width, bitmapData.height);
+			else texture.setSize(bitmapData.width, bitmapData.height);
 			
-			if (bitmapData.width == bitmapData.height && SkyUtils.isPowerOfTwo(bitmapData.width))
-			{
-				texture = context3D.createTexture(bitmapData.width, bitmapData.height, Context3DTextureFormat.BGRA, false);
-				Texture(texture).uploadFromBitmapData(bitmapData);
-			}
-			else
-			{
-				texture = context3D.createRectangleTexture(bitmapData.width, bitmapData.height, Context3DTextureFormat.BGRA, false);
-				RectangleTexture(texture).uploadFromBitmapData(bitmapData);
-			}
+			texture.uploadFromBitmapData(bitmapData);
 		}
 		
 		/**
@@ -313,7 +294,7 @@ package skysand.render
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
 			context3D.setBlendFactors(sourceBlendFactor, destinationBlendFactor);
 			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, targetMatrix, true);
-			context3D.setTextureAt(0, texture);
+			context3D.setTextureAt(0, texture.data);
 			context3D.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 			context3D.setVertexBufferAt(1, vertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_4);
 			context3D.setVertexBufferAt(2, uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
@@ -347,7 +328,7 @@ package skysand.render
 			
 			context3D.setProgram(program);
 			context3D.setBlendFactors(sourceBlendFactor, destinationBlendFactor);
-			context3D.setTextureAt(0, texture);
+			context3D.setTextureAt(0, texture.data);
 			//context3D.setSamplerStateAt(0, wrapMode, textureFilter, Context3DMipFilter.MIPNONE);
 			context3D.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 			context3D.setVertexBufferAt(1, vertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_4);
