@@ -167,7 +167,7 @@ package skysand.file
 			{
 				if (atlases[i].name == atlas.name)
 				{
-					throw new Error("Error: Texture atlas with name " + atlas.name + " is contains in cache!");
+					return//throw new Error("Error: Texture atlas with name " + atlas.name + " is contains in cache!");
 				}
 			}
 			

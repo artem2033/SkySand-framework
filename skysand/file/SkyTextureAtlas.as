@@ -10,6 +10,7 @@ package skysand.file
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
 	import flash.filesystem.File;
+	import skysand.utils.SkyPictureDecodedData;
 	
 	import skysand.utils.SkyUtils;
 	import skysand.utils.SkyPictureConverter;
@@ -31,12 +32,12 @@ package skysand.file
 		/**
 		 * Ширина.
 		 */
-		private var mWidth:Number;
+		//private var mWidth:Number;
 		
 		/**
 		 * Высота.
 		 */
-		private var mHeight:Number;
+		//private var mHeight:Number;
 		
 		/**
 		 * Массив с данными о пикселях, для загрузки в текстуру.
@@ -56,8 +57,8 @@ package skysand.file
 		public function SkyTextureAtlas() 
 		{
 			mName = "";
-			mWidth = 1;
-			mHeight = 1;
+			//mWidth = 1;
+			//mHeight = 1;
 			mTexture = null;
 			sprites = new Vector.<SkyAtlasSprite>();
 			animations = new Vector.<SkyAnimationData>();
@@ -76,20 +77,22 @@ package skysand.file
 		public function setSprite(x:Number, y:Number, width:Number, height:Number, name:String, pivotX:Number = 0, pivotY:Number = 0):void
 		{
 			var data:SkyAtlasSprite = new SkyAtlasSprite();
+			data.x = x;
+			data.y = y;
 			data.name = name;
 			data.width = width;
 			data.height = height;
 			data.pivotX = pivotX;
 			data.pivotY = pivotY;
 			data.uvs = new Vector.<Number>(8, true);
-			data.uvs[0] = x / mWidth;
-			data.uvs[1] = y / mHeight;
-			data.uvs[2] = (x + width) / mWidth;
-			data.uvs[3] = y / mHeight;
-			data.uvs[4] = x / mWidth;
-			data.uvs[5] = (y + height) / mHeight;
-			data.uvs[6] = (x + width) / mWidth;
-			data.uvs[7] = (y + height) / mHeight;
+			data.uvs[0] = x / mTexture.width;
+			data.uvs[1] = y / mTexture.height;
+			data.uvs[2] = (x + width) / mTexture.width;
+			data.uvs[3] = y / mTexture.height;
+			data.uvs[4] = x / mTexture.width;
+			data.uvs[5] = (y + height) / mTexture.height;
+			data.uvs[6] = (x + width) / mTexture.width;
+			data.uvs[7] = (y + height) / mTexture.height;
 			
 			sprites.push(data);
 		}
@@ -137,17 +140,17 @@ package skysand.file
 				data.height = height;
 				data.pivotX = 0;
 				data.pivotY = 0;
-				data.uvs[0] = startX / mWidth;
-				data.uvs[1] = startY / mHeight;
-				data.uvs[2] = (startX + width) / mWidth;
-				data.uvs[3] = startY / mHeight;
-				data.uvs[4] = startX / mWidth;
-				data.uvs[5] = (startY + height) / mHeight;
-				data.uvs[6] = (startX + width) / mWidth;
-				data.uvs[7] = (startY + height) / mHeight;
+				data.uvs[0] = startX / mTexture.width;
+				data.uvs[1] = startY / mTexture.height;
+				data.uvs[2] = (startX + width) / mTexture.width;
+				data.uvs[3] = startY / mTexture.height;
+				data.uvs[4] = startX / mTexture.width;
+				data.uvs[5] = (startY + height) / mTexture.height;
+				data.uvs[6] = (startX + width) / mTexture.width;
+				data.uvs[7] = (startY + height) / mTexture.height;
 				
 				startX += width;
-				if (startX + width > mWidth) startY += height;
+				if (startX + width > mTexture.width) startY += height;
 				
 				animation.frames.push(data);
 			}
@@ -192,9 +195,10 @@ package skysand.file
 			bytes.endian = Endian.LITTLE_ENDIAN;
 			
 			bitmapData.copyPixelsToByteArray(bitmapData.rect, bytes);
-			mWidth = bitmapData.width;
-			mHeight = bitmapData.height;
 			mName = name;
+			
+			if (mTexture == null) mTexture = new SkyTexture(bitmapData.width, bitmapData.height);
+			mTexture.uploadFromByteArray(bytes);
 		}
 		
 		/**
@@ -213,57 +217,15 @@ package skysand.file
 		 */
 		public function loadFromFile(file:File):void
 		{
-			bytes = SkyFilesCache.loadBytesFromFile(file);
-			bytes.position = 1;
+			var data:SkyPictureDecodedData = SkyPictureConverter.decode(SkyFilesCache.loadBytesFromFile(file));
 			
-			if (bytes.readUTFBytes(3) != SkyPictureConverter.FILENAME)
-			{
-				throw new Error("Error: incorrect file to upload in texture atlas!");
-			}
+			if (mTexture == null) mTexture = new SkyTexture(data.textureWidth, data.textureHeight);
+			mTexture.uploadFromByteArray(data.textureBytes);
 			
-			if (bytes.readByte() < SkyPictureConverter.VERSION_OF_STA)
-			{
-				throw new Error("Error: sta file is outdated!");
-			}
+			mName = data.name;
 			
-			var compression:int = bytes.readByte();
-			mWidth = bytes.readInt();
-			mHeight = bytes.readInt();
-			mName = bytes.readUTF();
-			
-			if (bytes.readUTFBytes(3) != "DAT")
-			{
-				bytes.position -= 3;
-				
-				var length:uint = bytes.readUnsignedInt();
-				var atlasData:ByteArray = new ByteArray();
-				atlasData.writeBytes(bytes, bytes.position, length);
-				atlasData.position = 0;
-				
-				if (compression == SkyPictureConverter.DEFLATE) atlasData.uncompress(CompressionAlgorithm.DEFLATE);
-				else if(compression == SkyPictureConverter.LZMA) atlasData.uncompress(CompressionAlgorithm.LZMA);
-				else if(compression == SkyPictureConverter.ZLIB) atlasData.uncompress(CompressionAlgorithm.ZLIB);
-				
-				while (atlasData.position < atlasData.length)
-				{
-					var name:String = atlasData.readUTF();
-					setSprite(atlasData.readInt(), atlasData.readInt(), atlasData.readInt(), atlasData.readInt(), name);
-				}
-				
-				atlasData.clear();
-				bytes.position += length + 3;
-			}
-			
-			var data:ByteArray = new ByteArray();
-			data.writeBytes(bytes, bytes.position, bytes.length - bytes.position - 4);
-			data.position = 0;
-			
-			if (compression == SkyPictureConverter.DEFLATE) data.uncompress(CompressionAlgorithm.DEFLATE);
-			else if(compression == SkyPictureConverter.LZMA) data.uncompress(CompressionAlgorithm.LZMA);
-			else if(compression == SkyPictureConverter.ZLIB) data.uncompress(CompressionAlgorithm.ZLIB);
-			
-			bytes.clear();
-			bytes = data;
+			if (data.sprites != null)	 sprites 	= sprites.concat(data.sprites);
+			if (data.animations != null) animations = animations.concat(data.animations);
 		}
 		
 		/**
@@ -277,8 +239,6 @@ package skysand.file
 		{
 			if (mTexture != null) mTexture.free();
 			
-			mWidth = texture.width;
-			mHeight = texture.height;
 			mTexture = texture;
 			mName = name;
 		}
@@ -353,6 +313,7 @@ package skysand.file
 				
 				if (data.name == name)
 				{
+					data.uvs.fixed = false;
 					data.uvs.length = 0;
 					data.uvs = null;
 					sprites.removeAt(i);
@@ -381,6 +342,8 @@ package skysand.file
 					return data;
 				}
 			}
+			
+			throw new Error("Sprite with name \"" + name + "\" is missing!");
 			
 			return null;
 		}
@@ -439,12 +402,6 @@ package skysand.file
 		 */
 		public function get texture():SkyTexture
 		{
-			if (mTexture == null)
-			{
-				mTexture = new SkyTexture(mWidth, mHeight);
-				mTexture.uploadFromByteArray(bytes);
-			}
-			
 			return mTexture;
 		}
 		
@@ -469,7 +426,7 @@ package skysand.file
 		 */
 		public function get width():Number
 		{
-			return mWidth;
+			return mTexture.width;
 		}
 		
 		/**
@@ -477,7 +434,7 @@ package skysand.file
 		 */
 		public function get height():Number
 		{
-			return mHeight;
+			return mTexture.height;
 		}
 		
 		/**

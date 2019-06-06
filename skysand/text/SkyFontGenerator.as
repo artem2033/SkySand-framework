@@ -101,7 +101,7 @@ package skysand.text
 		 * @param	fontSize размер шрифта.
 		 * @return возвращает получившуюся текстуру в виде байтового массива.
 		 */
-		public function createTexture(font:String, fontSize:Number, embedFonts:Boolean = true):ByteArray
+		public function createTexture(font:String, fontSize:Number, embedFonts:Boolean = true):void
 		{
 			format = new TextFormat();
 			format.font = font;
@@ -129,8 +129,10 @@ package skysand.text
 			var bitmapData:BitmapData = new BitmapData(size, size, true, 0x0);
 			
 			count = 0;
-			bytes.clear();
 			matrix.identity();
+			bytes.clear();
+			bytes.writeUTFBytes(SkyPictureConverter.SPRITE);
+			bytes.writeShort(chars.length);
 			
 			for (var i:int = 0; i < chars.length; i++) 
 			{
@@ -139,10 +141,12 @@ package skysand.text
 				var h:int = Math.round(textField.height);
 				
 				bytes.writeUTF(textField.text);
-				bytes.writeInt(matrix.tx);
-				bytes.writeInt(matrix.ty);
-				bytes.writeInt(w - 1);
-				bytes.writeInt(h);
+				bytes.writeShort(w - 1);
+				bytes.writeShort(h);
+				bytes.writeFloat(matrix.tx);
+				bytes.writeFloat(matrix.ty);
+				bytes.writeFloat(0);
+				bytes.writeFloat(0);
 				
 				if (textField.text == ' ' || textField.text == '\t') continue;
 				
@@ -160,11 +164,7 @@ package skysand.text
 			
 			var name:String = font + (fontSize < 10 ? "0" + fontSize.toString() : fontSize.toString());
 			
-			var converter:SkyPictureConverter = new SkyPictureConverter();
-			bytes = converter.convert(bitmapData, name, bytes);
-			bitmapData.dispose();
-			
-			return bytes;
+			bytes = SkyPictureConverter.encode(bitmapData, name, bytes);
 		}
 		
 		/**

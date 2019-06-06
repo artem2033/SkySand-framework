@@ -11,6 +11,8 @@ package skysand.file
 		public var height:Number = 1;
 		public var pivotX:Number = 0;
 		public var pivotY:Number = 0;
+		public var x:Number = 0;
+		public var y:Number = 0;
 		public var uvs:Vector.<Number>;
 	}
 }

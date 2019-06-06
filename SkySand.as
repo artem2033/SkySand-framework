@@ -17,6 +17,7 @@ package
 	import skysand.display.SkyCamera;
 	import skysand.input.SkyKey;
 	import skysand.ui.SkyUI;
+	import skysand.utils.SkyPictureConverter;
 	
 	import skysand.text.SkyFont;
 	import skysand.debug.Console;
