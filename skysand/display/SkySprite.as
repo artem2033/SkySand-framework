@@ -21,8 +21,6 @@ package skysand.display
 	 */
 	public class SkySprite extends SkyRenderObjectContainer
 	{
-		public var batchName:String;
-		
 		/**
 		 * Пакет отрисовки.
 		 */
@@ -79,27 +77,30 @@ package skysand.display
 		/**
 		 * Задать атлас из глобального кеша.
 		 * @param	name название атласа.
+		 * @param	batchName если нужно добавить в пакет с другим именем.
 		 */
-		public function setAtlasFromCache(name:String):void
+		public function setAtlasFromCache(name:String, batchName:String = ""):void
 		{
-			setAtlas(SkySand.cache.getTextureAtlas(name));
+			setAtlas(SkySand.cache.getTextureAtlas(name), batchName);
 		}
 		
 		/**
 		 * Задать текстурный атлас.
 		 * @param	atlas ссылка на текстурный атлас.
+		 * @param	batchName если нужно добавить в пакет с другим именем.
 		 */
-		public function setAtlas(atlas:SkyTextureAtlas):void
+		public function setAtlas(atlas:SkyTextureAtlas, batchName:String = ""):void
 		{
 			if (atlas == this.atlas) return;
 			if (batch != null) batch.remove(this);
 			
-			batch = SkyHardwareRender.instance.getBatch(atlas.name) as SkyStandartQuadBatch;
+			var name:String = batchName == "" ? atlas.name : batchName
+			batch = SkyHardwareRender.instance.getBatch(name) as SkyStandartQuadBatch;
 			
 			if (batch == null)
 			{
 				batch = new SkyStandartQuadBatch();
-				SkyHardwareRender.instance.addBatch(batch, atlas.name);
+				SkyHardwareRender.instance.addBatch(batch, name);
 			}
 			
 			this.atlas = atlas

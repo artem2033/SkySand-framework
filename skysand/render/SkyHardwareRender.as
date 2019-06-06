@@ -428,13 +428,27 @@ package skysand.render
 		}
 		
 		/**
+		 * Добавить новый пакет отрисовки к указанной позиции индекса.
+		 * @param	batch ссылка на добавляемый пакет.
+		 * @param	index позиция в списке.
+		 * @param	name название пакета.
+		 */
+		public function addBatchAt(batch:SkyBatchBase, index:int, name:String):void
+		{
+			batch.initialize(context3D, modelViewMatrix, name);
+			batches.splice(index, 0, batch);
+			batchStack[nBatches] = batch;
+			nBatches++;
+		}
+		
+		/**
 		 * Поменять пакеты отрисовки местами.
 		 * @param	index0 номер первого пакета.
 		 * @param	index1 номер второго пакета.
 		 */
 		public function swapBatches(index0:int, index1:int):void
 		{
-			var batch0:SkyBatchBase = batches.removeAt(index0) as SkyBatchBase;
+			/*var batch0:SkyBatchBase = batches.removeAt(index0) as SkyBatchBase;
 			var batch1:SkyBatchBase = batches.removeAt(index1) as SkyBatchBase;
 			
 			if (index0 > index1)
@@ -446,7 +460,11 @@ package skysand.render
 			{
 				batches.insertAt(index0, batch1);
 				batches.insertAt(index1, batch0);
-			}
+			}*/
+			
+			var batch0:SkyBatchBase = batches[index0];
+			batches[index0] = batches[index1];
+			batches[index1] = batch0;
 		}
 		
 		/**

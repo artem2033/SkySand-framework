@@ -10,6 +10,7 @@ package skysand.file
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	
+	import skysand.debug.Console;
 	import skysand.file.SkyAtlasSprite;
 	import skysand.file.SkyTextureAtlas;
 	
@@ -167,7 +168,8 @@ package skysand.file
 			{
 				if (atlases[i].name == atlas.name)
 				{
-					return//throw new Error("Error: Texture atlas with name " + atlas.name + " is contains in cache!");
+					Console.log("Error: Texture atlas with name " + atlas.name + " is contains in cache!", Console.RED);
+					return;
 				}
 			}
 			

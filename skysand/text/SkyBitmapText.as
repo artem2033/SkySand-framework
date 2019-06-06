@@ -97,6 +97,11 @@ package skysand.text
 		 */
 		private var tabCount:int;
 		
+		/**
+		 * Имя пакета по умолчанию.
+		 */
+		private var batchName:String;
+		
 		public function SkyBitmapText() 
 		{
 			
@@ -105,9 +110,11 @@ package skysand.text
 		/**
 		 * Задать атлас из глобального кеша.
 		 * @param	name название атласа.
+		 * @param	batchName если нужно добавить в пакет с другим именем.
 		 */
-		public function setAtlasFromCache(name:String):void
+		public function setAtlasFromCache(name:String, batchName:String = ""):void
 		{
+			this.batchName = batchName;
 			atlas = SkySand.cache.getTextureAtlas(name);
 			initialize();
 		}
@@ -115,9 +122,11 @@ package skysand.text
 		/**
 		 * Задать текстурный атлас.
 		 * @param	atlas ссылка на текстурный атлас.
+		 * @param	batchName если нужно добавить в пакет с другим именем.
 		 */
-		public function setAtlas(atlas:SkyTextureAtlas):void
+		public function setAtlas(atlas:SkyTextureAtlas, batchName:String = ""):void
 		{
+			this.batchName = batchName;
 			this.atlas = atlas;
 			initialize();
 		}
@@ -200,7 +209,7 @@ package skysand.text
 				for (var i:int = 0; i < length - symbolsLength; i++) 
 				{
 					var char:SkySprite = new SkySprite();
-					char.setAtlas(atlas);
+					char.setAtlas(atlas, batchName);
 					char.setSpriteByIndex(33);
 					char.verticesColor.setColor(mTextColor);
 					char.visible = false;
@@ -417,7 +426,7 @@ package skysand.text
 					for (var i:int = 0; i < length - symbolsLength; i++) 
 					{
 						var char:SkySprite = new SkySprite();
-						char.setAtlas(atlas);
+						char.setAtlas(atlas, batchName);
 						char.setSpriteByIndex(33);
 						char.verticesColor.setColor(mTextColor);
 						char.visible = false;
