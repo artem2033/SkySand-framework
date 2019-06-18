@@ -253,13 +253,10 @@ package skysand.display
 		 */
 		public function set mouseEnabled(value:Boolean):void
 		{
-			//if (mMouseEnabled != value)
-			//{
-				if (mMouseEnabled) SkyMouse.instance.addObjectToClosestTest(this);
-				else SkyMouse.instance.removeObjectFromClosestTest(this);
-				
-				mMouseEnabled = value;
-			//}
+			mMouseEnabled = value;
+			
+			if (value) SkyMouse.instance.addObjectToClosestTest(this);
+			else SkyMouse.instance.removeObjectFromClosestTest(this);
 		}
 		
 		/**

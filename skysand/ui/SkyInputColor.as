@@ -89,11 +89,8 @@ package skysand.ui
 		 */
 		public function setSize(width:Number, height:Number):void
 		{
-			//var color:uint = textField.textColor;
-			
 			textField.width = width;
 			textField.height = height;
-			//textField.textColor = color;
 			
 			square.recreate(1, height, height);
 			square.x = width + 2;
@@ -208,6 +205,12 @@ package skysand.ui
 			}
 			
 			super.updateData(deltaTime);
+		}
+		
+		override public function set mouseEnabled(value:Boolean):void 
+		{
+			textField.mouseEnabled = value;
+			square.mouseEnabled = value;
 		}
 		
 		/**

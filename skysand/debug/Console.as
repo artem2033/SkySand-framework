@@ -3,6 +3,7 @@
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFieldType;
+	import skysand.input.SkyMouse;
 	import skysand.render.SkyHardwareRender;
 	import skysand.text.SkyTextField;
 	import skysand.render.software.RenderObject;
@@ -158,9 +159,16 @@
 			registerCommand("-help", help, []);
 			registerCommand("-clear", clear, []);
 			registerCommand("-reg", registerWrite, []);
+			registerCommand("-numMouseChild", logMouseChildCount, []);
 			
 			message("Framework: Консоль разработчика создана.", BLUE);
 		}
+		
+		private function logMouseChildCount():void
+		{
+			Console.log("Mouse children count: " + SkyMouse.instance.numChildren);
+		}
+		
 		
 		/**
 		 * Зарегестрировать команду.

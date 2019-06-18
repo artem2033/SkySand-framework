@@ -3,7 +3,6 @@ package skysand.display
 	import flash.geom.Point;
 	
 	import skysand.input.SkyMouse;
-	import skysand.render.SkyHardwareRender;
 	
 	/**
 	 * ...
@@ -42,8 +41,7 @@ package skysand.display
 			child.init();
 			child.isAdded = true;
 			
-			SkyHardwareRender.instance.addObjectToRender(child);
-			SkyHardwareRender.instance.updateDepth = true;
+			SkySand.render.addRenderObject(child);
 			SkyMouse.instance.addObjectToClosestTest(child);
 			
 			nChildren++;
@@ -58,19 +56,18 @@ package skysand.display
 		{
 			index = index < 0 ? 0 : index >= nChildren ? nChildren : index;
 			
-			if (!children) children = new Vector.<SkyRenderObjectContainer>();
+			if (children == null) children = new Vector.<SkyRenderObjectContainer>();
 			
 			if (children.indexOf(child) > -1) return;
-			
 			if (child.parent) child.parent.removeChild(child);
 			
-			child.parent = this;
 			children.insertAt(index, child);
+			
+			child.parent = this;
 			child.init();
 			child.isAdded = true;
 			
-			SkyHardwareRender.instance.addObjectToRender(child);
-			SkyHardwareRender.instance.updateDepth = true;
+			SkySand.render.addRenderObject(child);
 			SkyMouse.instance.addObjectToClosestTest(child);
 			
 			nChildren++;
@@ -153,8 +150,7 @@ package skysand.display
 			child.isAdded = false;
 			child.remove();
 			
-			SkyHardwareRender.instance.removeObjectFromRender(child);
-			SkyHardwareRender.instance.updateDepth = true;
+			SkySand.render.removeRenderObject(child);
 			SkyMouse.instance.removeObjectFromClosestTest(child);
 			
 			nChildren--;
@@ -175,8 +171,7 @@ package skysand.display
 			
 			children[index].remove();
 			
-			SkyHardwareRender.instance.removeObjectFromRender(children[index]);
-			SkyHardwareRender.instance.updateDepth = true;
+			SkySand.render.removeRenderObject(children[index]);
 			SkyMouse.instance.removeObjectFromClosestTest(children[index]);
 			
 			children[index].isAdded = false;
@@ -223,12 +218,9 @@ package skysand.display
 			children[index0] = children[index1];
 			children[index1] = temp;
 			
-			var t:uint = child0.depth;
-			child0.depth = child1.depth;
-			child1.depth = t;
-			
 			SkyMouse.instance.sortMouseChilds();
-			SkyHardwareRender.instance.updateDepth = true;
+			SkySand.render.updateDepth = true;
+			//sort render list
 		}
 		
 		/**
@@ -246,12 +238,9 @@ package skysand.display
 			children[index0] = children[index1];
 			children[index1] = temp;
 			
-			var t:uint = children[index0].depth;
-			children[index0].depth = children[index1].depth;
-			children[index1].depth = t;
-			
 			SkyMouse.instance.sortMouseChilds();
-			SkyHardwareRender.instance.updateDepth = true;
+			SkySand.render.updateDepth = true;
+			//sort render list
 		}
 		
 		/**

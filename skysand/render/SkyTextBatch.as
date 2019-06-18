@@ -102,7 +102,7 @@ package skysand.render
 			
 			var pixelShader:String = "";
 			pixelShader += "tex ft0, v0.xy, fs0 <2d, clamp, linear, nomip> \n";
-			pixelShader += "mul ft0.w, ft0.w, v0.z \n";
+			pixelShader += "mul ft0, ft0, v0.z \n";
 			pixelShader += "mov oc, ft0";
 			
 			setShader(vertexShader, pixelShader);
@@ -156,7 +156,7 @@ package skysand.render
 		{
 			if (!isNeedToRender)
 			{
-				SkyHardwareRender.instance.notRenderedBatchesCount++;
+				SkySand.render.notRenderedBatchesCount++;
 				return;
 			}
 			

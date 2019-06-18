@@ -135,7 +135,7 @@ package skysand.render
 			
 			assembler = null;
 			
-			SkyHardwareRender.instance.removeBatch(this);
+			SkySand.render.removeBatch(this);
 		}
 		
 		/**

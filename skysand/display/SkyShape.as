@@ -389,7 +389,7 @@ package skysand.display
 		/**
 		 * Получить вершины в виде точек.
 		 */
-		public function get getVertices():Vector.<Number>
+		public function getVertices():Vector.<Number>
 		{
 			return verteces;
 		}
@@ -488,12 +488,12 @@ package skysand.display
 		{
 			if (vertecesCount > 2)
 			{
-				batch = SkyHardwareRender.instance.getBatch(batchName) as SkyShapeBatch;
+				batch = SkySand.render.getBatch(batchName) as SkyShapeBatch;
 				
 				if (batch == null)
 				{
 					batch = new SkyShapeBatch();
-					SkyHardwareRender.instance.addBatch(batch, batchName); 
+					SkySand.render.addBatch(batch, batchName); 
 				}
 				
 				batchVerteces = batch.verteces;

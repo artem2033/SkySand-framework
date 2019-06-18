@@ -39,13 +39,13 @@ package skysand.display
 		public function setAtlasFromCache(name:String):void
 		{
 			atlas = SkySand.cache.getTextureAtlas(name);
-			batch = SkyHardwareRender.instance.getBatch(name) as SkyShapeBatch;
+			//batch = SkyHardwareRender.instance.getBatch(name) as SkyShapeBatch;
 			
 			if (batch == null)
 			{
 				batch = new SkyShapeBatch();
 				//batch.setTexture(atlas.texture);
-				SkyHardwareRender.instance.addBatch(batch, name);
+				//SkyHardwareRender.instance.addBatch(batch, name);
 			}
 		}
 		
@@ -56,13 +56,13 @@ package skysand.display
 		public function setAtlas(atlas:SkyTextureAtlas):void
 		{
 			this.atlas = atlas
-			batch = SkyHardwareRender.instance.getBatch(atlas.name) as SkyShapeBatch;
+			//batch = SkyHardwareRender.instance.getBatch(atlas.name) as SkyShapeBatch;
 			
 			if (batch == null)
 			{
 				batch = new SkyShapeBatch();
 				//batch.setTexture(atlas.texture);
-				SkyHardwareRender.instance.addBatch(batch, atlas.name);
+				//SkyHardwareRender.instance.addBatch(batch, atlas.name);
 			}
 		}
 		

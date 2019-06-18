@@ -398,6 +398,7 @@ package skysand.ui
 			
 			background.color = backgroundColor;
 			button.setColor(buttonColor);
+			
 			this.offColor = offColor;
 			this.onColor = onColor;
 		}
@@ -567,8 +568,8 @@ package skysand.ui
 				{
 					if (textField != null)
 					{
-						textField.text = "off";
 						textField.textColor = offColor;
+						textField.text = "off";
 					}
 					else
 					{
@@ -591,8 +592,8 @@ package skysand.ui
 				{
 					if (textField != null)
 					{
-						textField.text = "on";
 						textField.textColor = onColor;
+						textField.text = "on";
 					}
 					else
 					{

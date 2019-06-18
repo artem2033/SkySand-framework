@@ -225,70 +225,70 @@ package skysand.ui
 			
 			var radian:Number = SkyMath.toRadian(value * 360) - HALF_PI;
 			
-			point.x = globalX + radius * Math.cos(radian);
-			point.y = globalY + radius * Math.sin(radian);
+			point.x = radius * Math.cos(radian);
+			point.y = radius * Math.sin(radian);
 			
-			var verteces:Vector.<Number> = bar.batchVerteces;
+			var verteces:Vector.<Number> = bar.getVertices();
 			var index:int = bar.indexID;
 			
-			verteces[index] = point.x;
-			verteces[index + 1] = point.y;
+			verteces[0] = point.x;
+			verteces[1] = point.y;
 			
 			value = 1 - value;
 			
 			if (value * 360 > 60)
 			{
-				verteces[index + 7] = point.x;
-				verteces[index + 8] = point.y;
+				verteces[2] = point.x;
+				verteces[3] = point.y;
 			}
 			else
 			{
-				verteces[index + 7] = originVerteces[2] + globalX;
-				verteces[index + 8] = originVerteces[3] + globalY;
+				verteces[2] = originVerteces[2];
+				verteces[3] = originVerteces[3];
 			}
 			
 			if (value * 360 > 120)
 			{
-				verteces[index + 14] = point.x;
-				verteces[index + 15] = point.y;
+				verteces[4] = point.x;
+				verteces[5] = point.y;
 			}
 			else
 			{
-				verteces[index + 14] = originVerteces[4] + globalX;
-				verteces[index + 15] = originVerteces[5] + globalY;
+				verteces[4] = originVerteces[4];
+				verteces[5] = originVerteces[5];
 			}
 			
 			if (value * 360 > 180)
 			{
-				verteces[index + 21] = point.x;
-				verteces[index + 22] = point.y;
+				verteces[6] = point.x;
+				verteces[7] = point.y;
 			}
 			else
 			{
-				verteces[index + 21] = originVerteces[6] + globalX;
-				verteces[index + 22] = originVerteces[7] + globalY;
+				verteces[6] = originVerteces[6];
+				verteces[7] = originVerteces[7];
 			}
 			
 			if (value * 360 > 240)
 			{
-				verteces[index + 28] = point.x;
-				verteces[index + 29] = point.y;
+				verteces[8] = point.x;
+				verteces[9] = point.y;
 			}
 			else
 			{
-				verteces[index + 28] = originVerteces[8] + globalX;
-				verteces[index + 29] = originVerteces[9] + globalY;
+				verteces[8] = originVerteces[8];
+				verteces[9] = originVerteces[9];
 			}
 			
 			if (value * 360 > 300)
 			{
-				verteces[index + 35] = point.x;
-				verteces[index + 36] = point.y;
+				verteces[10] = point.x;
+				verteces[11] = point.y;
 			}
 			else
 			{
-				verteces[index + 35] = originVerteces[10] + globalX;
-				verteces[index + 36] = originVerteces[11] + globalY;
+				verteces[10] = originVerteces[10];
+				verteces[11] = originVerteces[11];
 			}
 		}
 		

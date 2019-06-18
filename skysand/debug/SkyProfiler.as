@@ -569,7 +569,7 @@ package skysand.debug
 			//var index0:int = getChildIndex(greenLine);
 			//var index1:int = getChildIndex(blueLine);
 			
-			if (greenLine.height <= blueLine.height) swapChildren(blueLine, greenLine);
+			//if (greenLine.height <= blueLine.height) swapChildren(blueLine, greenLine);
 			//else if (greenLine.height >= blueLine.height && index0 < index1) swapChildren(blueLine, greenLine);
 			
 			currentFpsField.text = "current\t\t             " + count.toFixed(1);
@@ -725,7 +725,7 @@ package skysand.debug
 			create(651, 376, 0xDBB71E, 0x151E27);
 			addText("PROFILER", "verdana", 0x151E27, 12);
 			
-			render = SkyHardwareRender.instance;
+			render = SkySand.render;
 			
 			applicationUpdateTime = 0;
 			renderLineMultiplier = 1;

@@ -162,7 +162,7 @@ package skysand.input
 			currentClosestObject = null;
 			isExactHitTest = false;
 			isCalculateClosestObject = false;
-			isSorted = false
+			isSorted = false;
 		}
 		
 		/**
@@ -278,6 +278,11 @@ package skysand.input
 			}
 		}
 		
+		public function get numChildren():int
+		{
+			return objects.length;
+		}
+		
 		/**
 		 * TODO:: add changing graphics of cursor.
 		 * @param	key
@@ -296,6 +301,7 @@ package skysand.input
 			
 			Mouse.registerCursor(key, mouseCursorData);
 		}*/
+		
 		
 		/**
 		 * Координаты курсора по оси x.
@@ -372,7 +378,7 @@ package skysand.input
 				isSorted = true;
 			}
 			
-			if (isCalculateClosestObject)
+			if (isCalculateClosestObject && currentClosestObject == null)
 			{
 				var length:int = objects.length - 1;
 				

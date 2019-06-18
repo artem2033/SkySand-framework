@@ -43,6 +43,11 @@ package skysand.render
 		public var updateDepth:Boolean;
 		
 		/**
+		 * Отсортироват массив объектов по глубине.
+		 */
+		public var sortObjects:Boolean;
+		
+		/**
 		 * Сглаживание.
 		 */
 		public var antialiasing:Number = 4;
@@ -193,28 +198,11 @@ package skysand.render
 		private var assembler:AGALMiniAssembler;
 		
 		/**
-		 * Ссылка класса на самого себя.
-		 */
-		private static var _instance:SkyHardwareRender;
-		
-		/**
 		 * Конструктор.
 		 */
 		public function SkyHardwareRender()
 		{
-			if (_instance != null)
-			{
-				throw new Error("Используйте instance для доступа к экземпляру класса SkyHardwareRender");
-			}
-			_instance = this;
-		}
-		
-		/**
-		 * Получить ссылку на класс.
-		 */
-		public static function get instance():SkyHardwareRender
-		{
-			return _instance == null ? new SkyHardwareRender() : _instance;
+			
 		}
 		
 		/**
@@ -281,6 +269,7 @@ package skysand.render
 			isRenderToTarget = false; //баг с порядком отображения текстовых полей.
 			isScaleMode = false;
 			updateDepth = false;
+			sortObjects = false;
 			
 			resolutionWidth = SkySand.SCREEN_WIDTH;
 			resolutionHeight = SkySand.SCREEN_HEIGHT;
@@ -486,7 +475,7 @@ package skysand.render
 		 * Удалить отрисовываемый объект.
 		 * @param	object объект.
 		 */
-		public function removeObjectFromRender(object:SkyRenderObjectContainer):void
+		public function removeRenderObject(object:SkyRenderObjectContainer):void
 		{
 			var index:int = objects.indexOf(object);
 			
@@ -513,11 +502,13 @@ package skysand.render
 		 * Добавить объект для отрисовки.
 		 * @param	object объект.
 		 */
-		public function addObjectToRender(object:SkyRenderObjectContainer):void
+		public function addRenderObject(object:SkyRenderObjectContainer):void
 		{
 			objects.push(object);
 			object.updateData(0);
 			nObjects++;
+			updateDepth = true;
+			sortObjects = true;
 			
 			if (object is SkyShape)
 			{
@@ -572,7 +563,6 @@ package skysand.render
 			this.root = root;
 		}
 		
-		private var angle:Number = 0;
 		/**
 		 * Обновить рендер.
 		 * @param	deltaTime время прошедшее с прошлого кадра.
@@ -599,8 +589,12 @@ package skysand.render
 				depthCount = 0;
 				calculateDepth(root);
 				updateDepth = false;
-				
-				objects.sort(compare);
+			}
+			
+			if (sortObjects)
+			{
+				sort();
+				sortObjects = false;
 			}
 			
 			for (var i:int = 0; i < nObjects; i++)
@@ -609,8 +603,9 @@ package skysand.render
 			}
 			
 			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, modelViewMatrix, true);
-			context3D.setCulling(Context3DTriangleFace.BACK);
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
+			context3D.setCulling(Context3DTriangleFace.BACK);
+			
 			notRenderedBatchesCount = 0;
 			
 			for (i = 0; i < nBatches; i++)
@@ -670,6 +665,34 @@ package skysand.render
 		public function get textObjectsCount():int
 		{
 			return textFieldsCount;
+		}
+		
+		/**
+		 * Сортировка алгоритмом шелла объектов по глубине по убыванию.
+		 */
+		public function sort():void
+		{
+			var length:int = objects.length;
+			var gap:int = length / 2;
+			
+			while (gap >= 1)
+			{
+				for (var right:int = 0; right < length; right++)
+				{
+					for (var i:int = right - gap; i >= 0; i -= gap)
+					{
+						if (objects[i + gap].depth > objects[i].depth)
+						{
+							var tmp:SkyRenderObjectContainer = objects[i];
+							objects[i] = objects[i + gap];
+							objects[i + gap] = tmp;
+						}
+						else break;
+					}
+				}
+				
+				gap = gap / 2;
+			}
 		}
 		
 		/**

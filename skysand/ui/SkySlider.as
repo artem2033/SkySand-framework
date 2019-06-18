@@ -96,7 +96,6 @@ package skysand.ui
 				background.height = height;
 			}
 			
-			buttonSize = sliderSize;
 			bound = isVerticalOrientation ? background.height - sliderSize : background.width - sliderSize;
 		}
 		
@@ -177,8 +176,20 @@ package skysand.ui
 		 */
 		public function setOrientation(value:Boolean):void
 		{
-			position = 0;
-			isVerticalOrientation = value;
+			if (isVerticalOrientation != value)
+			{
+				position = 0;
+				isVerticalOrientation = value;
+				
+				if (isVerticalOrientation) button.recreate(kind, width, sliderSize);
+				else button.recreate(kind, sliderSize, height);
+			}
+		}
+		
+		override public function set mouseEnabled(value:Boolean):void 
+		{
+			button.mouseEnabled = value;
+			super.mouseEnabled = value;
 		}
 		
 		/**

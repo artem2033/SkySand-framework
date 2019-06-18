@@ -175,7 +175,7 @@ package skysand.render
 			}
 			
 			sizes.push(indices.length);
-			triangulate(mesh.getVertices);
+			triangulate(mesh.getVertices());
 			calculateUV(mesh, data, atlas);
 			mesh.indexID = position;
 			position = verteces.length;
@@ -198,7 +198,7 @@ package skysand.render
 			}
 			
 			sizes.push(indices.length);
-			triangulate(object.getVertices);
+			triangulate(object.getVertices());
 			object.indexID = position;
 			position = verteces.length;
 			objects.push(object);
@@ -329,7 +329,7 @@ package skysand.render
 			matrix.identity();
 			matrix.scale(data.width / mesh.width, data.height / mesh.height);
 			
-			var verteces:Vector.<Number> = mesh.getVertices;
+			var verteces:Vector.<Number> = mesh.getVertices();
 			var length:int = verteces.length / 2;
 			
 			for (var i:int = 0; i < length; i++)

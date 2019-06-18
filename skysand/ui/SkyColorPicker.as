@@ -189,6 +189,7 @@ package skysand.ui
 			saturationValueSquare.verticesColor.setRight(SkyColor.BRIGHT_ORANGE);
 			saturationValueSquare.x = 2;
 			saturationValueSquare.y = 2;
+			saturationValueSquare.mouseEnabled = true;
 			addChild(saturationValueSquare);
 			
 			hueRect = new SkySprite();
@@ -196,6 +197,7 @@ package skysand.ui
 			hueRect.setSprite("hue");
 			hueRect.y = 2 + saturationValueSquare.height + saturationValueSquare.y;
 			hueRect.x = 2;
+			hueRect.mouseEnabled = true;
 			addChild(hueRect);
 			
 			arrow = new SkyShape();
@@ -212,6 +214,7 @@ package skysand.ui
 			colorPicker.drawRing(0, 0, 8, 6, 20);
 			colorPicker.x = 55;
 			colorPicker.y = 55;
+			colorPicker.mouseEnabled = true;
 			addChild(colorPicker);
 			
 			palette = new Vector.<SkyShape>();
@@ -317,7 +320,7 @@ package skysand.ui
 			{
 				if (!isDragging)
 				{
-					if (saturationValueSquare.hitTestBoundsWithMouse() || colorPicker.hitTestBoundsWithMouse())
+					if (SkyMouse.currentClosestObject == saturationValueSquare || SkyMouse.currentClosestObject == colorPicker)
 					{
 						colorPicker.x = SkySand.STAGE.mouseX - saturationValueSquare.globalX + saturationValueSquare.x;
 						colorPicker.y = SkySand.STAGE.mouseY - saturationValueSquare.globalY + saturationValueSquare.y;
@@ -325,7 +328,7 @@ package skysand.ui
 						
 						isDragging = true;
 					}
-					else if (hueRect.hitTestBoundsWithMouse())
+					else if (SkyMouse.currentClosestObject == hueRect)
 					{
 						arrow.x = SkySand.STAGE.mouseX - line.globalX + line.x;
 						arrow.startDrag(false, true, saturationValueSquare.height + 2, saturationValueSquare.height + 2, 2, hueRect.width + 2);
@@ -362,7 +365,7 @@ package skysand.ui
 				prevOffset = offsetIndex;
 			}
 			
-			if(focusOn) updateKeyboardInput();
+			if (focusOn) updateKeyboardInput();
 			
 			if (prevArrowX != arrow.x)
 			{

@@ -204,7 +204,7 @@ package skysand.text
 		override public function init():void 
 		{
 			batch = new SkyTextBatch();
-			SkyHardwareRender.instance.addBatch(batch, "textField");
+			SkySand.render.addBatch(batch, "textField");
 			
 			verteces = batch.verteces;
 		}

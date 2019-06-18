@@ -95,12 +95,12 @@ package skysand.display
 			if (batch != null) batch.remove(this);
 			
 			var name:String = batchName == "" ? atlas.name : batchName
-			batch = SkyHardwareRender.instance.getBatch(name) as SkyStandartQuadBatch;
+			batch = SkySand.render.getBatch(name) as SkyStandartQuadBatch;
 			
 			if (batch == null)
 			{
 				batch = new SkyStandartQuadBatch();
-				SkyHardwareRender.instance.addBatch(batch, name);
+				SkySand.render.addBatch(batch, name);
 			}
 			
 			this.atlas = atlas
@@ -123,7 +123,7 @@ package skysand.display
 			if (batch == null) 
 			{
 				batch = new SkyStandartQuadBatch();
-				SkyHardwareRender.instance.addBatch(batch, name);
+				SkySand.render.addBatch(batch, name);
 			}
 			
 			if (data == null)

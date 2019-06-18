@@ -475,6 +475,12 @@ package skysand.ui
 			list.setSliderColors(button, background);
 		}
 		
+		override public function set mouseEnabled(value:Boolean):void 
+		{
+			bigButton.mouseEnabled = value;
+			if (smallButton != null) smallButton.mouseEnabled = value;
+		}
+		
 		/**
 		 * Освободить память.
 		 */

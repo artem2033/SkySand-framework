@@ -78,6 +78,11 @@ package
 		private static var output:SkyOutput;
 		
 		/**
+		 * Ссылка на рендер.
+		 */
+		private static var hardwareRender:SkyHardwareRender;
+		
+		/**
 		 * Главный класс приложения.
 		 */
 		private var mainClass:Class;
@@ -128,11 +133,6 @@ package
 		private var console:Console;
 		
 		/**
-		 * Ссылка на рендер.
-		 */
-		private var hardwareRender:SkyHardwareRender;
-		
-		/**
 		 * Ссылка на 3-х мерную сцену.
 		 */
 		private var stage3D:Stage3D;
@@ -152,7 +152,7 @@ package
 		 */
 		public static function setCamera(camera:SkyCamera):void
 		{
-			SkyHardwareRender.instance.setCamera(camera);
+			hardwareRender.setCamera(camera);
 		}
 		
 		/**
@@ -187,7 +187,7 @@ package
 		 */
 		public static function setApplicationResolution(width:Number, height:Number):void
 		{
-			SkyHardwareRender.instance.setResolution(width, height);
+			hardwareRender.setResolution(width, height);
 		}
 		
 		/**
@@ -204,6 +204,14 @@ package
 		public static function disableFullscreen():void
 		{
 			STAGE.displayState = StageDisplayState.NORMAL;
+		}
+		
+		/**
+		 * Получить доступ к рендеру.
+		 */
+		public static function get render():SkyHardwareRender
+		{
+			return hardwareRender;
 		}
 		
 		/**
@@ -285,7 +293,7 @@ package
 			
 			CONTEXT_3D = stage3D.context3D;
 			
-			hardwareRender = SkyHardwareRender.instance;
+			hardwareRender = new SkyHardwareRender();
 			hardwareRender.initialize();
 			
 			if (isDevelopMode)
@@ -368,6 +376,7 @@ package
 				CONTEXT_3D.clear();//
 				keyboard.update();
 				applicationUpdatableClass.update(deltaTime);
+				hardwareRender.update(deltaTime);
 				mouse.reset();
 			}
 		}

@@ -131,6 +131,7 @@ package skysand.ui
 		{
 			mouse = SkyMouse.instance;
 			
+			mouseEnabled = true;
 			mFunction = null;
 			
 			textNormalState = 0x000000;
@@ -162,10 +163,8 @@ package skysand.ui
 			this.mFunction = mFunction;
 			
 			button = shape;
-			button.mouseEnabled = true;
 			addChild(button);
 			
-			mouse = SkyMouse.instance;
 			mouse.addFunctionOnClick(applyAction, SkyMouse.LEFT);
 		}
 		
@@ -201,7 +200,6 @@ package skysand.ui
 			{
 				button = SkyUI.getForm(SkyUI.RECTANGLE, color, width, height);
 				button.alpha = 0;
-				button.mouseEnabled = true;
 				button.batchName = batchName;
 				addChild(button);
 				
@@ -211,12 +209,10 @@ package skysand.ui
 			else
 			{
 				button = SkyUI.getForm(kind, color, width, height, modification);
-				button.mouseEnabled = true;
 				button.batchName = batchName;
 				addChild(button);
 			}
 			
-			mouse = SkyMouse.instance;
 			mouse.addFunctionOnClick(applyAction, SkyMouse.LEFT);
 		}
 		
@@ -361,7 +357,7 @@ package skysand.ui
 			{
 				button = SkyUI.getForm(SkyUI.RECTANGLE, color, width, height);
 				button.alpha = 0;
-				button.mouseEnabled = true;
+				//button.mouseEnabled = true;
 				addChild(button);
 				
 				frame = SkyUI.getForm(kind, color, width, height);
@@ -379,7 +375,7 @@ package skysand.ui
 				}
 				
 				button = SkyUI.getForm(kind, color, width, height, modification);
-				button.mouseEnabled = true;
+				//button.mouseEnabled = true;
 				addChild(button);
 			}
 			
@@ -448,8 +444,8 @@ package skysand.ui
 			if (textField != null)
 			{
 				textField.text = text;
-				textField.x = (width - textField.width - 3) / 2;
-				textField.y = (height - textField.height - 3) / 2;
+				textField.x = (width - textField.textWidth - 3) / 2;
+				textField.y = (height - textField.textHeight - 3) / 2;
 			}
 			else if (bitmapTextField != null)
 			{
@@ -655,7 +651,7 @@ package skysand.ui
 		 */
 		public function isClosestToMouse():Boolean
 		{
-			return button == SkyMouse.currentClosestObject;
+			return this == SkyMouse.currentClosestObject;
 		}
 		
 		/**
@@ -723,7 +719,9 @@ package skysand.ui
 		 */
 		override public function updateData(deltaTime:Number):void
 		{
-			if (!visible) return;
+			super.updateData(deltaTime);
+			
+			if (globalVisible == 0) return;
 			
 			if (active)
 			{
@@ -748,8 +746,6 @@ package skysand.ui
 					changeState(UP, deltaTime);
 				}
 			}
-			
-			super.updateData(deltaTime);
 		}
 		
 		/**
@@ -789,7 +785,7 @@ package skysand.ui
 				}
 			}
 			
-			if (state == DOWN && button == SkyMouse.currentClosestObject)
+			if (state == DOWN && this == SkyMouse.currentClosestObject)
 			{
 				if (bright > -30)
 				{
@@ -859,7 +855,7 @@ package skysand.ui
 				return;
 			}
 			
-			if (button == SkyMouse.currentClosestObject)
+			if (this == SkyMouse.currentClosestObject)
 			{
 				var text:String = textField != null ? textField.text : bitmapTextField != null ? bitmapTextField.text : "";
 				mFunction.apply(null, returnName ? [text] : null);

@@ -286,6 +286,13 @@ package skysand.ui
 			super.free();
 		}
 		
+		override public function set mouseEnabled(value:Boolean):void 
+		{
+			upButton.mouseEnabled = value;
+			downButton.mouseEnabled = value;
+			textField.mouseEnabled = value;
+		}
+		
 		/**
 		 * Обновить данные.
 		 * @param	deltaTime промежуток времени прошедший с прошлого кадра.

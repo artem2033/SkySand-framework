@@ -206,7 +206,7 @@ package skysand.file
 		 * @param	path путь к файлу.
 		 * @param	directory директория.
 		 */
-		public function loadFromDirectory(path:String, directory:uint = SkyFilesCache.APPLICATION_DIRECTORY):void
+		public function loadFromDirectory(path:String, directory:uint = 1):void
 		{
 			loadFromFile(SkyFilesCache.getFile(path, directory));
 		}

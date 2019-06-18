@@ -60,9 +60,10 @@ package skysand.ui
 			markIcon.addVertex(dx, dx * 5);
 			markIcon.addVertex(0, dx * 6);
 			markIcon.addVertex(dx, dx * 7);
-			markIcon.addVertex( 0, dx * 7);
-			markIcon.scaleX = -1;
+			markIcon.addVertex(-1, dx * 7);
+			markIcon.rotation = 180;
 			markIcon.x = width;
+			markIcon.y = height;
 			addChild(markIcon);
 			
 			this.panel = panel;
