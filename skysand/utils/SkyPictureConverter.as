@@ -44,10 +44,7 @@ package skysand.utils
 		
 		public function SkyPictureConverter()
 		{
-			tempBytes = new ByteArray();
-			decodedData = new SkyPictureDecodedData();
-			atlasBytes = new ByteArray();
-			picture = new ByteArray();
+			
 		}
 		
 		/**
@@ -60,6 +57,8 @@ package skysand.utils
 		 */
 		public static function encode(bitmapData:BitmapData, name:String, atlasData:ByteArray, compression:String = CompressionAlgorithm.DEFLATE):ByteArray
 		{
+			if (picture == null) init();
+			
 			tempBytes.clear();
 			tempBytes.endian = Endian.LITTLE_ENDIAN;
 			bitmapData.copyPixelsToByteArray(bitmapData.rect, tempBytes);
@@ -103,6 +102,7 @@ package skysand.utils
 		 */
 		public static function decode(bytes:ByteArray):SkyPictureDecodedData
 		{
+			if (picture == null) init();
 			bytes.position = 1;
 			
 			if (bytes.readUTFBytes(3) != FILENAME)
@@ -163,6 +163,8 @@ package skysand.utils
 		 */
 		public static function getBytesFromAtlas(atlas:SkyTextureAtlas):ByteArray
 		{
+			if (picture == null) init();
+			
 			atlasBytes.clear();
 			
 			if (atlas.spriteCount > 0)
@@ -205,6 +207,17 @@ package skysand.utils
 			decodedData.animations.length = 0;
 			decodedData.animations = null;
 			decodedData = null;
+		}
+		
+		/**
+		 * Инициализация.
+		 */
+		private static function init():void
+		{
+			tempBytes = new ByteArray();
+			decodedData = new SkyPictureDecodedData();
+			atlasBytes = new ByteArray();
+			picture = new ByteArray();
 		}
 		
 		/**

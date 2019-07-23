@@ -3,6 +3,7 @@ package skysand.ui
 	import skysand.display.SkyRenderObjectContainer;
 	import skysand.display.SkyShape;
 	import skysand.interfaces.ITab;
+	import skysand.utils.SkyUtils;
 	
 	/**
 	 * ...
@@ -92,6 +93,7 @@ package skysand.ui
 		 */
 		public function mark():void
 		{
+			markIcon.x = width;
 			markIcon.visible = true;
 		}
 		
@@ -101,6 +103,19 @@ package skysand.ui
 		public function unmark():void
 		{
 			markIcon.visible = false;
+		}
+		
+		/**
+		 * Выделить вкладку.
+		 */
+		public function select():void
+		{
+			if (panel.mCurrentTab != null)
+			{
+				panel.mCurrentTab.mButton.setColor(color);
+			}
+			
+			mButton.setColor(SkyUtils.changeColorBright(color, 30));
 		}
 		
 		/**
@@ -127,7 +142,13 @@ package skysand.ui
 		 */
 		private function onTabPressed():void
 		{
-			if (panel.mCurrentTab != null) panel.mCurrentTab.listener.onExitTab();
+			if (panel.mCurrentTab != null)
+			{
+				panel.mCurrentTab.mButton.setColor(color);
+				panel.mCurrentTab.listener.onExitTab();
+			}
+			
+			mButton.setColor(SkyUtils.changeColorBright(color, 30));
 			panel.mCurrentTab = this;
 			listener.onEnterTab();
 		}

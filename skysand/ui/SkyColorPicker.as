@@ -240,7 +240,6 @@ package skysand.ui
 				palette[i] = circle;
 			}
 			
-			keyboard = SkyKeyboard.instance;
 			SkyMouse.instance.addFunctionOnClick(onClickListener, SkyMouse.LEFT);
 		}
 		
@@ -287,7 +286,6 @@ package skysand.ui
 			bitmapData.dispose();
 			bitmapData = null;
 			
-			keyboard = null;
 			SkyMouse.instance.removeFunctionOnClick(onClickListener, SkyMouse.LEFT);
 			
 			colors.length = 0;
@@ -483,22 +481,22 @@ package skysand.ui
 		 */
 		private function updateKeyboardInput():void
 		{
-			if (keyboard.isPressed(SkyKey.END))
+			if (SkyKeyboard.isPressed(SkyKey.END))
 			{
 				scrollPalette(colors.length);
 			}
 			
-			if (keyboard.isPressed(SkyKey.LEFT))
+			if (SkyKeyboard.isPressed(SkyKey.LEFT))
 			{
 				scrollPalette(-7);
 			}
 			
-			if (keyboard.isPressed(SkyKey.RIGHT))
+			if (SkyKeyboard.isPressed(SkyKey.RIGHT))
 			{
 				scrollPalette(7);
 			}
 			
-			if (keyboard.isPressed(SkyKey.HOME))
+			if (SkyKeyboard.isPressed(SkyKey.HOME))
 			{
 				scrollPalette(-colors.length);
 			}

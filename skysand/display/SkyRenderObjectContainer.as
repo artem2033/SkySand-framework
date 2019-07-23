@@ -147,6 +147,7 @@ package skysand.display
 			children[index] = null;
 			children.removeAt(index);
 			
+			child.parent = null;
 			child.isAdded = false;
 			child.remove();
 			
@@ -174,6 +175,7 @@ package skysand.display
 			SkySand.render.removeRenderObject(children[index]);
 			SkyMouse.instance.removeObjectFromClosestTest(children[index]);
 			
+			children[index].parent = null;
 			children[index].isAdded = false;
 			children[index] = null;
 			children.removeAt(index);

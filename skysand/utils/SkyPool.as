@@ -1,5 +1,7 @@
 package skysand.utils 
 {
+	import skysand.interfaces.IPoolObject;
+	
 	/**
 	 * ...
 	 * @author codecoregames
@@ -9,7 +11,7 @@ package skysand.utils
 		/**
 		 * Массив для объектов.
 		 */
-		private var array:Vector.<*>;
+		private var array:Vector.<IPoolObject>;
 		
 		/**
 		 * Класс объектов.
@@ -37,12 +39,13 @@ package skysand.utils
 		public function initialize(_class:Class, capacity:uint, fixed:Boolean = false):void
 		{
 			mClass = _class;
-			array = new Vector.<mClass>(capacity, fixed);
+			array = new Vector.<IPoolObject>(capacity, fixed);
 			
 			for (var i:int = 0; i < capacity; i++)
 			{
 				array[i] = new mClass();
 			}
+			
 			index = capacity - 1;
 		}
 		
@@ -50,8 +53,10 @@ package skysand.utils
 		 * Вернуть объект в пул.
 		 * @param	item объект.
 		 */
-		public function release(item:*):void
+		public function release(item:IPoolObject):void
 		{
+			if (array.fixed && index + 1 >= array.length) return;
+			
 			index++;
 			array[index] = item;
 		}
@@ -65,11 +70,19 @@ package skysand.utils
 		}
 		
 		/**
+		 * Оставшееся количество объектов.
+		 */
+		public function get freeCount():uint
+		{
+			return array.length - index;
+		}
+		
+		/**
 		 * Получить объект из пула.
 		 */
-		public function get item():*
+		public function get item():IPoolObject
 		{
-			var temp:*;
+			var temp:IPoolObject;
 			
 			if (index > 0)
 			{
@@ -78,10 +91,7 @@ package skysand.utils
 				
 				return temp;
 			}
-			else
-			{
-				return new mClass();
-			}
+			else return new mClass();
 		}
 		
 		/**
@@ -96,15 +106,19 @@ package skysand.utils
 		/**
 		 * Очистить пул.
 		 */
-		public function clear():void
+		public function free():void
 		{
 			var length:int = array.length;
 			
 			for (var i:int = 0; i < length; i++) 
 			{
+				array[i].free();
 				array[i] = null;
 				array.removeAt(0);
 			}
+			
+			array = null;
+			mClass = null;
 		}
 	}
 }

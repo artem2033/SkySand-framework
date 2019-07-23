@@ -218,7 +218,15 @@ package skysand.file
 		public function loadFromFile(file:File):void
 		{
 			var data:SkyPictureDecodedData = SkyPictureConverter.decode(SkyFilesCache.loadBytesFromFile(file));
-			
+			loadFromDecodedData(data);
+		}
+		
+		/**
+		 * Загрузить атлас из раскодированных данных.
+		 * @param	data ссылка на данные.
+		 */
+		public function loadFromDecodedData(data:SkyPictureDecodedData):void
+		{
 			if (mTexture == null) mTexture = new SkyTexture(data.textureWidth, data.textureHeight);
 			mTexture.uploadFromByteArray(data.textureBytes);
 			

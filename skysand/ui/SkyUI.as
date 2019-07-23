@@ -290,17 +290,24 @@ package skysand.ui
 			return form;
 		}
 		
+		/**
+		 * Загрузить интерфейс из файла.
+		 * @param	filePath путь к файлу.
+		 * @param	directory директория.
+		 */
+		public function loadFromFilePath(path:String, directory:uint = 1):void
+		{
+			loadFromBytes(SkyFilesCache.loadBytesFromFile(SkyFilesCache.getFile(path, directory)));
+		}
 		
 		/**
 		 * Загрузить интерфейс из файла.
 		 * @param	filePath путь к файлу.
 		 * @param	directory директория.
 		 */
-		public function loadFromBytes(filePath:String, directory:uint = SkyFilesCache.APPLICATION_DIRECTORY):void
+		public function loadFromBytes(bytes:ByteArray):void
 		{
 			components = new Vector.<SkyRenderObject>();
-			
-			var bytes:ByteArray = SkyFilesCache.loadBytesFromFile(SkyFilesCache.getFile(filePath, directory));
 			
 			bytes.readByte();
 			if (bytes.readUTFBytes(3) != "SUI") return;
@@ -309,7 +316,7 @@ package skysand.ui
 			bytes.readInt();//width
 			bytes.readInt();//height
 			bytes.readInt();//gridSize
-			bytes.readUTF();//name
+			name = bytes.readUTF();//name
 			
 			if (bytes.readUTFBytes(3) == "FNT") 
 			{

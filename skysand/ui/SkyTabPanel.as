@@ -1,6 +1,5 @@
 package skysand.ui 
 {
-	import skysand.file.SkyFilesCache;
 	import skysand.display.SkyRenderObjectContainer;
 	import skysand.display.SkyShape;
 	import skysand.interfaces.ITab;
@@ -170,6 +169,7 @@ package skysand.ui
 				var button:SkyButton = tabs[i].button;
 				button.setColor(buttonColor);
 				button.setTextColors(textColor);
+				tabs[i].color = buttonColor;
 			}
 		}
 		
@@ -224,6 +224,7 @@ package skysand.ui
 			var tab:SkyTab = new SkyTab();
 			tab.create(name.length * fontSize / scale, tabHeight, this);
 			tab.button.setColor(buttonColor);
+			tab.color = buttonColor;
 			tab.setMarkColor(textColor);
 			tab.listener = listener;
 			tab.x = tabs.length > 0 ? tabs[tabs.length - 1].x + tabs[tabs.length - 1].width + spacing : 0;
@@ -236,6 +237,7 @@ package skysand.ui
 			list.addItem(name, pushForward, true);
 			tabs.unshift(tab);
 			
+			tab.select();
 			if (mCurrentTab != null) mCurrentTab.listener.onExitTab();
 			mCurrentTab = tab;
 			mCurrentTab.listener.onEnterTab();
@@ -258,7 +260,26 @@ package skysand.ui
 			tabs[index].width = fontSize * newName.length / scale;
 			tabs[index].height = tabHeight;
 			
-			isUpdated = true;
+			isUpdated = false;
+		}
+		
+		/**
+		 * Переименовать текущую вкладку.
+		 * @param	newName новоё имя.
+		 * @param	scale коэфициент для расчёта длинны кнопки в зависимости от длины текста.
+		 */
+		public function renameCurrentTab(newName:String, scale:Number = 1.5):void
+		{
+			if (mCurrentTab == null || mCurrentTab.button.getText() == newName) return;
+			
+			var button:SkyButton = mCurrentTab.button;
+			button.recreate(SkyUI.RECTANGLE, fontSize * newName.length / scale, tabHeight);
+			button.setText(newName);
+			
+			mCurrentTab.width = fontSize * newName.length / scale;
+			mCurrentTab.height = tabHeight;
+			
+			isUpdated = false;
 		}
 		
 		/**
@@ -267,10 +288,9 @@ package skysand.ui
 		 */
 		public function closeTabByName(name:String):void
 		{
-			var tab:SkyTab = null;
-			var index:int = -1;
+			var length:int = tabs.length;
 			
-			for (var i:int = 0; i < tabs.length; i++) 
+			for (var i:int = 0; i < length; i++) 
 			{
 				if (tabs[i].button.getText() == name)
 				{
@@ -295,6 +315,7 @@ package skysand.ui
 			{
 				mCurrentTab = index == tabs.length ? tabs[index - 1] : tabs[index];
 				mCurrentTab.listener.onEnterTab();
+				mCurrentTab.select();
 				
 				isUpdated = false;
 			}
@@ -305,12 +326,22 @@ package skysand.ui
 		 */
 		public function closeCurrentTab():void
 		{
-			for (var i:int = 0; i < tabs.length; i++) 
+			if (mCurrentTab != null)
 			{
-				if (tabs[i] == currentTab)
+				var index:int = tabs.indexOf(mCurrentTab)
+				tabs.removeAt(index);
+				
+				removeChild(mCurrentTab);
+				mCurrentTab.free();
+				mCurrentTab = null;
+				
+				if (tabs.length > 0)
 				{
-					closeTabByIndex(i);
-					return;
+					mCurrentTab = index == tabs.length ? tabs[index - 1] : tabs[index];
+					mCurrentTab.listener.onEnterTab();
+					mCurrentTab.select();
+					
+					isUpdated = false;
 				}
 			}
 		}
@@ -372,11 +403,9 @@ package skysand.ui
 		 */
 		override public function updateData(deltaTime:Number):void 
 		{
-			if (tabs.length < 1) 
-			{
-				super.updateData(deltaTime);
-				return; 
-			}
+			super.updateData(deltaTime);
+			
+			if (tabs.length < 1) return; 
 			
 			if (mouse.isDown(SkyMouse.RIGHT))
 			{
@@ -422,7 +451,7 @@ package skysand.ui
 						{
 							if (tab.x < tabs[i].x)
 							{
-								tabs.splice(i, 0, tab);
+								tabs.insertAt(i, tab);
 								
 								break;
 							}						
@@ -449,8 +478,6 @@ package skysand.ui
 				
 				isUpdated = true;
 			}
-			
-			super.updateData(deltaTime);
 		}
 		
 		/**
@@ -466,6 +493,7 @@ package skysand.ui
 					var tab:SkyTab = tabs.removeAt(i) as SkyTab;
 					tab.button.visible = true;
 					tab.listener.onEnterTab();
+					tab.select();
 					tabs.unshift(tab);
 					
 					mCurrentTab.listener.onExitTab();

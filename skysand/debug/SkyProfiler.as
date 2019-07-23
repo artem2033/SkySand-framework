@@ -20,7 +20,7 @@ package skysand.debug
 		
 		//Цвета для отрисовки.
 		private const GREY:uint = 0x333333;
-		private const BLUE:uint = 0x28AEFF;
+		private const BLUE:uint = 0x28AEFF;//0xBE0066
 		private const WHITE:uint = 0xCCCCCC;
 		private const GREEN:uint = 0x91CC20;
 		private const ORANGE:uint = 0xFF611B;
@@ -562,15 +562,8 @@ package skysand.debug
 			averageFps = totalFps / updateFpsCount;
 			
 			var blueLine:SkyShape = averageFpsLines[lineIndex];
-			blueLine.height = Math.ceil((averageFps / maxFrameRate) * 78);
 			blueLine.x = 13;
-			blueLine.y = 319 - blueLine.height;
-			
-			//var index0:int = getChildIndex(greenLine);
-			//var index1:int = getChildIndex(blueLine);
-			
-			//if (greenLine.height <= blueLine.height) swapChildren(blueLine, greenLine);
-			//else if (greenLine.height >= blueLine.height && index0 < index1) swapChildren(blueLine, greenLine);
+			blueLine.y = 319 - Math.ceil((averageFps / maxFrameRate) * 78);
 			
 			currentFpsField.text = "current\t\t             " + count.toFixed(1);
 			averageFpsField.text = "average\t\t             " + averageFps.toFixed(1);
@@ -1003,9 +996,8 @@ package skysand.debug
 				
 				line = new SkyShape();
 				line.mouseEnabled = false;
-				line.color = BLUE;
-				line.drawRect(0, 0, 5, 78);
-				line.height = 0;
+				line.color = 0x151E27;
+				line.drawRect(0, 0, 5, 2);
 				line.y = 319;
 				line.x = 13 + i * 7;
 				averageFpsLines[i] = line;

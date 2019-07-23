@@ -9,6 +9,7 @@ package skysand.file
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
+	import skysand.utils.SkyPool;
 	
 	import skysand.debug.Console;
 	import skysand.file.SkyAtlasSprite;
@@ -59,6 +60,11 @@ package skysand.file
 		private var fileListEvent:FileListEvent;
 		
 		/**
+		 * Пул с асинхронными объектами.
+		 */
+		private static var asyncFiles:SkyPool;
+		
+		/**
 		 * Поток файлов для чтения из файла и записи в него.
 		 */
 		private static var fileStream:FileStream;
@@ -78,6 +84,9 @@ package skysand.file
 			atlases = new Vector.<SkyTextureAtlas>();
 			fileStream = new FileStream();
 			loader = new Loader();
+			
+			asyncFiles = new SkyPool();
+			asyncFiles.initialize(SkyAsyncFileStream, 8);
 		}
 		
 		/**
@@ -154,6 +163,17 @@ package skysand.file
 			fileStream.close();
 			
 			return bytes;
+		}
+		
+		/**
+		 * Загрузить массив байтов из файла.
+		 * @param	file файл.
+		 * @return возвращает массив байтов.
+		 */
+		public static function loadBytesFromFileAsync(file:File, listener:Function):void
+		{
+			var stream:SkyAsyncFileStream = SkyAsyncFileStream(asyncFiles.item);
+			stream.open(file, listener, asyncFiles);
 		}
 		
 		/**

@@ -44,7 +44,7 @@ package skysand.ui
 		
 		public function SkyWindow()
 		{
-		
+			
 		}
 		
 		/**
@@ -75,7 +75,7 @@ package skysand.ui
 			addChild(head);
 			
 			closeButton = new SkyButton();
-			closeButton.create(SkyUI.RECTANGLE, 23, 23, headColor, close);
+			closeButton.create(SkyUI.RECTANGLE, 23, 23, headColor, hideWindow);
 			closeButton.x = width - 24;
 			closeButton.y = 1;
 			addChild(closeButton);
@@ -100,6 +100,24 @@ package skysand.ui
 			closeButton.addChild(cross);
 			
 			dragable = true;
+			
+			this.width = width;
+			this.height = height;
+		}
+		
+		/**
+		 * Именить размеры окна.
+		 * @param	width ширина.
+		 * @param	height высота.
+		 */
+		public function resize(width:Number, height:Number):void
+		{
+			if (textField != null) textField.width = width;
+			
+			closeButton.x = width - 24;
+			body.height = height - 25;
+			body.width = width;
+			head.width = width;
 			
 			this.width = width;
 			this.height = height;
@@ -144,31 +162,6 @@ package skysand.ui
 			addChild(bitmapTextField);
 		}
 		
-		public function setSize(width:Number, height:Number):void
-		{
-			var color:uint = head.color;
-			
-			removeChild(head);
-			head.free();
-			head = new SkyShape();
-			head.color = color;
-			head.drawRect(0, 0, width, 25);
-			addChild(head);
-			
-			color = body.color;
-			
-			removeChild(body);
-			body.free();
-			body = new SkyShape();
-			body.color = color;
-			body.drawRect(0, 25, width, height - 25);
-			body.mouseEnabled = false;
-			addChild(body);
-			
-			textField.width = width;
-			closeButton.x = width - 24;
-		}
-		
 		public function setColor(headColor:uint, bodyColor:uint, textColor:uint = 0xFFFFFF):void
 		{
 			body.color = bodyColor;
@@ -183,18 +176,12 @@ package skysand.ui
 		
 		public function hideWindow():void
 		{
-			getChildAt(0).visible = false;
-			getChildAt(1).visible = false;
-			textField.visible = false;
-			closeButton.visible = false;
+			visible = false;
 		}
 		
 		public function showWindow():void
 		{
-			getChildAt(0).visible = true;
-			getChildAt(1).visible = true;
-			textField.visible = true;
-			closeButton.visible = true;
+			visible = true;
 		}
 		
 		public function set headName(value:String):void
@@ -249,29 +236,6 @@ package skysand.ui
 			}
 			
 			super.updateData(deltaTime);
-		}
-		
-		/**
-		 * Закрыть окно(сделать не видимым).
-		 */
-		private function close():void
-		{
-			visible = false;
-		}
-		
-		/**
-		 * Проверка на столкновение с верхней линией окна.
-		 * @return возвращает true, если произошло пересечение с курсором мыши, false, если нет.
-		 */
-		public function hitTest():Boolean
-		{
-			var mx:Number = SkySand.STAGE.mouseX;
-			var my:Number = SkySand.STAGE.mouseY;
-			
-			if (mx < x || mx > width + x) return false;
-			if (my < y || my > 25 + y) return false;
-			
-			return true;
 		}
 	}
 }

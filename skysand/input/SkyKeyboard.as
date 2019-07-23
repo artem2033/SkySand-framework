@@ -3,40 +3,35 @@ package skysand.input
 	import flash.display.Stage;
 	import flash.events.TextEvent;
 	import flash.events.KeyboardEvent;
-	import flash.text.TextField;
 	import flash.text.TextFieldType;
+	import flash.text.TextField;
 	
 	public class SkyKeyboard extends Object
 	{
 		/**
 		 * Символ введёный с клавиатуры.
 		 */
-		public var char:String;
+		public static var char:String;
 		
 		/**
 		 * Нажата ли любая из клавиш.
 		 */
-		public var anyKeyDown:Boolean;
+		public static var anyKeyDown:Boolean;
 		
 		/**
 		 * Нажата ли клавиша с символом.
 		 */
-		public var anyCharKeyDown:Boolean;
+		public static var anyCharKeyDown:Boolean;
 		
 		/**
 		 * Оключить клавиатуру.
 		 */
-		public var isActive:Boolean;
+		public static var isActive:Boolean;
 		
 		/**
 		 * Текстовое поле для получения символов.
 		 */
 		private var textField:TextField;
-		
-		/**
-		 * Ссылка на сцену.
-		 */
-		public var stage:Stage;
 		
 		/**
 		 * Число клавиш на клавиатуре.
@@ -46,39 +41,27 @@ package skysand.input
 		/**
 		 * Массив клавиш с данными о каждой.
 		 */
-		private var keys:Vector.<SkyKeyData>;
-		
-		/**
-		 * Ссылка на класс.
-		 */
-		private static var _instance:SkyKeyboard;
+		private static var keys:Vector.<SkyKeyData>;
 		
 		/**
 		 * Конструктор.
 		 */
 		public function SkyKeyboard()
 		{
-			if (_instance != null)
-			{
-				throw new Error("Ошибка! Используйте SkyKeyboard.instance");
-			}
 			
-			_instance = this;
 		}
 		
 		/**
 		 * Инициализация класса.
 		 * @param	_stage ссылка на сцену.
 		 */
-		public function initialize(_stage:Stage):void
+		public function initialize(stage:Stage):void
 		{
 			keys = new Vector.<SkyKeyData>(NUM_KEYS, true);
 			addKeys();
 			
-			stage = _stage;
-			
-			_stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownHandler);
-			_stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpHandler);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownHandler);
+			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpHandler);
 			
 			anyKeyDown = false;
 			anyCharKeyDown = false;
@@ -98,17 +81,9 @@ package skysand.input
 		 * @param	keyID уникальный номер клавиши из класса SkyKey.
 		 * @return возвращает true если нажата клавиша.
 		 */
-		public function isPressed(keyID:uint):Boolean
+		public static function isPressed(keyID:uint):Boolean
 		{
-			var key:SkyKeyData = keys[keyID];
-			
-			if(key.state == 1 && isActive)
-			{
-				key.state = 0;
-				return true;
-			}
-			
-			return false;
+			return keys[keyID].pressedState == 1 && isActive ? true : false;;
 		}
 		
 		/**
@@ -116,17 +91,9 @@ package skysand.input
 		 * @param	keyID уникальный номер клавиши из класса SkyKey.
 		 * @return возвращает true если клавиша зажата.
 		 */
-		public function isDown(keyID:uint):Boolean
+		public static function isDown(keyID:uint):Boolean
 		{
-			return keys[keyID].state == 1 && isActive ? true : false;
-		}
-		
-		/**
-		 * Получить ссылку на класс.
-		 */
-		public static function get instance():SkyKeyboard
-		{
-			return (_instance == null) ? new SkyKeyboard() : _instance;
+			return keys[keyID].downState == 1 && isActive ? true : false;
 		}
 		
 		/**
@@ -197,6 +164,17 @@ package skysand.input
 						if (key.secondMetod != null) key.secondMetod.apply();
 					}
 				}
+			}
+		}
+		
+		/**
+		 * Сбросить значения кнопок к ненажатым.
+		 */
+		public function reset():void
+		{
+			for (var i:int = 0; i < NUM_KEYS; i++) 
+			{
+				keys[i].pressedState = 0;
 			}
 		}
 		
@@ -330,11 +308,14 @@ package skysand.input
 				
 				if (keyboardEvent.keyCode == key.сode)
 				{
-					key.state = 1;
+					key.downState = 1;
+					key.pressedState = 1;
+					break;
 				}
 			}
 			
 			anyKeyDown = true;
+			
 			
 			if (keyboardEvent.charCode != 0) anyCharKeyDown = true;
 			if (keyboardEvent.keyCode == 27) keyboardEvent.preventDefault();
@@ -348,12 +329,7 @@ package skysand.input
 		{
 			for (var i:int = 0; i < NUM_KEYS; i++) 
 			{
-				var key:SkyKeyData = keys[i];
-				
-				if (keyboardEvent.keyCode == key.сode)
-				{
-					key.state = 0;
-				}
+				keys[i].downState = 0;
 			}
 			
 			anyKeyDown = false;

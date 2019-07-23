@@ -77,11 +77,6 @@ package skysand.text
 		 */
 		private var mouse:SkyMouse;
 		
-		/**
-		 * Ссылка на клавиатуру.
-		 */
-		private var keyboard:SkyKeyboard;
-		
 		public function SkyTextField()
 		{
 			super();
@@ -124,7 +119,6 @@ package skysand.text
 			height = 2;
 			width = 2;
 			
-			keyboard = SkyKeyboard.instance;
 			mouse = SkyMouse.instance;
 			mouse.addFunctionOnClick(setFocus, SkyMouse.LEFT);
 		}
@@ -195,6 +189,7 @@ package skysand.text
 		 */
 		override public function remove():void 
 		{
+			old.depth = 2;
 			batch.free();
 		}
 		
@@ -346,7 +341,6 @@ package skysand.text
 			textFormat = null;
 			textField = null;
 			verteces = null;
-			keyboard = null;
 			matrix = null;
 			batch = null;
 			mouse = null;

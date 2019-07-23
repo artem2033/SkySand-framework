@@ -58,13 +58,14 @@ package skysand.debug
 			
 			if (length > 0)
 			{
-				textField.text = strings[0];
+				var string:String = strings[0];
 				
 				for (var i:int = 1; i < length; i++) 
 				{
-					textField.appendText("\n" + strings[i]);
+					string += "\n" + strings[i];
 				}
 				
+				textField.text = string;
 				textField.scrollV = slider.position * textField.maxScrollV;
 				index = 0;
 			}
@@ -118,7 +119,7 @@ package skysand.debug
 		 */
 		public function setOutputView(width:Number, height:Number, headColor:uint, bodyColor:uint, textColor:uint, font:String, fontSize:int):void
 		{
-			setSize(width, height);
+			resize(width, height);
 			setColor(headColor, bodyColor, textColor);
 			slider.setSize(5, height - 27);
 			slider.setColor(headColor, bodyColor);

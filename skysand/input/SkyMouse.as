@@ -194,6 +194,7 @@ package skysand.input
 			isRightClick = false;
 			isMiddleClick = false;
 			isLeftClick = false;
+			scroll = 0;
 		}
 		
 		public var scroll:int = 0;

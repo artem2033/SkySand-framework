@@ -70,11 +70,6 @@
 		private var currentItemWord:int;
 		
 		/**
-		 * Ссылка на клавиатуру.
-		 */
-		private var keyboard:SkyKeyboard;
-		
-		/**
 		 * Ссылка на класс.
 		 */
 		private static var _instance:Console;
@@ -117,8 +112,6 @@
 			commandLength = 0;
 			helpWordsCount = 0;
 			currentItemWord = 0;
-			
-			keyboard = SkyKeyboard.instance;
 			
 			create(400, 480, 0xDBB71E, 0x151E27);
 			addText("DEVELOPER CONSOLE", "verdana",  0x151E27, 12);
@@ -204,8 +197,6 @@
 			displayField.free();
 			displayField = null;
 			
-			keyboard = null;
-			
 			for (var i:int = 0; i < commandLength; i++) 
 			{
 				registredCommand[i] = null;
@@ -243,7 +234,7 @@
 		 */
 		private function visibleControl():void
 		{
-			if (keyboard.isPressed(SkyKey.BACKQUOTE))
+			if (SkyKeyboard.isPressed(SkyKey.BACKQUOTE))
 			{
 				visible = !visible;
 			}
@@ -272,7 +263,7 @@
 			{
 				if (helpWords.length > 0)
 				{
-					if (keyboard.isPressed(SkyKey.DOWN))
+					if (SkyKeyboard.isPressed(SkyKey.DOWN))
 					{
 						if (currentItemWord > helpWords.length - 1)
 						{
@@ -283,7 +274,7 @@
 						inputField.text = helpWords[currentItemWord - 1];
 						inputField.setSelection(inputField.length, inputField.length);
 					}
-					else if (keyboard.isPressed(SkyKey.UP))
+					else if (SkyKeyboard.isPressed(SkyKey.UP))
 					{
 						if (currentItemWord < 2)
 						{
@@ -296,10 +287,10 @@
 					}
 				}
 				
-				if (keyboard.anyCharKeyDown)
+				if (SkyKeyboard.anyCharKeyDown)
 				{
 					updateHelpWindow();
-					keyboard.anyCharKeyDown = false;
+					SkyKeyboard.anyCharKeyDown = false;
 				}
 				
 				applyCommand(inputField.text);
@@ -312,11 +303,11 @@
 		 */
 		private function scrolling():void
 		{
-			if (keyboard.isPressed(SkyKey.PAGE_UP))
+			if (SkyKeyboard.isPressed(SkyKey.PAGE_UP))
 			{
 				displayField.scrollV--;
 			}
-			else if (keyboard.isPressed(SkyKey.PAGE_DOWN))
+			else if (SkyKeyboard.isPressed(SkyKey.PAGE_DOWN))
 			{
 				displayField.scrollV++;
 			}
@@ -339,7 +330,7 @@
 		 */
 		private function applyCommand(command:String):void
 		{
-			if (keyboard.isPressed(SkyKey.ENTER) && command != "")
+			if (SkyKeyboard.isPressed(SkyKey.ENTER) && command != "")
 			{
 				processCommand(command);
 				inputField.text = "";

@@ -13,19 +13,17 @@ package
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DProfile;
 	import flash.display3D.Context3DRenderMode;
-	import skysand.debug.SkyOutput;
-	import skysand.display.SkyCamera;
-	import skysand.input.SkyKey;
-	import skysand.ui.SkyUI;
-	import skysand.utils.SkyPictureConverter;
 	
 	import skysand.text.SkyFont;
-	import skysand.debug.Console;
+	import skysand.input.SkyKey;
 	import skysand.input.SkyMouse;
 	import skysand.input.SkyKeyboard;
+	import skysand.debug.Console;
+	import skysand.debug.SkyOutput;
 	import skysand.debug.SkyProfiler;
-	import skysand.file.SkyFilesCache;
 	import skysand.interfaces.IUpdatable;
+	import skysand.file.SkyFilesCache;
+	import skysand.display.SkyCamera;
 	import skysand.display.SkyRenderObject;
 	import skysand.display.SkyRenderObjectContainer;
 	import skysand.render.SkyHardwareRender;
@@ -270,7 +268,7 @@ package
 			mouse = SkyMouse.instance;
 			mouse.initialize(mStage);
 			
-			keyboard = SkyKeyboard.instance;
+			keyboard = new SkyKeyboard();
 			keyboard.initialize(mStage);
 			
 			mCache = new SkyFilesCache();
@@ -281,6 +279,11 @@ package
 			stage3D.requestContext3D(Context3DRenderMode.AUTO, contextProfile);
 			
 			addEventListener(Event.ENTER_FRAME, onEnterFrameHandler);
+		}
+		
+		public function destroy():void
+		{
+			
 		}
 		
 		/**
@@ -345,7 +348,7 @@ package
 			deltaTime = (newTime - oldTime) / 1000;
 			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
 			
-			if (keyboard.isPressed(SkyKey.F9)) pause = !pause;
+			if (SkyKeyboard.isPressed(SkyKey.F9)) pause = !pause;
 			
 			if (isDevelopMode)
 			{
@@ -366,6 +369,7 @@ package
 					
 					output.update();
 					mouse.reset();
+					keyboard.reset();
 					
 					profiler.totalUpdateTime = getTimer() - profiler.totalUpdateTime;
 					profiler.update();
@@ -378,6 +382,7 @@ package
 				applicationUpdatableClass.update(deltaTime);
 				hardwareRender.update(deltaTime);
 				mouse.reset();
+				keyboard.reset();
 			}
 		}
 	}

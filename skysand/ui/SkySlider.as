@@ -90,11 +90,8 @@ package skysand.ui
 			this.width = width;
 			this.height = height;
 			
-			if (background != null)
-			{
-				background.width = width;
-				background.height = height;
-			}
+			background.width = width;
+			background.height = height;
 			
 			bound = isVerticalOrientation ? background.height - sliderSize : background.width - sliderSize;
 		}
