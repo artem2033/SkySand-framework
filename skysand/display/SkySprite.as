@@ -199,7 +199,14 @@ package skysand.display
 				pivotX = data.pivotX;
 				pivotY = data.pivotY;
 				
-				if (uvs)
+				if (isAdded && !batch.contains(this))
+				{
+					batch.add(this, data);
+					verteces = batch.verteces;
+					uvs = batch.uvs;
+				}
+				
+				if (uvs != null)
 				{
 					var index:int = indexID / 7 * 2;
 					
@@ -211,13 +218,6 @@ package skysand.display
 					uvs[index + 5] = data.uvs[5];
 					uvs[index + 6] = data.uvs[6];
 					uvs[index + 7] = data.uvs[7];
-				}
-				
-				if (isAdded && !batch.contains(this))
-				{
-					batch.add(this, data);
-					verteces = batch.verteces;
-					uvs = batch.uvs;
 				}
 			}
 			else throw new Error("Error: Atlas is null, set atlas before calling setSprite!");
@@ -324,9 +324,7 @@ package skysand.display
 				
 				if (old.rotation != globalRotation || old.scaleX != globalScaleX || old.scaleY != globalScaleY || old.width != width || old.height != height)
 				{
-					var angle:Number = SkyMath.toRadian(globalRotation);
-					
-					matrix.rotate(angle);
+					matrix.rotate(SkyMath.toRadian(globalRotation));
 					
 					v[0] = globalR.x - px * matrix.a - py * matrix.c;
 					v[1] = globalR.x + (w - px) * matrix.a - py * matrix.c;

@@ -300,9 +300,9 @@ package skysand.file
 		 * @param	index номер спрайта в списке.
 		 * @return возвращает данные о спрайте.
 		 */
-		public function getAnimationByIndex(index:int):Vector.<SkyAtlasSprite>
+		public function getAnimationByIndex(index:int):SkyAnimationData
 		{
-			return animations[index].frames;
+			return animations[index];
 		}
 		
 		/**

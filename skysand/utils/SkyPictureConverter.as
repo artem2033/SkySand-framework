@@ -5,9 +5,11 @@ package skysand.utils
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
 	
+	
 	import skysand.debug.Console;
 	import skysand.file.SkyAtlasSprite;
 	import skysand.file.SkyTextureAtlas;
+	import skysand.file.SkyAnimationData;
 	
 	/**
 	 * ...
@@ -139,7 +141,7 @@ package skysand.utils
 				
 				if (tempBytes.position != tempBytes.length && tempBytes.readUTFBytes(3) == ANIMATION)
 				{
-					Console.log("Write animation decoding", Console.RED);
+					decodedData.animations = decodeAnimations(tempBytes, decodedData.textureWidth, decodedData.textureHeight);
 				}
 				else tempBytes.position -= 3;
 			}
@@ -183,6 +185,34 @@ package skysand.utils
 				atlasBytes.writeFloat(sprite.y);
 				atlasBytes.writeFloat(sprite.pivotX);
 				atlasBytes.writeFloat(sprite.pivotY);
+			}
+			
+			if (atlas.animationsCount > 0)
+			{
+				atlasBytes.writeUTFBytes(ANIMATION);
+				atlasBytes.writeShort(atlas.animationsCount);
+			}
+			
+			for (i = 0; i < atlas.animationsCount; i++) 
+			{
+				var animation:SkyAnimationData = atlas.getAnimationByIndex(i);
+				var length:int = animation.frames.length;
+				
+				atlasBytes.writeUTF(animation.name);
+				atlasBytes.writeShort(length);
+				
+				for (var j:int = 0; j < length; j++) 
+				{
+					sprite = animation.frames[j];
+					atlasBytes.writeUTF(sprite.name);
+					atlasBytes.writeShort(sprite.width);
+					atlasBytes.writeShort(sprite.height);
+					atlasBytes.writeFloat(sprite.delay);
+					atlasBytes.writeFloat(sprite.x);
+					atlasBytes.writeFloat(sprite.y);
+					atlasBytes.writeFloat(sprite.pivotX);
+					atlasBytes.writeFloat(sprite.pivotY);
+				}
 			}
 			
 			return atlasBytes;
@@ -242,21 +272,54 @@ package skysand.utils
 				data.y = bytes.readFloat();
 				data.pivotX = bytes.readFloat();
 				data.pivotY = bytes.readFloat();
-				
-				data.uvs = new Vector.<Number>(8, true);
-				data.uvs[0] = data.x / textureWidth;
-				data.uvs[1] = data.y / textureHeight;
-				data.uvs[2] = (data.x + data.width) / textureWidth;
-				data.uvs[3] = data.y / textureHeight;
-				data.uvs[4] = data.x / textureWidth;
-				data.uvs[5] = (data.y + data.height) / textureHeight;
-				data.uvs[6] = (data.x + data.width) / textureWidth;
-				data.uvs[7] = (data.y + data.height) / textureHeight;
+				data.setUV(data.x, data.y, data.width, data.height, textureWidth, textureHeight);
 				
 				sprites.push(data);
 			}
 			
 			return sprites;
+		}
+		
+		/**
+		 * Раскодировать данные с анимациями.
+		 * @param	bytes данные.
+		 * @param	textureWidth ширина текстуры.
+		 * @param	textureHeight высота текстуры.
+		 * @return возвращает массив с данными о каждой анимации.
+		 */
+		private static function decodeAnimations(bytes:ByteArray, textureWidth:Number, textureHeight:Number):Vector.<SkyAnimationData>
+		{
+			var length:int = bytes.readShort();
+			var animations:Vector.<SkyAnimationData> = new Vector.<SkyAnimationData>();
+			
+			for (var i:int = 0; i < length; i++) 
+			{
+				var animation:SkyAnimationData = new SkyAnimationData();
+				animation.name = bytes.readUTF();
+				
+				var framesCount:int = bytes.readShort();
+				animation.frames = new Vector.<SkyAtlasSprite>(framesCount, true);
+				
+				for (var j:int = 0; j < framesCount; j++) 
+				{
+					var frame:SkyAtlasSprite = new SkyAtlasSprite();
+					frame.name = bytes.readUTF();
+					frame.width = bytes.readShort();
+					frame.height = bytes.readShort();
+					frame.delay = bytes.readFloat();
+					frame.x = bytes.readFloat();
+					frame.y = bytes.readFloat();
+					frame.pivotX = bytes.readFloat();
+					frame.pivotY = bytes.readFloat();
+					frame.setUV(frame.x, frame.y, frame.width, frame.height, textureWidth, textureHeight);
+					
+					animation.frames[j] = frame;
+				}
+				
+				animations.push(animation);
+			}
+			
+			return animations;
 		}
 	}
 }

@@ -93,6 +93,9 @@ package skysand.ui
 			background.width = width;
 			background.height = height;
 			
+			if (isVerticalOrientation) button.recreate(kind, width, sliderSize);
+			else button.recreate(kind, sliderSize, height);
+			
 			bound = isVerticalOrientation ? background.height - sliderSize : background.width - sliderSize;
 		}
 		

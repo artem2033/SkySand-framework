@@ -124,6 +124,11 @@ package skysand.display
 		{
 			var index:int = indexID / 7 * 2;
 			
+			width = frames[frame - 1].width;
+			height = frames[frame - 1].height;
+			pivotX = frames[frame - 1].pivotX;
+			pivotY = frames[frame - 1].pivotY;
+			
 			uvs[index] = frames[frame - 1].uvs[0];
 			uvs[index + 1] = frames[frame - 1].uvs[1];
 			uvs[index + 2] = frames[frame - 1].uvs[2];
@@ -132,11 +137,6 @@ package skysand.display
 			uvs[index + 5] = frames[frame - 1].uvs[5];
 			uvs[index + 6] = frames[frame - 1].uvs[6];
 			uvs[index + 7] = frames[frame - 1].uvs[7];
-			
-			width = frames[frame - 1].width;
-			height = frames[frame - 1].height;
-			pivotX = frames[frame - 1].pivotX;
-			pivotY = frames[frame - 1].pivotY;
 			
 			if (trackingSystem) trackingSystem.update(frame);
 		}
@@ -201,7 +201,12 @@ package skysand.display
 				pivotX = data.pivotX;
 				pivotY = data.pivotY;
 				
-				if (uvs)
+				if (isAdded && !batch.contains(this))
+				{
+					init();
+				}
+				
+				if (uvs != null)
 				{
 					var index:int = indexID / 7 * 2;
 					
@@ -226,7 +231,7 @@ package skysand.display
 		{
 			if (atlas != null)
 			{
-				frames = atlas.getAnimationByIndex(index);
+				frames = atlas.getAnimationByIndex(index).frames;
 				mTotalFrames = frames.length;
 				mCurrentFrame = 1;
 				data = frames[0];
@@ -300,10 +305,8 @@ package skysand.display
 		/**
 		 * Функция обновления координат и других данных.
 		 */
-		override public function updateData(deltaTime:Number):void 
+		override public function updateData(deltaTime:Number):void
 		{
-			super.updateData(deltaTime);
-			
 			if (globalVisible == 1)
 			{
 				if (playing)
@@ -346,6 +349,8 @@ package skysand.display
 					delayAccumulator += delay > 0 ? deltaTime / delay : 1;
 				}
 			}
+			
+			super.updateData(deltaTime);
 		}
 	}
 }

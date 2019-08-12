@@ -604,7 +604,7 @@ package skysand.render
 			
 			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, modelViewMatrix, true);
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
-			context3D.setCulling(Context3DTriangleFace.BACK);
+			//context3D.setCulling(Context3DTriangleFace.BACK);
 			
 			notRenderedBatchesCount = 0;
 			

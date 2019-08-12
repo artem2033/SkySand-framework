@@ -286,9 +286,10 @@ package skysand.render
 		{
 			super.render();
 			
+			if (verteces.length == 0) return;//необязательно, но с пустым пакетом вылетает ошибка.
 			if (isChanged && verteces.length > 0)
 			{
-				if (texture)
+				if (texture != null)
 				{
 					uvBuffer = context3D.createVertexBuffer(uvs.length / 2, 2);
 					uvBuffer.uploadFromVector(uvs, 0, uvs.length / 2);

@@ -140,6 +140,11 @@ package skysand.ui
 			addChild(downMask);
 		}
 		
+		public function set sliderWidth(value:Number):void
+		{
+			slider.setSize(value, itemHeight * visibleCount);
+		}
+		
 		/**
 		 * Число элементов в списке.
 		 */
