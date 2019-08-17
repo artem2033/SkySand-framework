@@ -16,6 +16,8 @@ package skysand.display
 		public var visible:uint = 1;
 		public var scaleX:Number = 1;
 		public var scaleY:Number = 1;
+		public var pivotX:Number = 1;
+		public var pivotY:Number = 1;
 		public var rotation:Number = 0;
 		public var leftUpColor:uint = 0xFFFFFF;
 		public var rightUpColor:uint = 0xFFFFFF;

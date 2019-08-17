@@ -53,11 +53,6 @@ package skysand.display
 		public var alpha:Number;
 		
 		/**
-		 * Видимость объекта.
-		 */
-		public var visible:Boolean;
-		
-		/**
 		 * Горизонтальное масштабирование.
 		 */
 		public var scaleX:Number;
@@ -147,6 +142,11 @@ package skysand.display
 		//private var mouseButton:uint;
 		
 		/**
+		 * Видимость объекта.
+		 */
+		private var mVisible:Boolean;
+		
+		/**
 		 * Может ли мышь взаимодействовать с объектом.
 		 */
 		private var mMouseEnabled:Boolean;
@@ -216,7 +216,7 @@ package skysand.display
 			drag = false;
 			border = false;
 			isAdded = false;
-			visible = true;
+			mVisible = true;
 			mMouseEnabled = false;
 			//mouseButton = SkyMouse.NONE;
 			
@@ -246,6 +246,26 @@ package skysand.display
 			globalScaleY = 1;
 			globalVisible = 1;
 			globalRotation = 0;
+		}
+		
+		/**
+		 * Видимость объекта.
+		 */
+		public function set visible(value:Boolean):void
+		{
+			if (mVisible != value)
+			{
+				mVisible = value;
+				SkySand.render.calculateVisible = true;
+			}
+		}
+		
+		/**
+		 * Видимость объекта.
+		 */
+		public function get visible():Boolean
+		{
+			return mVisible;
 		}
 		
 		/**
@@ -390,10 +410,10 @@ package skysand.display
 			var x:Number = SkySand.STAGE.mouseX;
 			var y:Number = SkySand.STAGE.mouseY;
 			
-			if (x > globalX + width * globalScaleX + pivotX) return false;
-			if (x < globalX + pivotX) return false;
-			if (y > globalY + height * globalScaleY + pivotY) return false;
-			if (y < globalY + pivotY) return false;
+			if (x > globalX + (width - pivotX) * globalScaleX) return false;
+			if (x < globalX - pivotX * globalScaleX) return false;
+			if (y > globalY + (height - pivotY) * globalScaleY) return false;
+			if (y < globalY - pivotY * globalScaleY) return false;
 			
 			return true;
 		}
@@ -415,13 +435,19 @@ package skysand.display
 		}
 		
 		/**
+		 * Посчитать глобальную видимость.
+		 */
+		public function calculateGlobalVisible():void
+		{
+			var isVisible:Boolean = mVisible && parent.mVisible && isAdded && parent.isAdded;
+			globalVisible = isVisible ? 1 * parent.globalVisible : 0 * parent.globalVisible;
+		}
+		
+		/**
 		 * Обновить данные объекта.
 		 */
 		public function updateData(deltaTime:Number):void
 		{
-			var isVisible:Boolean = visible && parent.visible && isAdded && parent.isAdded;
-			globalVisible = isVisible ? 1 * parent.globalVisible : 0 * parent.globalVisible; //если баг произойдет с невидимостью искать тут.)
-			
 			if (globalVisible == 1)
 			{
 				globalX = parent.globalX + x;

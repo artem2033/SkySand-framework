@@ -66,6 +66,9 @@ package skysand.display
 		 */
 		private var old:SkyOldData;
 		
+		private var sin:Number = 0;
+		private var cos:Number = 1;
+		
 		public function SkySprite()
 		{
 			matrix = new Matrix();
@@ -306,6 +309,24 @@ package skysand.display
 		}
 		
 		/**
+		 * Посчитать глобальную видимость.
+		 */
+		override public function calculateGlobalVisible():void 
+		{
+			super.calculateGlobalVisible();
+			
+			if (globalVisible == 0 && verteces != null)
+			{
+				verteces[indexID + 2] = -1;
+				verteces[indexID + 9] = -1;
+				verteces[indexID + 16] = -1;
+				verteces[indexID + 23] = -1;
+				
+				old.depth = 2;
+			}
+		}
+		
+		/**
 		 * Функция обновления координат и других данных.
 		 */
 		override public function updateData(deltaTime:Number):void 
@@ -322,18 +343,23 @@ package skysand.display
 				var px:Number = pivotX * globalScaleX;
 				var py:Number = pivotY * globalScaleY;
 				
-				if (old.rotation != globalRotation || old.scaleX != globalScaleX || old.scaleY != globalScaleY || old.width != width || old.height != height)
+				if (old.rotation != globalRotation || old.scaleX != globalScaleX || old.scaleY != globalScaleY || old.pivotX != px || old.pivotY != py)
 				{
-					matrix.rotate(SkyMath.toRadian(globalRotation));
+					if (old.rotation != globalRotation)
+					{
+						var angle:Number = SkyMath.toRadian(globalRotation);
+						sin = Math.sin(angle);
+						cos = Math.cos(angle);
+					}
 					
-					v[0] = globalR.x - px * matrix.a - py * matrix.c;
-					v[1] = globalR.x + (w - px) * matrix.a - py * matrix.c;
-					v[2] = globalR.x - px * matrix.a + (h - py) * matrix.c;
-					v[3] = globalR.x + (w - px) * matrix.a + (h - py) * matrix.c;
-					v[4] = globalR.y - px * matrix.b - py * matrix.d;
-					v[5] = globalR.y + (w - px) * matrix.b - py * matrix.d;
-					v[6] = globalR.y - px * matrix.b + (h - py) * matrix.d;
-					v[7] = globalR.y + (w - px) * matrix.b + (h - py) * matrix.d;
+					v[0] = globalR.x - px * cos - py * sin;
+					v[1] = globalR.x + (w - px) * cos + py * sin;
+					v[2] = globalR.x - px * cos - (h - py) * sin;
+					v[3] = globalR.x + (w - px) * cos - (h - py) * sin;
+					v[4] = globalR.y - px * sin - py * cos;
+					v[5] = globalR.y + (w - px) * sin - py * cos;
+					v[6] = globalR.y - px * sin + (h - py) * cos;
+					v[7] = globalR.y + (w - px) * sin + (h - py) * cos;
 					
 					verteces[indexID] = globalX + v[0];
 					verteces[indexID + 7] = globalX + v[1];
@@ -345,8 +371,8 @@ package skysand.display
 					verteces[indexID + 15] = globalY + v[6];
 					verteces[indexID + 22] = globalY + v[7];
 					
-					matrix.identity();
-					
+					old.pivotX = px;
+					old.pivotY = py;
 					old.x = globalX;
 					old.y = globalY;
 					old.width = width;
@@ -354,6 +380,36 @@ package skysand.display
 					old.scaleX = globalScaleX;
 					old.scaleY = globalScaleY;
 					old.rotation = globalRotation;
+				}
+				
+				if (old.width != width)
+				{
+					v[1] = globalR.x + (w - px) * cos + py * sin;
+					v[3] = globalR.x + (w - px) * cos - (h - py) * sin;
+					v[5] = globalR.y + (w - px) * sin - py * cos;
+					v[7] = globalR.y + (w - px) * sin + (h - py) * cos;
+					
+					verteces[indexID + 7] = globalX + v[1];
+					verteces[indexID + 21] = globalX + v[3];
+					verteces[indexID + 8] = globalY + v[5];
+					verteces[indexID + 22] = globalY + v[7];
+					
+					old.width = width;
+				}
+				
+				if (old.height != height)
+				{
+					v[2] = globalR.x - px * cos - (h - py) * sin;
+					v[3] = globalR.x + (w - px) * cos - (h - py) * sin;
+					v[6] = globalR.y - px * sin + (h - py) * cos;
+					v[7] = globalR.y + (w - px) * sin + (h - py) * cos;
+					
+					verteces[indexID + 14] = globalX + v[2];
+					verteces[indexID + 21] = globalX + v[3];
+					verteces[indexID + 15] = globalY + v[6];
+					verteces[indexID + 22] = globalY + v[7];
+					
+					old.height = height;
 				}
 				
 				if (old.x != globalX)
@@ -432,15 +488,7 @@ package skysand.display
 					old.alpha = alpha;
 				}
 			}
-			else if (verteces[indexID + 2] != -1)
-			{
-				verteces[indexID + 2] = -1;
-				verteces[indexID + 9] = -1;
-				verteces[indexID + 16] = -1;
-				verteces[indexID + 23] = -1;
-				
-				old.depth = 2;
-			}
+			
 		}
 	}
 }

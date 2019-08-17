@@ -14,7 +14,7 @@ package skysand.display
 		/**
 		 * Задержка перед сменой кадра в секундах.
 		 */
-		public var delay:Number;
+		private var mDelay:Number;
 		
 		/**
 		 * Воспроизведение анимации в обратную сторону.
@@ -73,14 +73,12 @@ package skysand.display
 			mReverse = false;
 			isStarted = true;
 			
-			delay = 0;
+			mDelay = 0;
 			frameSpeed = 1;
 			mTotalFrames = 0;
 			mCurrentFrame = 1;
 			delayAccumulator = 0;
 		}
-		
-		
 		
 		/**
 		 * Воспроизвести анимацию.
@@ -128,6 +126,7 @@ package skysand.display
 			height = frames[frame - 1].height;
 			pivotX = frames[frame - 1].pivotX;
 			pivotY = frames[frame - 1].pivotY;
+			mDelay = frames[frame - 1].delay;
 			
 			uvs[index] = frames[frame - 1].uvs[0];
 			uvs[index + 1] = frames[frame - 1].uvs[1];
@@ -284,6 +283,27 @@ package skysand.display
 		}
 		
 		/**
+		 * Задержка между кадрами в мс, задаётся для всех кадров.
+		 */
+		public function get delay():Number
+		{
+			return mDelay;
+		}
+		
+		/**
+		 * Задержка между кадрами в мс, задаётся для всех кадров.
+		 */
+		public function set delay(value:Number):void
+		{
+			mDelay = value;
+			
+			for (var i:int = 0; i < mTotalFrames; i++) 
+			{
+				frames[i].delay = mDelay;
+			}
+		}
+		
+		/**
 		 * Получить количество кадров в анимации.
 		 */
 		public function get totalFrames():int
@@ -346,7 +366,7 @@ package skysand.display
 						delayAccumulator = 0;
 					}
 					
-					delayAccumulator += delay > 0 ? deltaTime / delay : 1;
+					delayAccumulator += mDelay > 0 ? deltaTime / mDelay : 1;
 				}
 			}
 			

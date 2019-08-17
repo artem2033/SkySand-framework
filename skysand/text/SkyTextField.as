@@ -205,6 +205,25 @@ package skysand.text
 		}
 		
 		/**
+		 * Посчитать глобальную видимость.
+		 */
+		override public function calculateGlobalVisible():void 
+		{
+			super.calculateGlobalVisible();
+			
+			if (globalVisible == 0 && verteces != null)
+			{
+				verteces[2] = -1;
+				verteces[6] = -1;
+				verteces[10] = -1;
+				verteces[14] = -1;
+				
+				batch.isNeedToRender = false;
+				old.depth = 2;
+			}
+		}
+		
+		/**
 		 * Функция обновления координат и других данных.
 		 */
 		override public function updateData(deltaTime:Number):void 
@@ -312,16 +331,6 @@ package skysand.text
 					batch.updateVertexBuffer();
 					batch.isNeedToRender = true;
 				}
-			}
-			else if (verteces[2] != -1)
-			{
-				verteces[2] = -1;
-				verteces[6] = -1;
-				verteces[10] = -1;
-				verteces[14] = -1;
-				
-				batch.isNeedToRender = false;
-				old.depth = 2;
 			}
 		}
 		

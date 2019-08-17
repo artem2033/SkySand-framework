@@ -329,7 +329,13 @@ package skysand.input
 		{
 			for (var i:int = 0; i < NUM_KEYS; i++) 
 			{
-				keys[i].downState = 0;
+				var key:SkyKeyData = keys[i];
+				
+				if (keyboardEvent.keyCode == key.сode)
+				{
+					key.downState = 0;
+					break;
+				}
 			}
 			
 			anyKeyDown = false;

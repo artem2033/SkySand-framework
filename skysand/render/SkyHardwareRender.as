@@ -38,6 +38,11 @@ package skysand.render
 		public static var shaderVersion:uint = 4;
 		
 		/**
+		 * Обновить видимость объектов.
+		 */
+		public var calculateVisible:Boolean = true;
+		
+		/**
 		 * Пересчитать глубину объектов.
 		 */
 		public var updateDepth:Boolean;
@@ -597,9 +602,20 @@ package skysand.render
 				sortObjects = false;
 			}
 			
-			for (var i:int = 0; i < nObjects; i++)
+			if (calculateVisible)
 			{
-				objects[i].updateData(deltaTime);
+				for (var i:int = 0; i < nObjects; i++)
+				{
+					objects[i].calculateGlobalVisible();
+				}
+				
+				calculateVisible = false;
+			}
+			
+			for (i = 0; i < nObjects; i++)
+			{
+				if (objects[i].globalVisible != 0)
+					objects[i].updateData(deltaTime);
 			}
 			
 			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, modelViewMatrix, true);

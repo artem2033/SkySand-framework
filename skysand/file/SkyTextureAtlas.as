@@ -324,6 +324,7 @@ package skysand.file
 					data.uvs.fixed = false;
 					data.uvs.length = 0;
 					data.uvs = null;
+					
 					sprites.removeAt(i);
 					return;
 				}
