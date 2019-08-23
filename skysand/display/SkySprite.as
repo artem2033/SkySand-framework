@@ -314,7 +314,7 @@ package skysand.display
 		override public function calculateGlobalVisible():void 
 		{
 			super.calculateGlobalVisible();
-			
+			//TODO: ошибка неверный индекс.
 			if (globalVisible == 0 && verteces != null)
 			{
 				verteces[indexID + 2] = -1;

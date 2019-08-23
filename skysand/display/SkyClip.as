@@ -140,6 +140,11 @@ package skysand.display
 			if (trackingSystem) trackingSystem.update(frame);
 		}
 		
+		public function get isPlaying():Boolean
+		{
+			return playing;
+		}
+		
 		/**
 		 * Перейти на нужный кадр и остановить.
 		 * @param	frame номер кадра.
