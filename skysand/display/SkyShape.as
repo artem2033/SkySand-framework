@@ -308,14 +308,14 @@ package skysand.display
 		{
 			addVertex(x + thickness, y + thickness);
 			addVertex(x, y);
-			addVertex(x + width + thickness, y);
-			addVertex(x + width + thickness, y + height + thickness);
-			addVertex(x, y + height + thickness);
+			addVertex(x + width, y);
+			addVertex(x + width, y + height);
+			addVertex(x, y + height);
 			addVertex(x, y);
 			addVertex(x + thickness, y + thickness);
-			addVertex(x + thickness, y + height);
-			addVertex(x + width, y + height);
-			addVertex(x + width, y + thickness);
+			addVertex(x + thickness, y + height - thickness);
+			addVertex(x + width - thickness, y + height - thickness);
+			addVertex(x + width - thickness, y + thickness);
 		}
 		
 		/**

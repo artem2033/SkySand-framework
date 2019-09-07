@@ -2,12 +2,12 @@ package skysand.ui
 {
 	import flash.text.AntiAliasType;
 	import flash.text.TextFieldAutoSize;
-	import skysand.render.SkyHardwareRender;
 	
 	import skysand.text.SkyFont;
 	import skysand.text.SkyTextField;
 	import skysand.text.SkyBitmapText;
 	import skysand.display.SkyShape;
+	import skysand.display.SkyRenderObjectContainer;
 	import skysand.input.SkyMouse;
 	import skysand.utils.SkyUtils;
 	
@@ -15,7 +15,7 @@ package skysand.ui
 	 * ...
 	 * @author CodeCoreGames
 	 */
-	public class SkyButton extends SkyShape
+	public class SkyButton extends SkyRenderObjectContainer
 	{
 		//Состояния кнопоки.
 		private const UP:uint = 0;
@@ -127,6 +127,11 @@ package skysand.ui
 		 */
 		private var isLeftPosition:Boolean;
 		
+		/**
+		 * Имя пакета отрисовки.
+		 */
+		public var batchName:String;
+		
 		public function SkyButton()
 		{
 			mouse = SkyMouse.instance;
@@ -148,6 +153,7 @@ package skysand.ui
 			isOut = false;
 			isDown = false;
 			returnName = false;
+			batchName = "shape";
 		}
 		
 		/**

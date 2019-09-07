@@ -60,6 +60,16 @@ package skysand.render
 		 */ 
 		protected var assembler:AGALMiniAssembler;
 		
+		/**
+		 * Матрица трансформации мировых координат.
+		 */
+		protected var worldMatrix:Matrix3D;
+		
+		/**
+		 * Текущая активная матрица.
+		 */
+		protected var currentMatrix:Matrix3D;
+		
 		public function SkyBatchBase()
 		{
 			super();
@@ -71,11 +81,13 @@ package skysand.render
 		 * @param	mvpMatrix ссылка на матрицу.
 		 * @param	name название.
 		 */
-		public function initialize(context3D:Context3D, mvpMatrix:Matrix3D, name:String):void
+		public function initialize(context3D:Context3D, mvpMatrix:Matrix3D, worldMatrix:Matrix3D, name:String):void
 		{
 			this.context3D = context3D;
 			this.mvpMatrix = mvpMatrix;
+			this.worldMatrix = worldMatrix;
 			
+			currentMatrix = worldMatrix;
 			assembler = new AGALMiniAssembler();
 			
 			verteces = new Vector.<Number>();
@@ -83,6 +95,12 @@ package skysand.render
 			
 			nObjects = 0;
 			_name = name;
+		}
+		
+		
+		public function set allowCameraTransformation(value:Boolean):void
+		{
+			currentMatrix = value ? mvpMatrix : worldMatrix;
 		}
 		
 		/**
@@ -115,6 +133,7 @@ package skysand.render
 			indices.length = 0;
 			indices = null;
 			
+			worldMatrix = null;
 			mvpMatrix = null;
 			context3D = null;
 			

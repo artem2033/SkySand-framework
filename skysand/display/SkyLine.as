@@ -56,6 +56,11 @@ package skysand.display
 		 */
 		private var isSquareCurve:Boolean;
 		
+		/**
+		 * Имя пакета отрисовки.
+		 */
+		public var batchName:String;
+		
 		public function SkyLine() 
 		{
 			anchorA = new Point();
@@ -63,6 +68,7 @@ package skysand.display
 			start = new Point();
 			end = new Point();
 			
+			batchName = "shape";
 			isCurve = false;
 			isUpdated = false;
 			isSquareCurve = true;
@@ -72,7 +78,7 @@ package skysand.display
 		 * Создать линию.
 		 * @param	mStep число сегментов
 		 */
-		public function create(mStep:int = 10):void 
+		public function create(mStep:int = 1):void 
 		{
 			lines = new Vector.<SkyShape>();
 			dots = new Vector.<SkyShape>();
@@ -82,14 +88,16 @@ package skysand.display
 			for (var i:int = 0; i < mStep; i++) 
 			{
 				var line:SkyShape = new SkyShape();
-				line.drawRect(0, -2, 4, 4);
+				line.batchName = batchName;
+				line.drawRect(0, -1, 2, 2);
 				line.visible = false;
 				addChild(line);
 				
 				lines.push(line);
 				
 				var dot:SkyShape = new SkyShape();
-				dot.drawCircle(0, 0, 2, 10);
+				dot.batchName = batchName;
+				dot.drawCircle(0, 0, 1, 8);
 				dot.visible = false;
 				addChild(dot);
 				
@@ -97,7 +105,8 @@ package skysand.display
 			}
 			
 			dot = new SkyShape();
-			dot.drawCircle(0, 0, 2, 10);
+			dot.batchName = batchName;
+			dot.drawCircle(0, 0, 1, 8);
 			dot.visible = false;
 			addChild(dot);
 			
@@ -259,13 +268,15 @@ package skysand.display
 		public function set step(value:int):void
 		{
 			var difference:int = value - mStep;
+			var thickness:Number = lines[0].height;
 			
 			if (difference > 0)
 			{
 				for (var i:int = 0; i < difference; i++) 
 				{
 					var line:SkyShape = new SkyShape();
-					line.drawRect(0, -2, 4, 4);
+					line.batchName = batchName;
+					line.drawRect(0, -1, thickness, thickness);
 					line.color = color;
 					line.height = lines[0].height;
 					line.visible = isCurve;
@@ -274,7 +285,8 @@ package skysand.display
 					lines.push(line);
 					
 					var dot:SkyShape = new SkyShape();
-					dot.drawCircle(0, 0, 2, 10);
+					dot.batchName = batchName;
+					dot.drawCircle(0, 0, thickness / 2, 8);
 					dot.color = color;
 					dot.width = lines[0].height;
 					dot.height = lines[0].height;

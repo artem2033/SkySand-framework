@@ -106,6 +106,7 @@ package skysand.display
 				SkySand.render.addBatch(batch, name);
 			}
 			
+			verteces = null;
 			this.atlas = atlas
 			batch.setTexture(atlas.texture);
 		}

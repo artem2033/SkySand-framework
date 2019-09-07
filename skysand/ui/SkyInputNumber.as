@@ -1,8 +1,8 @@
 package skysand.ui 
 {
-	import flash.geom.Point;
-	import flash.text.GridFitType;
 	import flash.text.TextFieldType;
+	
+	import skysand.display.SkyRenderObjectContainer;
 	import skysand.display.SkyShape;
 	import skysand.input.SkyMouse;
 	import skysand.text.SkyFont;
@@ -11,7 +11,7 @@ package skysand.ui
 	 * ...
 	 * @author CodeCoreGames
 	 */
-	public class SkyInputNumber extends SkyShape
+	public class SkyInputNumber extends SkyRenderObjectContainer
 	{
 		/**
 		 * Минимальный размер поля ввода.
@@ -88,9 +88,14 @@ package skysand.ui
 		 */
 		private var mouse:SkyMouse;
 		
+		/**
+		 * Имя пакета отрисовки.
+		 */
+		public var batchName:String;
+		
 		public function SkyInputNumber() 
 		{
-			
+			batchName = "shape";
 		}
 		
 		/**
@@ -118,11 +123,13 @@ package skysand.ui
 			addChild(textField);
 			
 			upButton = new SkyButton();
+			upButton.batchName = batchName;
 			upButton.create(SkyUI.RECTANGLE, 20, height / 2, SkyColor.CARMINE_PINK, upAction);
 			upButton.x = width;
 			addChild(upButton);
 			
 			upArrow = new SkyShape();
+			upArrow.batchName = batchName;
 			upArrow.color = SkyColor.CLOUDS;
 			upArrow.addVertex(1, 0);
 			upArrow.addVertex(4, 3);
@@ -138,12 +145,14 @@ package skysand.ui
 			upButton.addChild(upArrow);
 			
 			downButton = new SkyButton();
+			downButton.batchName = batchName;
 			downButton.create(SkyUI.RECTANGLE, 20, height / 2, SkyColor.CARMINE_PINK, downAction);
 			downButton.x = width;
 			downButton.y = height / 2;
 			addChild(downButton);
 			
 			downArrow = new SkyShape();
+			downArrow.batchName = batchName;
 			downArrow.color = SkyColor.CLOUDS;
 			downArrow.addVertex(1, 0);
 			downArrow.addVertex(4, 3);

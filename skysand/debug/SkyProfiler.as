@@ -333,6 +333,8 @@ package skysand.debug
 				
 				showWindow();
 			}
+			
+			visible = true;
 		}
 		
 		/**

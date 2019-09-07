@@ -346,7 +346,7 @@ package
 			oldTime = newTime;
 			newTime = getTimer();
 			deltaTime = (newTime - oldTime) / 1000;
-			deltaTime = (deltaTime < invFrameRate) ? invFrameRate : deltaTime;
+			//deltaTime = (deltaTime > invFrameRate) ? invFrameRate : deltaTime;
 			
 			if (SkyKeyboard.isPressed(SkyKey.F9)) pause = !pause;
 			

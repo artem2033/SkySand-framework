@@ -4,6 +4,7 @@ package skysand.render
 	import flash.display.Bitmap;
 	import flash.display3D.Context3DCompareMode;
 	import flash.display3D.Context3DTriangleFace;
+	import flash.geom.Matrix;
 	import flash.geom.Matrix3D;
 	import flash.geom.Rectangle;
 	import flash.display.BitmapData;
@@ -415,7 +416,7 @@ package skysand.render
 		 */
 		public function addBatch(batch:SkyBatchBase, name:String):void
 		{
-			batch.initialize(context3D, modelViewMatrix, name);
+			batch.initialize(context3D, modelViewMatrix, worldView, name);
 			batches[nBatches] = batch;
 			batchStack[nBatches] = batch;
 			nBatches++;
@@ -429,7 +430,7 @@ package skysand.render
 		 */
 		public function addBatchAt(batch:SkyBatchBase, index:int, name:String):void
 		{
-			batch.initialize(context3D, modelViewMatrix, name);
+			batch.initialize(context3D, modelViewMatrix, worldView, name);
 			batches.splice(index, 0, batch);
 			batchStack[nBatches] = batch;
 			nBatches++;
@@ -618,7 +619,6 @@ package skysand.render
 					objects[i].updateData(deltaTime);
 			}
 			
-			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, modelViewMatrix, true);
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
 			//context3D.setCulling(Context3DTriangleFace.BACK);
 			

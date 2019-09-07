@@ -237,7 +237,7 @@ package skysand.utils
 		/**
 		 * Задать угол.
 		 */
-		public function set angle(value:Number):void
+		public function set rotate(value:Number):void
 		{
 			var cos:Number = Math.cos(value);
 			var sin:Number = Math.sin(value);

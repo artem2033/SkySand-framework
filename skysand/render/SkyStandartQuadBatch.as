@@ -117,9 +117,9 @@ package skysand.render
 		 * @param	mvpMatrix model view матрица
 		 * @param	name название пакета.
 		 */
-		override public function initialize(context3D:Context3D, mvpMatrix:Matrix3D, name:String):void
+		override public function initialize(context3D:Context3D, mvpMatrix:Matrix3D, worldMatrix:Matrix3D, name:String):void
 		{
-			super.initialize(context3D, mvpMatrix, name);
+			super.initialize(context3D, mvpMatrix, worldMatrix, name);
 			
 			destinationBlendFactor = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
 			sourceBlendFactor = Context3DBlendFactor.SOURCE_ALPHA;
@@ -330,6 +330,7 @@ package skysand.render
 			context3D.setBlendFactors(sourceBlendFactor, destinationBlendFactor);
 			context3D.setTextureAt(0, texture.data);
 			//context3D.setSamplerStateAt(0, wrapMode, textureFilter, Context3DMipFilter.MIPNONE);
+			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, currentMatrix, true);
 			context3D.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 			context3D.setVertexBufferAt(1, vertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_4);
 			context3D.setVertexBufferAt(2, uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
