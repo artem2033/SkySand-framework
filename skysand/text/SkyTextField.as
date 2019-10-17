@@ -223,6 +223,38 @@ package skysand.text
 			}
 		}
 		
+		override public function updateTransformation():void 
+		{
+			super.updateTransformation();
+			if (verteces == null) return;
+			
+			wm.transformTextField(width, height, 0, verteces);
+			batch.updateVertexBuffer();
+			
+			if (old.alpha != alpha)
+				{
+					verteces[3] = alpha;
+					verteces[7] = alpha;
+					verteces[11] = alpha;
+					verteces[15] = alpha;
+					
+					old.alpha = alpha;
+					batch.updateVertexBuffer();
+				}
+				
+				if (old.depth != depth)
+				{
+					verteces[2] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[6] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[10] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[14] = depth / SkyHardwareRender.MAX_DEPTH;
+					
+					old.depth = depth;
+					batch.updateVertexBuffer();
+					batch.isNeedToRender = true;
+				}
+		}
+		
 		/**
 		 * Функция обновления координат и других данных.
 		 */
@@ -243,13 +275,26 @@ package skysand.text
 					height = textField.height != height ? textField.height : height;
 				}
 				
-				var w:Number = globalScaleX * width;
+				if (old.width != width || old.height != height)
+					{
+						bitmapData.dispose();
+						bitmapData = new BitmapData(width, height, true, 0xFFFFFFFF);
+						textField.width = width;
+						textField.height = height;
+						
+						drawText();
+						
+						old.width = width;
+						old.height = height;
+					}
+				
+				/*var w:Number = globalScaleX * width;
 				var h:Number = globalScaleY * height;
 				
 				var px:Number = pivotX * globalScaleX;
 				var py:Number = pivotY * globalScaleY;
 				
-				if (verteces == null) return;
+				
 				
 				if (old.rotation != globalRotation || old.width != width || old.height != height)
 				{
@@ -308,29 +353,8 @@ package skysand.text
 					old.y = globalY;
 					batch.updateVertexBuffer();
 				}
+				*/
 				
-				if (old.alpha != alpha)
-				{
-					verteces[3] = alpha;
-					verteces[7] = alpha;
-					verteces[11] = alpha;
-					verteces[15] = alpha;
-					
-					old.alpha = alpha;
-					batch.updateVertexBuffer();
-				}
-				
-				if (old.depth != depth)
-				{
-					verteces[2] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[6] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[10] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[14] = depth / SkyHardwareRender.MAX_DEPTH;
-					
-					old.depth = depth;
-					batch.updateVertexBuffer();
-					batch.isNeedToRender = true;
-				}
 			}
 		}
 		

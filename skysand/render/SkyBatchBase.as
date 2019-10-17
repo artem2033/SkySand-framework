@@ -103,6 +103,11 @@ package skysand.render
 			currentMatrix = value ? mvpMatrix : worldMatrix;
 		}
 		
+		public function get allowCameraTransformation():Boolean
+		{
+			return currentMatrix == mvpMatrix ? true : false;
+		}
+		
 		/**
 		 * Создать шейдер для загрузки в видеокарту.
 		 * @param	vertexShader вершиный шейдер.

@@ -63,11 +63,6 @@ package skysand.display
 		public var batchName:String;
 		
 		/**
-		 * Ссылка на мышь.
-		 */
-		private var mouse:SkyMouse;
-		
-		/**
 		 * Левый верхний угол ограничевающего прямоугольника.
 		 */
 		private var leftUpPoint:Point;
@@ -85,7 +80,6 @@ package skysand.display
 			standartHeight = 1;
 			standartWidth = 1;
 			
-			mouse = SkyMouse.instance;
 			matrix = new Matrix();
 			
 			leftUpPoint = new Point();
@@ -104,7 +98,6 @@ package skysand.display
 			leftUpPoint = null;
 			oldData = null;
 			matrix = null;
-			mouse = null;
 			
 			if (v != null)
 			{
@@ -408,13 +401,13 @@ package skysand.display
 		 */
 		override public function hitTestBoundsWithMouse():Boolean
 		{
-			var x:Number = SkySand.STAGE.mouseX;
-			var y:Number = SkySand.STAGE.mouseY;
+			var x:Number = !batch.allowCameraTransformation ? SkyMouse.x : SkyMouse.tx;
+			var y:Number = !batch.allowCameraTransformation ? SkyMouse.y : SkyMouse.ty;
 			
-			if (x > globalX + width + pivotX + leftUpPoint.x) return false;
-			if (x < globalX + pivotX + leftUpPoint.x) return false;
-			if (y > globalY + height + pivotY + leftUpPoint.y) return false;
-			if (y < globalY + pivotY + leftUpPoint.y) return false;
+			if (x > wm.tx + width + pivotX + leftUpPoint.x) return false;
+			if (x < wm.tx + pivotX + leftUpPoint.x) return false;
+			if (y > wm.ty + height + pivotY + leftUpPoint.y) return false;
+			if (y < wm.ty + pivotY + leftUpPoint.y) return false;
 			
 			return true;
         }
@@ -425,15 +418,16 @@ package skysand.display
 		 */
 		override public function hitTestMouse():Boolean
 		{
-			if (!batchVerteces) return false;
+			if (batchVerteces == null) return false;
 			
-			var x:Number = SkySand.STAGE.mouseX;
-			var y:Number = SkySand.STAGE.mouseY;
+			var x:Number = !batch.allowCameraTransformation ? SkyMouse.x : SkyMouse.tx;
+			var y:Number = !batch.allowCameraTransformation ? SkyMouse.y : SkyMouse.ty;
+			
 			var i:int, j:int = verteces.length / 2 - 1;
 			var oddNodes:uint = 0;
 			var length:int = verteces.length / 2;
 			
-			for (i = 0; i < length; ++i)
+			for (i = 0; i < length; i++)
 			{
 				if (batchVerteces.length <= (i * SkyShapeBatch.DATA_PER_VERTEX + indexID) || indexID < 0) break;
 				
@@ -519,34 +513,110 @@ package skysand.display
 		{
 			super.calculateGlobalVisible();
 			
-			if (globalVisible == 0)
+			var length:int = verteces.length / 2;
+			if (batchVerteces == null) return;
+			
+			for (var i:int = 0; i < length; i++)
+				batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 2] = globalVisible == 0 ? -1 : mDepth / SkyHardwareRender.MAX_DEPTH;
+				
+			//batch.isUploaded = false;
+		}
+		
+		override public function set color(value:uint):void 
+		{
+			if (mColor != value)
 			{
+				mColor = value;
+				
+				if (batchVerteces == null) return;
 				var length:int = verteces.length / 2;
 				
 				for (var i:int = 0; i < length; i++)
-					batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 2] = -1;
-				
-				oldData.depth = 2;
+				{
+					batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 3] = SkyUtils.getRed(value) / 255;
+					batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 4] = SkyUtils.getGreen(value) / 255;
+					batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 5] = SkyUtils.getBlue(value) / 255;
+				}
 			}
+		}
+		
+		override public function set alpha(value:Number):void 
+		{
+			if (mAlpha != value)
+			{
+				mAlpha = value;
+				
+				if (batchVerteces == null) return;
+				var length:int = verteces.length / 2;
+				
+				for (var i:int = 0; i < length; i++)
+				{
+					batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 6] = value;
+				}
+				
+				batch.isUploaded = false;
+			}
+		}
+		
+		override public function set depth(value:int):void 
+		{
+			if (mDepth != value)
+			{
+				mDepth = value;
+				
+				if (batchVerteces == null || globalVisible == 0) return;
+				var length:int = verteces.length / 2;
+				
+				for (var i:int = 0; i < length; i++)
+				{
+					batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 2] = value / SkyHardwareRender.MAX_DEPTH;
+				}
+				
+				batch.isUploaded = false;
+			}
+		}
+		
+		override public function updateTransformation():void 
+		{
+			super.updateTransformation();
+			
+			if (batchVerteces == null) return;
+			
+			wm.transformPoint(verteces, batchVerteces, indexID, width / standartWidth, height / standartHeight);
+			batch.isUploaded = false;
 		}
 		
 		/**
 		 * Функция обновления координат и других данных.
 		 */
-		override public function updateData(deltaTime:Number):void
+		/*override public function updateData(deltaTime:Number):void
 		{
 			super.updateData(deltaTime);
 			
 			if (batchVerteces == null) return;
 			
-			if (globalVisible == 1)
-			{
-				var length:int = verteces.length / 2;
 			
+			
+			
+				
+				
+			//if (globalVisible == 1)
+			//{
+				
+				
+				/*if (oldData.width != width || oldData.height != height)
+				{
+					//isTransformed = false;
+					oldData.width = width;
+					oldData.height = height;
+				}
+				
+				wm.transformPoint(verteces, batchVerteces, indexID, width / standartWidth, height / standartHeight);
+				*/
 				//var px:Number = pivotX * globalScaleX;
 				//var py:Number = pivotY * globalScaleY;
 				
-				if (oldData.rotation != globalRotation || oldData.width != width || oldData.height != height || oldData.scaleX != globalScaleX || oldData.scaleY != globalScaleY)
+				/*if (oldData.rotation != globalRotation || oldData.width != width || oldData.height != height || oldData.scaleX != globalScaleX || oldData.scaleY != globalScaleY)
 				{
 					var angle:Number = SkyMath.toRadian(globalRotation);
 					matrix.scale(width * globalScaleX / standartWidth, height * globalScaleY / standartHeight);
@@ -593,33 +663,11 @@ package skysand.display
 					}
 					
 					oldData.y = globalY;
-				}
+				}*/
 				
-				if (oldData.color != color || oldData.alpha != alpha)
-				{
-					for (i = 0; i < length; i++)
-					{
-						batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 3] = SkyUtils.getRed(color) / 255;
-						batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 4] = SkyUtils.getGreen(color) / 255;
-						batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 5] = SkyUtils.getBlue(color) / 255;
-						batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 6] = alpha;
-					}
-					
-					oldData.color = color;
-					oldData.alpha = alpha;
-				}
 				
-				if (oldData.depth != depth)
-				{
-					for (i = 0; i < length; i++)
-					{
-						batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 2] = depth / SkyHardwareRender.MAX_DEPTH;
-					}
-					
-					oldData.depth = depth;
-				}
-			}
-		}
+			//}
+		//}
 		
 		/**
 		 * Посчитать размеры фигуры.

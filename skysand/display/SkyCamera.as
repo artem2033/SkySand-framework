@@ -127,7 +127,7 @@ package skysand.display
 			screenHeight = SkySand.SCREEN_HEIGHT;
 			enableSafeZone = true;
 			
-			offset = new SkyVector2D(SkySand.SCREEN_WIDTH / 2, SkySand.SCREEN_HEIGHT / 2);
+			offset = new SkyVector2D(0, 0);
 			mTrackingPoint = new SkyVector2D();
 			viewTransform = new Matrix3D();
 		}
@@ -163,9 +163,9 @@ package skysand.display
 		 */
 		public function setScreenOffset(x:Number, y:Number):void
 		{
-			/*viewTransform.identity();
-			viewTransform.appendTranslation(mX * scaleX, mY * scaleY, 0);
-			SkySand.watch(mX - x);*/
+			viewTransform.identity();
+			viewTransform.appendTranslation((mX - x) * scaleX, (y + mY) * scaleY, 0);
+			
 			offset.setTo(x, y);
 		}
 		
@@ -176,16 +176,13 @@ package skysand.display
 		 */
 		public function setScreenSize(width:Number, height:Number):void
 		{
-			offset.setTo(width / 2, height / 2);
-			
 			screenWidth = width;
 			screenHeight = height;
 			scaleX = -2 / width;
 			scaleY = -2 / height;
 			
 			viewTransform.identity();
-			viewTransform.appendTranslation((mX - offset.x) * scaleX, (offset.y - mY) * scaleY, 0);
-			//viewTransform.appendTranslation((mX - offset.x) * scaleX, (mY + offset.y) * scaleY, 0);
+			viewTransform.appendTranslation((mX - offset.x) * scaleX, (offset.y + mY) * scaleY, 0);
 		}
 		
 		/**
@@ -196,7 +193,7 @@ package skysand.display
 			offset.setTo(screenWidth / 2, screenHeight / 2);
 			
 			viewTransform.identity();
-			viewTransform.appendTranslation((mX - offset.x) * scaleX, (mY + offset.y) * scaleY, 0);
+			viewTransform.appendTranslation((mX - offset.x) * scaleX, (offset.y + mY) * scaleY, 0);
 		}
 		
 		/**
@@ -248,7 +245,7 @@ package skysand.display
 			
 			mTrackingPoint.setTo(x, y);
 			viewTransform.identity();
-			viewTransform.appendTranslation((mX - offset.x) * scaleX, (mY + offset.y) * scaleY, 0);
+			viewTransform.appendTranslation((mX - offset.x) * scaleX, (offset.y + mY) * scaleY, 0);
 		}
 		
 		/**

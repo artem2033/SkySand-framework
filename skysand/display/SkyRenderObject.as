@@ -1,8 +1,14 @@
 package skysand.display
 {
+	import filecontrol.OpenManager;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import mx.core.MovieClipLoaderAsset;
+	import skysand.input.SkyKey;
+	import skysand.input.SkyKeyboard;
 	import skysand.input.SkyMouse;
+	import skysand.utils.SkyMatrix;
 	
 	import skysand.utils.SkyMath;
 	
@@ -25,32 +31,32 @@ package skysand.display
 		/**
 		 * Координата x.
 		 */
-		public var x:Number;
+		public var mX:Number;
 		
 		/**
 		 * Координата y.
 		 */
-		public var y:Number;
+		public var mY:Number;
 		
 		/**
 		 * Ширина.
 		 */
-		public var width:Number;
+		private var mWidth:Number;
 		
 		/**
 		 * Высота.
 		 */
-		public var height:Number;
+		private var mHeight:Number;
 		
 		/**
 		 * Угол поврота.
 		 */
-		public var rotation:Number;
+		private var mRotation:Number;
 		
 		/**
 		 * Прозрачность от 0 до 1.
 		 */
-		public var alpha:Number;
+		public var mAlpha:Number;
 		
 		/**
 		 * Горизонтальное масштабирование.
@@ -100,7 +106,7 @@ package skysand.display
 		/**
 		 * Глубина на сцене.
 		 */
-		public var depth:uint;
+		public var mDepth:int;
 		
 		/**
 		 * Имя объекта.
@@ -110,7 +116,7 @@ package skysand.display
 		/**
 		 * Цвет.
 		 */
-		public var color:uint;
+		internal var mColor:uint;
 		
 		/**
 		 * Глобальная видимость объекта.
@@ -154,7 +160,7 @@ package skysand.display
 		/**
 		 * Перетаскивается ли сейчас объект.
 		 */
-		private static var isDrag:Boolean = false;
+		internal static var isDrag:Boolean = false;
 		
 		/**
 		 * Перетаскивать или нет.
@@ -225,8 +231,8 @@ package skysand.display
 			x = 0;
 			y = 0;
 			color = 0xFFFFFF;
-			alpha = 1;
-			depth = 0;
+			mAlpha = 1;
+			mDepth = 0;
 			width = 0;
 			height = 0;
 			scaleX = 1;
@@ -367,8 +373,8 @@ package skysand.display
 			{
 				if (!lockCentr)
 				{
-					offsetDragPoint.x = SkySand.STAGE.mouseX - x;
-					offsetDragPoint.y = SkySand.STAGE.mouseY - y;
+					offsetDragPoint.x = SkyMouse.x - x;
+					offsetDragPoint.y = SkyMouse.y - y;
 				}
 				else
 				{
@@ -397,7 +403,6 @@ package skysand.display
 			if (drag)
 			{
 				drag = false;
-				isDrag = false;
 			}
 		}
 		
@@ -407,13 +412,10 @@ package skysand.display
 		 */
 		public function hitTestBoundsWithMouse():Boolean
 		{
-			var x:Number = SkySand.STAGE.mouseX;
-			var y:Number = SkySand.STAGE.mouseY;
-			
-			if (x > globalX + (width - pivotX) * globalScaleX) return false;
-			if (x < globalX - pivotX * globalScaleX) return false;
-			if (y > globalY + (height - pivotY) * globalScaleY) return false;
-			if (y < globalY - pivotY * globalScaleY) return false;
+			if (SkyMouse.x > globalX + (width - pivotX) * globalScaleX) return false;
+			if (SkyMouse.x < globalX - pivotX * globalScaleX) return false;
+			if (SkyMouse.y > globalY + (height - pivotY) * globalScaleY) return false;
+			if (SkyMouse.y < globalY - pivotY * globalScaleY) return false;
 			
 			return true;
 		}
@@ -441,6 +443,147 @@ package skysand.display
 		{
 			var isVisible:Boolean = mVisible && parent.mVisible && isAdded && parent.isAdded;
 			globalVisible = isVisible ? 1 * parent.globalVisible : 0 * parent.globalVisible;
+			isTransformed = true;
+		}
+		
+		public var isTransformed:Boolean = false;
+		public var globalTransformation:Boolean = false;
+		public var lm:SkyMatrix = new SkyMatrix();
+		public var wm:SkyMatrix = new SkyMatrix();
+		private var oldx:Number = 0;
+		private var oldy:Number = 0;
+		
+		public function setPos(x:Number, y:Number):void
+		{
+			this.x = x;
+			this.y = y;
+			lm.translate(x, y);
+			isTransformed = true;
+		}
+		
+		public function get x():Number
+		{
+			return mX;
+		}
+		
+		public function set x(value:Number):void
+		{
+			if (mX != value)
+			{
+				mX = value;
+				isTransformed = true;
+			}
+		}
+		
+		public function get y():Number
+		{
+			return mY;
+		}
+		
+		public function set y(value:Number):void
+		{
+			if (mY != value)
+			{
+				mY = value;
+				isTransformed = true;
+			}
+		}
+		
+		public function get width():Number
+		{
+			return mWidth;
+		}
+		
+		public function set width(value:Number):void
+		{
+			if (mWidth != value)
+			{
+				mWidth = value;
+				isTransformed = true;
+			}
+		}
+		
+		public function get height():Number
+		{
+			return mHeight;
+		}
+		
+		public function set height(value:Number):void
+		{
+			if (mHeight != value)
+			{
+				mHeight = value;
+				isTransformed = true;
+			}
+		}
+		
+		public function get rotation():Number
+		{
+			return mRotation;
+		}
+		
+		public function set rotation(value:Number):void
+		{
+			if (mRotation != value)
+			{
+				mRotation = value;
+				isTransformed = true;
+			}
+		}
+		public var gt:int = 1;
+		public var lt:int = 1;
+		
+		public function get color():uint
+		{
+			return mColor;
+		}
+		
+		public function set color(value:uint):void
+		{
+			mColor = value;
+		}
+		
+		public function get depth():int
+		{
+			return mDepth;
+		}
+		
+		public function set depth(value:int):void
+		{
+			mDepth = value;
+		}
+		
+		public function get alpha():Number
+		{
+			return mAlpha;
+		}
+		
+		public function set alpha(value:Number):void
+		{
+			mAlpha = value;
+		}
+		
+		public function updateTransformation():void
+		{
+			if (oldRotation != mRotation)
+				{
+					lm.rotate(mRotation * Math.PI / 180, scaleX, scaleY);
+					
+					oldRotation = mRotation;
+				}
+				
+				if (oldx != mX || oldy != mY)
+				{
+					lm.translate(mX, mY);
+					
+					oldy = mY;
+					oldx = mX;
+				}
+			//lm.Transformation(scaleX, scaleY, x, y, rotation * Math.PI / 180);
+			wm.multiply(lm, parent.wm);
+			
+			globalX = wm.tx;
+			globalY = wm.ty;
 		}
 		
 		/**
@@ -448,9 +591,48 @@ package skysand.display
 		 */
 		public function updateData(deltaTime:Number):void
 		{
-			if (globalVisible == 1)
+			if (drag)
 			{
-				globalX = parent.globalX + x;
+				x = isLockAxisX ? x : SkyMouse.x - offsetDragPoint.x;
+				y = isLockAxisY ? y : SkyMouse.y - offsetDragPoint.y;
+				
+				if (border)
+				{
+					//if(isLockAxisX)
+						x = x >= rightBorder ? rightBorder : x <= leftBorder ? leftBorder : x;
+					//if(isLockAxisY)
+						y = y >= downBorder ? downBorder : y <= upBorder ? upBorder : y;
+						
+				}
+			}
+			/*	
+				if (oldRotation != rotation)
+				{
+					lm.rotate(rotation * Math.PI / 180, scaleX, scaleY);
+					isTransformed = true;
+					oldRotation = rotation;
+				}
+				
+				if (oldx != x || oldy != y)
+				{
+					lm.translate(x, y);
+					isTransformed = true;
+					oldy = y;
+					oldx = x;
+				}
+				
+				//globalTransformation = isTransformed || parent.globalTransformation;
+				//;
+				//gt = lt * parent.gt;
+				//globalTransformation = isTransformed && parent.globalTransformation;
+				//isTransformed = isTransformed && parent.isTransformed;
+				//
+				//if (!isTransformed)
+				//{
+					//lm.translate(x, y);
+					
+				//}
+				/*globalX = parent.globalX + x;
 				globalY = parent.globalY + y;
 				globalScaleX = parent.globalScaleX * scaleX;
 				globalScaleY = parent.globalScaleY * scaleY;
@@ -465,22 +647,15 @@ package skysand.display
 					globalR.y = localR.y + parent.globalR.y - y;
 					
 					oldRotation = globalRotation;
-				}
+				}*/
 				
-				if (drag)
-				{
-					x = isLockAxisX ? x : SkySand.STAGE.mouseX - offsetDragPoint.x;
-					y = isLockAxisY ? y : SkySand.STAGE.mouseY - offsetDragPoint.y;
-					
-					if (border)
-					{
-						//if(isLockAxisX)
-							x = x >= rightBorder ? rightBorder : x <= leftBorder ? leftBorder : x;
-						//if(isLockAxisY)
-							y = y >= downBorder ? downBorder : y <= upBorder ? upBorder : y;
-					}
-				}
-			}
+				
+			
+		}
+		
+		public function updDrag():void
+		{
+			
 		}
 		
 		/**

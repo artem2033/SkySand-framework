@@ -106,16 +106,19 @@ package skysand.utils
 			return !(value & (value - 1));
 		}
 		
+		[Inline]
 		public static function getRed(color:uint):uint
 		{
 			return (color >> 16) & 0xFF;
 		}
 		
+		[Inline]
 		public static function getGreen(color:uint):uint
 		{
 			return (color >> 8) & 0xFF;
 		}
 		
+		[Inline]
 		public static function getBlue(color:uint):uint
 		{
 			return color & 0xFF;

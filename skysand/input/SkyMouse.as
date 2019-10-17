@@ -3,6 +3,7 @@ package skysand.input
 	import flash.display.Stage;
 	import flash.events.MouseEvent;
 	import skysand.debug.Console;
+	import skysand.display.SkyCamera;
 	import skysand.display.SkyShape;
 	import skysand.display.SkyRenderObject;
 	import skysand.display.SkyRenderObjectContainer;
@@ -19,6 +20,27 @@ package skysand.input
 		public static const MIDDLE:uint = 3;
 		
 		public static var isDrag:Boolean = false;
+		
+		/**
+		 * Координата мыши по оси х в координатах монитора.
+		 */
+		public static var x:Number;
+		
+		/**
+		 * Координата мыши по оси у в координатах монитора.
+		 */
+		public static var y:Number;
+		
+		/**
+		 * Координата мыши по оси х с учётом смещения камеры.
+		 */
+		public static var tx:Number;
+		
+		/**
+		 * Координата мыши по оси у с учётом смещения камеры.
+		 */
+		public static var ty:Number;
+		
 		
 		/**
 		 * Верхний объект(ближайший к камере) с которым касается курсор. 
@@ -112,6 +134,11 @@ package skysand.input
 		 */
 		private var isSorted:Boolean;
 		
+		/**
+		 * Ссылка на камеру.
+		 */
+		private var camera:SkyCamera;
+		
 		public function SkyMouse():void
 		{
 			if (_instance != null)
@@ -163,6 +190,9 @@ package skysand.input
 			isExactHitTest = false;
 			isCalculateClosestObject = false;
 			isSorted = false;
+			
+			x = mStage.mouseX;
+			y = mStage.mouseY;
 		}
 		
 		/**
@@ -195,6 +225,19 @@ package skysand.input
 			isMiddleClick = false;
 			isLeftClick = false;
 			scroll = 0;
+		}
+		
+		public function setCamera(value:SkyCamera):void
+		{
+			camera = value;
+		}
+		
+		public function update():void
+		{
+			x = mStage.mouseX;
+			y = mStage.mouseY;
+			tx = camera == null ? mStage.mouseX : mStage.mouseX + camera.x - camera.screenOffset.x;
+			ty = camera == null ? mStage.mouseY : mStage.mouseY - camera.y - camera.screenOffset.y;
 		}
 		
 		public var scroll:int = 0;
@@ -302,23 +345,6 @@ package skysand.input
 			
 			Mouse.registerCursor(key, mouseCursorData);
 		}*/
-		
-		
-		/**
-		 * Координаты курсора по оси x.
-		 */
-		public function get x():Number
-		{
-			return mStage.mouseX;
-		}
-		
-		/**
-		 * Координаты курсора по оси y.
-		 */
-		public function get y():Number
-		{
-			return mStage.mouseY;
-		}
 		
 		private function onMouseMoveListener(mouseEvent:MouseEvent):void
 		{

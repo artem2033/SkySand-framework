@@ -22,6 +22,9 @@ package skysand.render
 	import skysand.display.SkyMesh;
 	import skysand.file.SkyAtlasSprite;
 	import skysand.file.SkyTextureAtlas;
+	import skysand.input.SkyKey;
+	import skysand.input.SkyKeyboard;
+	import skysand.utils.SkyUtils;
 	
 	import skysand.interfaces.IBatch;
 	import skysand.display.SkyShape;
@@ -86,6 +89,8 @@ package skysand.render
 		 * Прямоугольник для ограничения отрисовки.
 		 */
 		private var mScissorRect:Rectangle;
+		
+		public var isUploaded:Boolean = false;
 		
 		public function SkyShapeBatch()
 		{
@@ -192,9 +197,13 @@ package skysand.render
 		{
 			var length:int = object.vertecesCount;
 			
+			var r:Number = ((object.color >> 16) & 0xFF) / 255;
+			var g:Number = ((object.color >> 8) & 0xFF) / 255;
+			var b:Number = (object.color & 0xFF) / 255;
+			
 			for (var i:int = 0; i < length; i++)
 			{
-				verteces.push(0, 0, 0, 1, 1, 1, 1);
+				verteces.push(0, 0, object.depth, r, g, b, object.alpha);
 			}
 			
 			sizes.push(indices.length);
@@ -286,7 +295,7 @@ package skysand.render
 		{
 			super.render();
 			
-			if (verteces.length == 0) return;//необязательно, но с пустым пакетом вылетает ошибка.
+			if (verteces.length == 0) return;//с пустым пакетом вылетает ошибка.
 			if (isChanged && verteces.length > 0)
 			{
 				if (texture != null)
@@ -302,7 +311,11 @@ package skysand.render
 				isChanged = false;
 			}
 			
-			vertexBuffer.uploadFromVector(verteces, 0, verteces.length / DATA_PER_VERTEX);
+			if (!isUploaded)
+			{
+				vertexBuffer.uploadFromVector(verteces, 0, verteces.length / DATA_PER_VERTEX);
+				isUploaded = true;
+			}
 			
 			context3D.setProgram(program);
 			context3D.setTextureAt(0, texture);

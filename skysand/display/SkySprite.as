@@ -327,18 +327,86 @@ package skysand.display
 			}
 		}
 		
+		override public function updateTransformation():void 
+		{
+			super.updateTransformation();
+			
+			if (verteces == null) return;
+			wm.transformSprite(width, height, indexID, verteces);
+			
+			batch.isUpload = false;
+			if (old.depth != depth)
+				{
+					verteces[indexID + 2] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[indexID + 9] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[indexID + 16] = depth / SkyHardwareRender.MAX_DEPTH;
+					verteces[indexID + 23] = depth / SkyHardwareRender.MAX_DEPTH;
+					
+					old.depth = depth;
+				}
+				
+				if (old.leftUpColor != verticesColor.leftUp)
+				{
+					verteces[indexID + 3] = verticesColor.leftUpRed;
+					verteces[indexID + 4] = verticesColor.leftUpGreen;
+					verteces[indexID + 5] = verticesColor.leftUpBlue;
+					
+					old.leftUpColor = verticesColor.leftUp;
+				}
+				
+				if (old.rightUpColor != verticesColor.rightUp)
+				{
+					verteces[indexID + 10] = verticesColor.rightUpRed;
+					verteces[indexID + 11] = verticesColor.rightUpGreen;
+					verteces[indexID + 12] = verticesColor.rightUpBlue;
+					
+					old.rightUpColor = verticesColor.rightUp;
+				}
+				
+				if (old.leftDownColor != verticesColor.leftDown)
+				{
+					verteces[indexID + 17] = verticesColor.leftDownRed;
+					verteces[indexID + 18] = verticesColor.leftDownGreen;
+					verteces[indexID + 19] = verticesColor.leftDownBlue;
+					
+					old.leftDownColor = verticesColor.leftDown;
+				}
+				
+				if (old.rightDownColor != verticesColor.rightDown)
+				{
+					verteces[indexID + 24] = verticesColor.rightDownRed;
+					verteces[indexID + 25] = verticesColor.rightDownGreen;
+					verteces[indexID + 26] = verticesColor.rightDownBlue;
+					
+					old.rightDownColor = verticesColor.rightDown;
+				}
+				
+				if (old.alpha != alpha)
+				{
+					verteces[indexID + 6] = alpha;
+					verteces[indexID + 13] = alpha;
+					verteces[indexID + 20] = alpha;
+					verteces[indexID + 27] = alpha;
+					
+					old.alpha = alpha;
+				}
+		}
+		
 		/**
 		 * Функция обновления координат и других данных.
 		 */
-		override public function updateData(deltaTime:Number):void 
+		/*override public function updateData(deltaTime:Number):void 
 		{
 			super.updateData(deltaTime);
 			
-			if (verteces == null) return;
+			
 			
 			if (globalVisible == 1)
 			{
-				var w:Number = globalScaleX * width;
+				
+				
+				
+				/*var w:Number = globalScaleX * width;
 				var h:Number = globalScaleY * height;
 				
 				var px:Number = pivotX * globalScaleX;
@@ -432,64 +500,10 @@ package skysand.display
 					
 					old.y = globalY;
 				}
+				*/
 				
-				if (old.depth != depth)
-				{
-					verteces[indexID + 2] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[indexID + 9] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[indexID + 16] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[indexID + 23] = depth / SkyHardwareRender.MAX_DEPTH;
-					
-					old.depth = depth;
-				}
-				
-				if (old.leftUpColor != verticesColor.leftUp)
-				{
-					verteces[indexID + 3] = verticesColor.leftUpRed;
-					verteces[indexID + 4] = verticesColor.leftUpGreen;
-					verteces[indexID + 5] = verticesColor.leftUpBlue;
-					
-					old.leftUpColor = verticesColor.leftUp;
-				}
-				
-				if (old.rightUpColor != verticesColor.rightUp)
-				{
-					verteces[indexID + 10] = verticesColor.rightUpRed;
-					verteces[indexID + 11] = verticesColor.rightUpGreen;
-					verteces[indexID + 12] = verticesColor.rightUpBlue;
-					
-					old.rightUpColor = verticesColor.rightUp;
-				}
-				
-				if (old.leftDownColor != verticesColor.leftDown)
-				{
-					verteces[indexID + 17] = verticesColor.leftDownRed;
-					verteces[indexID + 18] = verticesColor.leftDownGreen;
-					verteces[indexID + 19] = verticesColor.leftDownBlue;
-					
-					old.leftDownColor = verticesColor.leftDown;
-				}
-				
-				if (old.rightDownColor != verticesColor.rightDown)
-				{
-					verteces[indexID + 24] = verticesColor.rightDownRed;
-					verteces[indexID + 25] = verticesColor.rightDownGreen;
-					verteces[indexID + 26] = verticesColor.rightDownBlue;
-					
-					old.rightDownColor = verticesColor.rightDown;
-				}
-				
-				if (old.alpha != alpha)
-				{
-					verteces[indexID + 6] = alpha;
-					verteces[indexID + 13] = alpha;
-					verteces[indexID + 20] = alpha;
-					verteces[indexID + 27] = alpha;
-					
-					old.alpha = alpha;
-				}
-			}
+			//}
 			
-		}
+		//}
 	}
 }

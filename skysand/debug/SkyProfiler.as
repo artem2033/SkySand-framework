@@ -876,11 +876,11 @@ package skysand.debug
 			spriteCountField.y = 120;
 			addChild(spriteCountField);
 			
-			addFrame(11, 69, 203, 80);
-			addFrame(11, 239, 203, 80);
-			addFrame(223, 239, 203, 80);
-			addFrame(435, 239, 203, 80);
-			addFrame(223, 69, 415, 125);
+			addFrame(11, 69, 205, 82);
+			addFrame(11, 239, 205, 82);
+			addFrame(223, 239, 205, 82);
+			addFrame(435, 239, 205, 82);
+			addFrame(223, 69, 417, 127);
 			
 			drawStaticText("frame rate", 9, 200);
 			drawStaticText("frame time", 9, 30);

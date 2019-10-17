@@ -1,5 +1,6 @@
 package skysand.render
 {
+	import flash.display3D.Context3DBufferUsage;
 	import flash.geom.Matrix3D;
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
@@ -18,6 +19,8 @@ package skysand.render
 	import flash.display3D.Context3DTextureFilter;
 	import flash.display3D.textures.RectangleTexture;
 	import flash.display3D.Context3DVertexBufferFormat;
+	import skysand.input.SkyKey;
+	import skysand.input.SkyKeyboard;
 	
 	import skysand.display.SkyRenderObject;
 	import skysand.file.SkyAtlasSprite;
@@ -78,6 +81,8 @@ package skysand.render
 		 * Прямоугольник для ограничения отрисовки.
 		 */
 		protected var mScissorRect:Rectangle;
+		
+		public var isUpload:Boolean = false;
 		
 		public function SkyStandartQuadBatch()
 		{
@@ -315,7 +320,7 @@ package skysand.render
 			
 			if (isChanged)
 			{
-				vertexBuffer = context3D.createVertexBuffer(verteces.length / 7, 7);
+				vertexBuffer = context3D.createVertexBuffer(verteces.length / 7, 7, Context3DBufferUsage.DYNAMIC_DRAW);
 				indexBuffer = context3D.createIndexBuffer(indices.length);
 				indexBuffer.uploadFromVector(indices, 0, indices.length);
 				uvBuffer = context3D.createVertexBuffer(uvs.length / 2, 2);
@@ -323,7 +328,12 @@ package skysand.render
 				isChanged = false;
 			}
 			
-			vertexBuffer.uploadFromVector(verteces, 0, verteces.length / 7);
+			if (!isUpload)
+			{
+				vertexBuffer.uploadFromVector(verteces, 0, verteces.length / 7);
+				isUpload = true;
+			}
+			
 			uvBuffer.uploadFromVector(uvs, 0, uvs.length / 2);
 			
 			context3D.setProgram(program);

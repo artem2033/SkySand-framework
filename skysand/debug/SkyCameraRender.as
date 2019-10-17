@@ -81,13 +81,29 @@ package skysand.debug
 				offsetY.value = camera.screenOffset.y;
 				deadZoneWidth.value = camera.deadZoneWidth;
 				deadZoneHeight.value = camera.deadZoneHeight;
-				safeZoneWidth.value = camera.safeZoneWidth;
-				safeZoneHeight.value = camera.safeZoneHeight;
+				safeZoneWidth.value = camera.safeZoneWidth < camera.deadZoneWidth ? camera.deadZoneWidth : camera.safeZoneWidth;
+				safeZoneHeight.value = camera.safeZoneHeight < camera.deadZoneHeight ? camera.deadZoneHeight : camera.safeZoneHeight;
 				lookAheadDistance.value = camera.lookAheadDistance;
 				lookAheadAcsel.value = camera.lookAheadAcseleration;
 			}
 			
 			return container;
+		}
+		
+		public function setCamera(camera:SkyCamera):void
+		{
+			this.camera = camera;
+			
+			dampingX.value = camera.dampingX;
+			dampingY.value = camera.dampingY;
+			offsetX.value = camera.screenOffset.x;
+			offsetY.value = camera.screenOffset.y;
+			deadZoneWidth.value = camera.deadZoneWidth;
+			deadZoneHeight.value = camera.deadZoneHeight;
+			safeZoneWidth.value = camera.safeZoneWidth < camera.deadZoneWidth ? camera.deadZoneWidth : camera.safeZoneWidth;
+			safeZoneHeight.value = camera.safeZoneHeight < camera.deadZoneHeight ? camera.deadZoneHeight : camera.safeZoneHeight;
+			lookAheadDistance.value = camera.lookAheadDistance;
+			lookAheadAcsel.value = camera.lookAheadAcseleration;
 		}
 		
 		private function createInput(label:String, step:Number, value:Number, min:Number = -1000000, max:Number = 1000000):SkyInputNumber
@@ -227,15 +243,20 @@ package skysand.debug
 		
 		public function update():void
 		{
-			camera.dampingX = dampingX.value;
-			camera.dampingY = dampingY.value;
-			camera.setScreenOffset(offsetX.value, offsetY.value);
-			camera.deadZoneHeight = deadZoneHeight.value;
-			camera.deadZoneWidth = deadZoneWidth.value;
-			camera.safeZoneHeight = safeZoneHeight.value;
-			camera.safeZoneWidth = safeZoneWidth.value;
-			camera.lookAheadDistance = lookAheadDistance.value;
-			camera.lookAheadAcseleration = lookAheadAcsel.value;
+			if (globalVisible == 0) return;
+			
+			if (container != null)
+			{
+				camera.dampingX = dampingX.value;
+				camera.dampingY = dampingY.value;
+				camera.setScreenOffset(offsetX.value, offsetY.value);
+				camera.deadZoneHeight = deadZoneHeight.value;
+				camera.deadZoneWidth = deadZoneWidth.value;
+				camera.safeZoneHeight = safeZoneHeight.value;
+				camera.safeZoneWidth = safeZoneWidth.value;
+				camera.lookAheadDistance = lookAheadDistance.value;
+				camera.lookAheadAcseleration = lookAheadAcsel.value;
+			}
 			
 			dot.x = camera.trackingPoint.x;
 			dot.y = camera.trackingPoint.y;

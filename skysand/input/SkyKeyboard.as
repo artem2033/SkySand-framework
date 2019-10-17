@@ -83,7 +83,7 @@ package skysand.input
 		 */
 		public static function isPressed(keyID:uint):Boolean
 		{
-			return keys[keyID].pressedState == 1 && isActive ? true : false;;
+			return keys[keyID].pressedState == 1 && isActive;
 		}
 		
 		/**
@@ -93,7 +93,7 @@ package skysand.input
 		 */
 		public static function isDown(keyID:uint):Boolean
 		{
-			return keys[keyID].downState == 1 && isActive ? true : false;
+			return keys[keyID].downState == 1 && isActive;
 		}
 		
 		/**

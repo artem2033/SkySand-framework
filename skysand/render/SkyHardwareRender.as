@@ -17,7 +17,10 @@ package skysand.render
 	import flash.display3D.Context3DVertexBufferFormat;
 	import flash.display3D.textures.RectangleTexture;
 	import flash.events.NativeWindowBoundsEvent;
+	import flash.geom.Utils3D;
 	import flash.geom.Vector3D;
+	import flash.system.System;
+	import flash.utils.getTimer;
 	import skysand.debug.Console;
 	import skysand.display.SkyCamera;
 	import skysand.input.SkyKey;
@@ -96,7 +99,7 @@ package skysand.render
 		/**
 		 * Камера.
 		 */
-		private var camera:SkyCamera;
+		private var mCamera:SkyCamera;
 		
 		/**
 		 * Матрица со смещением мировых координат.
@@ -217,7 +220,7 @@ package skysand.render
 		public function initialize():void
 		{
 			context3D = SkySand.CONTEXT_3D;
-			context3D.configureBackBuffer(SkySand.SCREEN_WIDTH, SkySand.SCREEN_HEIGHT, 3);
+			context3D.configureBackBuffer(SkySand.SCREEN_WIDTH, SkySand.SCREEN_HEIGHT, antialiasing, true);
 			
 			worldView = new Matrix3D();
 			worldView.appendTranslation(-SkySand.SCREEN_WIDTH / 2, -SkySand.SCREEN_HEIGHT / 2, 0);
@@ -551,13 +554,20 @@ package skysand.render
 		}
 		
 		/**
-		 * Задать камеру.
-		 * @param	camera ссылка на камеру.
+		 * 2D камера.
 		 */
-		public function setCamera(camera:SkyCamera):void
+		public function set camera(value:SkyCamera):void
 		{
-			this.camera = camera;
-			cameraView = camera.transformMatrix;
+			mCamera = value;
+			cameraView = mCamera.transformMatrix;
+		}
+		
+		/**
+		 * 2D камера.
+		 */
+		public function get camera():SkyCamera
+		{
+			return mCamera;
 		}
 		
 		/**
@@ -568,6 +578,7 @@ package skysand.render
 		{
 			this.root = root;
 		}
+		
 		
 		/**
 		 * Обновить рендер.
@@ -613,22 +624,52 @@ package skysand.render
 				calculateVisible = false;
 			}
 			
+			var dirty:Boolean = false;
+			
+			var start:int = getTimer();
 			for (i = 0; i < nObjects; i++)
 			{
-				if (objects[i].globalVisible != 0)
-					objects[i].updateData(deltaTime);
+				if(objects[i].globalVisible != 0)
+				objects[i].updateData(deltaTime);
 			}
+			SkySand.watch(getTimer() - start + " ud");
+			start = getTimer();
+			for (i = 0; i < nObjects; i++)
+			{
+				var object:SkyRenderObjectContainer = objects[i];
+				//dirty ||= object.isTransformed;
+				object.globalTransformation = object.isTransformed || object.parent.globalTransformation;
+				
+				
+				/*if (object.isDrag) 
+				{
+					
+					object.updateData(deltaTime);
+				}
+				else */if (object.globalTransformation)
+				{
+					if(object.globalVisible != 0)
+					object.updateTransformation();
+					object.isTransformed = false;
+					//dirty = object.children != null;
+				}
+				//if (!object.isTransformed) object.updateData(deltaTime);
+				//if (objects[i].globalVisible != 0)
+					//objects[i].updateData(deltaTime);
+					//SkySand.watch(objects[i].gt);
+			}
+			SkySand.watch(getTimer() - start + " ut");
 			
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
 			//context3D.setCulling(Context3DTriangleFace.BACK);
 			
 			notRenderedBatchesCount = 0;
-			
+			start = getTimer();
 			for (i = 0; i < nBatches; i++)
 			{
 				batches[i].render();
 			}
-			
+			SkySand.watch(getTimer() - start + " rt");
 			if (isRenderToTarget)
 			{
 				context3D.setRenderToBackBuffer();

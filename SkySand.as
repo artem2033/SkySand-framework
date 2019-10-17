@@ -93,7 +93,7 @@ package
 		/**
 		 * Ссылка на мышь.
 		 */
-		private var mouse:SkyMouse;
+		private static var mouse:SkyMouse;
 		
 		/**
 		 * Класс для обновления.
@@ -148,9 +148,10 @@ package
 		 * Задать камеру.
 		 * @param	camera ссылка на камеру.
 		 */
-		public static function setCamera(camera:SkyCamera):void
+		public static function setCamera(сamera:SkyCamera):void
 		{
-			hardwareRender.setCamera(camera);
+			SkyMouse.instance.setCamera(сamera);
+			hardwareRender.camera = сamera;
 		}
 		
 		/**
@@ -358,6 +359,7 @@ package
 					profiler.totalUpdateTime = getTimer();
 					keyboard.update();
 					console.update();
+					mouse.update();
 					
 					profiler.applicationUpdateTime = getTimer();
 					applicationUpdatableClass.update(deltaTime);
@@ -379,6 +381,8 @@ package
 			{
 				CONTEXT_3D.clear();//
 				keyboard.update();
+				mouse.update();
+				
 				applicationUpdatableClass.update(deltaTime);
 				hardwareRender.update(deltaTime);
 				mouse.reset();
