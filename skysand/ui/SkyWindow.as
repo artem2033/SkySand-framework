@@ -237,23 +237,5 @@ package skysand.ui
 			
 			super.updateData(deltaTime);
 		}
-		
-		override public function updDrag():void 
-		{
-			if (dragable)
-			{
-				if (SkyMouse.currentClosestObject == head && mouse.isDown(SkyMouse.LEFT))
-				{
-					startDrag();
-				}
-				
-				if (!mouse.isDown(SkyMouse.LEFT))
-				{
-					stopDrag();
-				}
-			}
-			
-			//super.updDrag();
-		}
 	}
 }

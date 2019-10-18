@@ -41,6 +41,35 @@ package skysand.utils
 		}
 		
 		/**
+		 * Протестировать время выполнения метода.
+		 * @param	metod ссылка на метод.
+		 * @param	iterations количество итераций.
+		 * @param	nTests количество замеров.
+		 * @return возвращает среднее время и каждого замера.
+		 */
+		public static function timeTest(metod:Function, iterations:int, nTests:int):String
+		{
+			var string:String = "";
+			var average:Number = 0;
+			var time:int = 0;
+			
+			for (var i:int = 0; i < nTests; i++)
+			{
+				time = getTimer();
+				
+				for (var j:int = 0; j < iterations; j++) 
+				{
+					metod.apply();
+				}
+				
+				average += getTimer() - time;
+				string += getTimer() - time + " ";
+			}
+			
+			return "Avr: " + average + ", time: " + string;
+		}
+		
+		/**
 		 * Получить рамер объекта в байтах.
 		 * @param	object объект.
 		 * @return возращает результат.

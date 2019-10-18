@@ -186,7 +186,7 @@ package skysand.ui
 			saturationValueSquare = new SkySprite();
 			saturationValueSquare.setAtlas(atlas);
 			saturationValueSquare.setSprite("satval");
-			saturationValueSquare.verticesColor.setRight(SkyColor.BRIGHT_ORANGE);
+			//saturationValueSquare.verticesColor.setRight(SkyColor.BRIGHT_ORANGE);
 			saturationValueSquare.x = 2;
 			saturationValueSquare.y = 2;
 			saturationValueSquare.mouseEnabled = true;
@@ -312,8 +312,6 @@ package skysand.ui
 		{
 			super.updateData(deltaTime);
 			
-			if (globalVisible == 0) return;
-			
 			if (SkyMouse.instance.isDown(SkyMouse.LEFT))
 			{
 				if (!isDragging)
@@ -382,7 +380,7 @@ package skysand.ui
 			mSaturation = (colorPicker.x - 2) / saturationValueSquare.height;
 			color = SkyUtils.HSVToRGB(mHue, mSaturation, mValue);
 			
-			saturationValueSquare.verticesColor.setRight(SkyUtils.HSVToRGB(mHue, 1, 1));
+			//saturationValueSquare.verticesColor.setRight(SkyUtils.HSVToRGB(mHue, 1, 1));
 		}
 		
 		/**
@@ -507,7 +505,7 @@ package skysand.ui
 		 */
 		private function onClickListener():void
 		{
-			if (globalVisible == 0) return;
+			if (!isVisible) return;
 			
 			for (var i:int = 0; i < 7; i++) 
 			{

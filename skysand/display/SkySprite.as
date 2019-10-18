@@ -29,7 +29,7 @@ package skysand.display
 		/**
 		 * Цвета каждой вершины.
 		 */
-		public var verticesColor:SkySpriteVerticesColor;
+		private var mVerticesColor:SkySpriteVerticesColor;
 		
 		/**
 		 * Данные о спрайте из текстурного атласа.
@@ -74,7 +74,7 @@ package skysand.display
 			matrix = new Matrix();
 			old = new SkyOldData();
 			v = new Vector.<Number>(8, true);
-			verticesColor = new SkySpriteVerticesColor();
+			//verticesColor = new SkySpriteVerticesColor();
 		}
 		
 		/**
@@ -274,7 +274,7 @@ package skysand.display
 			batch = null;
 			matrix = null;
 			verteces = null;
-			verticesColor = null;
+			//verticesColor = null;
 			
 			super.free();
 		}
@@ -315,15 +315,82 @@ package skysand.display
 		override public function calculateGlobalVisible():void 
 		{
 			super.calculateGlobalVisible();
-			//TODO: ошибка неверный индекс.
-			if (globalVisible == 0 && verteces != null)
+			
+			if (verteces == null) return;
+			
+			var depth:Number = !isVisible ? -1 : mDepth / SkyHardwareRender.MAX_DEPTH;
+			
+			verteces[indexID + 2] = depth;
+			verteces[indexID + 9] = depth;
+			verteces[indexID + 16] = depth;
+			verteces[indexID + 23] = depth;
+			
+			batch.isUpload = false;
+		}
+		
+		override public function set depth(value:int):void 
+		{
+			if (mDepth != value)
 			{
-				verteces[indexID + 2] = -1;
-				verteces[indexID + 9] = -1;
-				verteces[indexID + 16] = -1;
-				verteces[indexID + 23] = -1;
+				mDepth = value;
 				
-				old.depth = 2;
+				if (verteces == null || !isVisible) return;
+				
+				verteces[indexID + 2] = mDepth / SkyHardwareRender.MAX_DEPTH;
+				verteces[indexID + 9] = mDepth / SkyHardwareRender.MAX_DEPTH;
+				verteces[indexID + 16] = mDepth / SkyHardwareRender.MAX_DEPTH;
+				verteces[indexID + 23] = mDepth / SkyHardwareRender.MAX_DEPTH;
+				
+				batch.isUpload = false;
+			}
+		}
+		
+		override public function set alpha(value:Number):void 
+		{
+			if (mAlpha != value)
+			{
+				mAlpha = value;
+				
+				if (verteces == null) return;
+				
+				verteces[indexID + 6] = alpha;
+				verteces[indexID + 13] = alpha;
+				verteces[indexID + 20] = alpha;
+				verteces[indexID + 27] = alpha;
+				
+				batch.isUpload = false;
+			}
+		}
+		
+		override public function set color(value:uint):void 
+		{
+			if (mColor != value)
+			{
+				mColor = value;
+				
+				if (verteces == null) return;
+				
+				var red:Number = SkyUtils.getRed(value) / 255;
+				var green:Number = SkyUtils.getGreen(value) / 255;
+				var blue:Number = SkyUtils.getBlue(value) / 255;
+				
+				verteces[indexID + 3] = red;
+				verteces[indexID + 4] = green;
+				verteces[indexID + 5] = blue;
+				
+				verteces[indexID + 10] = red;
+				verteces[indexID + 11] = green;
+				verteces[indexID + 12] = blue;
+				
+				verteces[indexID + 17] = red;
+				verteces[indexID + 18] = green;
+				verteces[indexID + 19] = blue;
+				
+				verteces[indexID + 24] = red;
+				verteces[indexID + 25] = green;
+				verteces[indexID + 26] = blue;
+				//z
+				batch.isUpload = false;
 			}
 		}
 		
@@ -332,64 +399,9 @@ package skysand.display
 			super.updateTransformation();
 			
 			if (verteces == null) return;
-			wm.transformSprite(width, height, indexID, verteces);
+			worldMatrix.transformSprite(width, height, mPivotX, mPivotY, indexID, verteces);
 			
 			batch.isUpload = false;
-			if (old.depth != depth)
-				{
-					verteces[indexID + 2] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[indexID + 9] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[indexID + 16] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[indexID + 23] = depth / SkyHardwareRender.MAX_DEPTH;
-					
-					old.depth = depth;
-				}
-				
-				if (old.leftUpColor != verticesColor.leftUp)
-				{
-					verteces[indexID + 3] = verticesColor.leftUpRed;
-					verteces[indexID + 4] = verticesColor.leftUpGreen;
-					verteces[indexID + 5] = verticesColor.leftUpBlue;
-					
-					old.leftUpColor = verticesColor.leftUp;
-				}
-				
-				if (old.rightUpColor != verticesColor.rightUp)
-				{
-					verteces[indexID + 10] = verticesColor.rightUpRed;
-					verteces[indexID + 11] = verticesColor.rightUpGreen;
-					verteces[indexID + 12] = verticesColor.rightUpBlue;
-					
-					old.rightUpColor = verticesColor.rightUp;
-				}
-				
-				if (old.leftDownColor != verticesColor.leftDown)
-				{
-					verteces[indexID + 17] = verticesColor.leftDownRed;
-					verteces[indexID + 18] = verticesColor.leftDownGreen;
-					verteces[indexID + 19] = verticesColor.leftDownBlue;
-					
-					old.leftDownColor = verticesColor.leftDown;
-				}
-				
-				if (old.rightDownColor != verticesColor.rightDown)
-				{
-					verteces[indexID + 24] = verticesColor.rightDownRed;
-					verteces[indexID + 25] = verticesColor.rightDownGreen;
-					verteces[indexID + 26] = verticesColor.rightDownBlue;
-					
-					old.rightDownColor = verticesColor.rightDown;
-				}
-				
-				if (old.alpha != alpha)
-				{
-					verteces[indexID + 6] = alpha;
-					verteces[indexID + 13] = alpha;
-					verteces[indexID + 20] = alpha;
-					verteces[indexID + 27] = alpha;
-					
-					old.alpha = alpha;
-				}
 		}
 		
 		/**

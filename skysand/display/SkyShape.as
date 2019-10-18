@@ -404,10 +404,10 @@ package skysand.display
 			var x:Number = !batch.allowCameraTransformation ? SkyMouse.x : SkyMouse.tx;
 			var y:Number = !batch.allowCameraTransformation ? SkyMouse.y : SkyMouse.ty;
 			
-			if (x > wm.tx + width + pivotX + leftUpPoint.x) return false;
-			if (x < wm.tx + pivotX + leftUpPoint.x) return false;
-			if (y > wm.ty + height + pivotY + leftUpPoint.y) return false;
-			if (y < wm.ty + pivotY + leftUpPoint.y) return false;
+			if (x > globalX + width + mPivotX + leftUpPoint.x) return false;
+			if (x < globalX + mPivotX + leftUpPoint.x) return false;
+			if (y > globalY + height + mPivotY + leftUpPoint.y) return false;
+			if (y < globalY + mPivotY + leftUpPoint.y) return false;
 			
 			return true;
         }
@@ -513,13 +513,14 @@ package skysand.display
 		{
 			super.calculateGlobalVisible();
 			
-			var length:int = verteces.length / 2;
 			if (batchVerteces == null) return;
+			var length:int = verteces.length / 2;
+			var depth:Number = !isVisible ? -1 : mDepth / SkyHardwareRender.MAX_DEPTH;
 			
 			for (var i:int = 0; i < length; i++)
-				batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 2] = globalVisible == 0 ? -1 : mDepth / SkyHardwareRender.MAX_DEPTH;
-				
-			//batch.isUploaded = false;
+				batchVerteces[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 2] = depth;
+			
+			batch.isUploaded = false;
 		}
 		
 		override public function set color(value:uint):void 
@@ -564,7 +565,7 @@ package skysand.display
 			{
 				mDepth = value;
 				
-				if (batchVerteces == null || globalVisible == 0) return;
+				if (batchVerteces == null || !isVisible) return;
 				var length:int = verteces.length / 2;
 				
 				for (var i:int = 0; i < length; i++)
@@ -582,7 +583,7 @@ package skysand.display
 			
 			if (batchVerteces == null) return;
 			
-			wm.transformPoint(verteces, batchVerteces, indexID, width / standartWidth, height / standartHeight);
+			worldMatrix.transformPoint(verteces, batchVerteces, indexID, width / standartWidth, height / standartHeight, mPivotX, mPivotY);
 			batch.isUploaded = false;
 		}
 		

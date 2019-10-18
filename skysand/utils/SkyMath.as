@@ -10,12 +10,12 @@
 		/**
 		 * Константа хранящее значение 1 радиана в градусах.
 		 */
-		public static const RADIAN_IN_DEGREE:Number = 180 / Math.PI;
+		public static const RADIAN:Number = Math.PI / 180;
 		
 		/**
 		 * Константа хранящее значение 1 градуса в радианах.
 		 */
-		public static const DEGREE_IN_RADIAN:Number = Math.PI / 180;
+		public static const DEGREE:Number = 180 / Math.PI;
 		
 		/**
 		 * Точка для расчёта поворота точки.
@@ -105,7 +105,7 @@
 		[Inline]
 		public static function toDegrees(radian:Number):Number
 		{
-			return radian * RADIAN_IN_DEGREE;
+			return radian * DEGREE;
 		}
 		
 		/**
@@ -116,7 +116,7 @@
 		[Inline]
 		public static function toRadian(degrees:Number):Number
 		{
-			return degrees * DEGREE_IN_RADIAN;
+			return degrees * RADIAN;
 		}
 		
 		/**

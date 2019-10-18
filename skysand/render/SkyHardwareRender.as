@@ -624,23 +624,24 @@ package skysand.render
 				calculateVisible = false;
 			}
 			
-			var dirty:Boolean = false;
+			/*var dirty:Boolean = false;
 			
-			var start:int = getTimer();
-			for (i = 0; i < nObjects; i++)
+			var start:int = getTimer();*/
+			/*for (i = 0; i < nObjects; i++)
 			{
-				if(objects[i].globalVisible != 0)
+				if(objects[i].isVisible)
 				objects[i].updateData(deltaTime);
 			}
-			SkySand.watch(getTimer() - start + " ud");
-			start = getTimer();
+			/*SkySand.watch(getTimer() - start + " ud");
+			start = getTimer();*/
 			for (i = 0; i < nObjects; i++)
 			{
 				var object:SkyRenderObjectContainer = objects[i];
 				//dirty ||= object.isTransformed;
+				if(object.isVisible){object.updateData(deltaTime);
 				object.globalTransformation = object.isTransformed || object.parent.globalTransformation;
 				
-				
+				}
 				/*if (object.isDrag) 
 				{
 					
@@ -648,7 +649,7 @@ package skysand.render
 				}
 				else */if (object.globalTransformation)
 				{
-					if(object.globalVisible != 0)
+					if(object.isVisible)
 					object.updateTransformation();
 					object.isTransformed = false;
 					//dirty = object.children != null;
@@ -658,18 +659,18 @@ package skysand.render
 					//objects[i].updateData(deltaTime);
 					//SkySand.watch(objects[i].gt);
 			}
-			SkySand.watch(getTimer() - start + " ut");
+			//SkySand.watch(getTimer() - start + " ut");
 			
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
 			//context3D.setCulling(Context3DTriangleFace.BACK);
 			
 			notRenderedBatchesCount = 0;
-			start = getTimer();
+			//start = getTimer();
 			for (i = 0; i < nBatches; i++)
 			{
 				batches[i].render();
 			}
-			SkySand.watch(getTimer() - start + " rt");
+			//SkySand.watch(getTimer() - start + " rt");
 			if (isRenderToTarget)
 			{
 				context3D.setRenderToBackBuffer();

@@ -413,7 +413,7 @@ package skysand.input
 				{
 					var object:SkyRenderObject = objects[i];
 					
-					if (object.globalVisible == 0) continue;
+					if (!object.isVisible) continue;
 					
 					if (object.hitTestBoundsWithMouse())
 					{
@@ -481,7 +481,7 @@ package skysand.input
 				{
 					var object:SkyRenderObject = objects[i];
 					
-					if (object.globalVisible == 0) continue;
+					if (!object.isVisible) continue;
 					
 					if (object.hitTestBoundsWithMouse())
 					{

@@ -727,8 +727,6 @@ package skysand.ui
 		{
 			super.updateData(deltaTime);
 			
-			if (globalVisible == 0) return;
-			
 			if (active)
 			{
 				if (button.hitTestMouse() && !isOut)

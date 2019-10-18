@@ -4,7 +4,6 @@ package skysand.display
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import mx.core.MovieClipLoaderAsset;
 	import skysand.input.SkyKey;
 	import skysand.input.SkyKeyboard;
 	import skysand.input.SkyMouse;
@@ -29,56 +28,6 @@ package skysand.display
 		public var parent:SkyRenderObjectContainer;
 		
 		/**
-		 * Координата x.
-		 */
-		public var mX:Number;
-		
-		/**
-		 * Координата y.
-		 */
-		public var mY:Number;
-		
-		/**
-		 * Ширина.
-		 */
-		private var mWidth:Number;
-		
-		/**
-		 * Высота.
-		 */
-		private var mHeight:Number;
-		
-		/**
-		 * Угол поврота.
-		 */
-		private var mRotation:Number;
-		
-		/**
-		 * Прозрачность от 0 до 1.
-		 */
-		public var mAlpha:Number;
-		
-		/**
-		 * Горизонтальное масштабирование.
-		 */
-		public var scaleX:Number;
-		
-		/**
-		 * Вертикальное масштабирование.
-		 */
-		public var scaleY:Number;
-		
-		/**
-		 * Координата центра по оси x.
-		 */
-		public var pivotX:Number;
-		
-		/**
-		 * Координата центра по оси у.
-		 */
-		public var pivotY:Number;
-		
-		/**
 		 * Глобальная координата х.
 		 */
 		public var globalX:Number;
@@ -89,78 +38,96 @@ package skysand.display
 		public var globalY:Number;
 		
 		/**
-		 * Глобальный угол поворота.
-		 */
-		public var globalRotation:Number;
-		
-		/**
-		 * Глобальное горизонтальное масштабирование.
-		 */
-		public var globalScaleX:Number;
-		
-		/**
-		 * Глобальное вертикальное масштабирование.
-		 */
-		public var globalScaleY:Number;
-		
-		/**
-		 * Глубина на сцене.
-		 */
-		public var mDepth:int;
-		
-		/**
 		 * Имя объекта.
 		 */
 		public var name:String;
 		
 		/**
+		 * Координата x.
+		 */
+		protected var mX:Number;
+		
+		/**
+		 * Координата y.
+		 */
+		protected var mY:Number;
+		
+		/**
+		 * Ширина.
+		 */
+		protected var mWidth:Number;
+		
+		/**
+		 * Высота.
+		 */
+		protected var mHeight:Number;
+		
+		/**
+		 * Угол поврота.
+		 */
+		protected var mRotation:Number;
+		
+		/**
+		 * Прозрачность от 0 до 1.
+		 */
+		protected var mAlpha:Number;
+		
+		/**
+		 * Горизонтальное масштабирование.
+		 */
+		protected var mScaleX:Number;
+		
+		/**
+		 * Вертикальное масштабирование.
+		 */
+		protected var mScaleY:Number;
+		
+		/**
+		 * Координата центра по оси x.
+		 */
+		protected var mPivotX:Number;
+		
+		/**
+		 * Координата центра по оси у.
+		 */
+		protected var mPivotY:Number;
+		
+		/**
+		 * Глубина на сцене.
+		 */
+		protected var mDepth:int;
+		
+		/**
 		 * Цвет.
 		 */
-		internal var mColor:uint;
+		protected var mColor:uint;
+		
+		/**
+		 * Видимость объекта.
+		 */
+		protected var mVisible:Boolean;
+		
+		/**
+		 * Глобальная матрица трансформации объекта.
+		 */
+		protected var worldMatrix:SkyMatrix;
+		
+		
 		
 		/**
 		 * Глобальная видимость объекта.
 		 */
-		public var globalVisible:uint;
-		
-		/**
-		 * Игнорировать мышь при проверке столкновения.
-		 */
-		//public var mouseEnabled:Boolean;
-		
-		/**
-		 * Для расчёта поворота объекта.
-		 */
-		public var globalR:Point;
-		
-		/**
-		 * Для расчёта поворота объекта.
-		 */
-		public var localR:Point;
+		public var isVisible:Boolean;
 		
 		/**
 		 * Добален ли объект на сцену.
 		 */
 		public var isAdded:Boolean;
-		/**
-		 * Кнопка мыши к которой привязан данный объект.
-		 */
-		//private var mouseButton:uint;
-		
-		/**
-		 * Видимость объекта.
-		 */
-		private var mVisible:Boolean;
 		
 		/**
 		 * Может ли мышь взаимодействовать с объектом.
 		 */
 		private var mMouseEnabled:Boolean;
-		
-		/**
-		 * Перетаскивается ли сейчас объект.
-		 */
-		internal static var isDrag:Boolean = false;
 		
 		/**
 		 * Перетаскивать или нет.
@@ -208,15 +175,19 @@ package skysand.display
 		private var border:Boolean;
 		
 		/**
-		 * Для оптимизации перерасчёта глобального угла поворота.
+		 * Косинус угла поворота.
 		 */
-		private var oldRotation:Number;
+		private var cos:Number;
+		
+		/**
+		 * Синус угла поворота.
+		 */
+		private var sin:Number;
 		
 		public function SkyRenderObject()
 		{
 			offsetDragPoint = new Point();
-			globalR = new Point();
-			localR = new Point();
+			worldMatrix = new SkyMatrix();
 			parent = null;
 			
 			drag = false;
@@ -228,70 +199,34 @@ package skysand.display
 			
 			name = "";
 			
-			x = 0;
-			y = 0;
-			color = 0xFFFFFF;
+			mX = 0;
+			mY = 0;
+			cos = 1;
+			sin = 0;
+			mColor = 0xFFFFFF;
 			mAlpha = 1;
 			mDepth = 0;
-			width = 0;
-			height = 0;
-			scaleX = 1;
-			scaleY = 1;
-			pivotX = 0;
-			pivotY = 0;
+			mWidth = 1;
+			mHeight = 1;
+			mScaleX = 1;
+			mScaleY = 1;
+			mPivotX = 0;
+			mPivotY = 0;
 			globalX = 0;
 			globalY = 0;
 			indexID = 0;
-			rotation = 0;
+			mRotation = 0;
 			upBorder = 0;
 			downBorder = 0;
 			leftBorder = 0;
-			oldRotation = 0;
 			rightBorder = 0;
-			globalScaleX = 1;
-			globalScaleY = 1;
-			globalVisible = 1;
-			globalRotation = 0;
-		}
-		
-		/**
-		 * Видимость объекта.
-		 */
-		public function set visible(value:Boolean):void
-		{
-			if (mVisible != value)
-			{
-				mVisible = value;
-				SkySand.render.calculateVisible = true;
-			}
-		}
-		
-		/**
-		 * Видимость объекта.
-		 */
-		public function get visible():Boolean
-		{
-			return mVisible;
-		}
-		
-		/**
-		 * Учитывать объект при поиске самого ближайщего к курсору. 
-		 */
-		public function set mouseEnabled(value:Boolean):void
-		{
-			mMouseEnabled = value;
 			
-			if (value) SkyMouse.instance.addObjectToClosestTest(this);
-			else SkyMouse.instance.removeObjectFromClosestTest(this);
+			isVisible = true;
 		}
 		
-		/**
-		 * Учитывать объект при поиске самого ближайщего к курсору. 
-		 */
-		public function get mouseEnabled():Boolean
-		{
-			return mMouseEnabled;
-		}
+		
+		
+		
 		
 		/**
 		 * Освободить память.
@@ -299,8 +234,6 @@ package skysand.display
 		public function free():void
 		{
 			offsetDragPoint = null;
-			globalR = null;
-			localR = null;
 			parent = null;
 		}
 		
@@ -400,10 +333,7 @@ package skysand.display
 		 */
 		public function stopDrag():void
 		{
-			if (drag)
-			{
-				drag = false;
-			}
+			drag = false;
 		}
 		
 		/**
@@ -412,10 +342,10 @@ package skysand.display
 		 */
 		public function hitTestBoundsWithMouse():Boolean
 		{
-			if (SkyMouse.x > globalX + (width - pivotX) * globalScaleX) return false;
-			if (SkyMouse.x < globalX - pivotX * globalScaleX) return false;
-			if (SkyMouse.y > globalY + (height - pivotY) * globalScaleY) return false;
-			if (SkyMouse.y < globalY - pivotY * globalScaleY) return false;
+			if (SkyMouse.x > globalX + (width - mPivotX) * mScaleX) return false;
+			if (SkyMouse.x < globalX - mPivotX * mScaleX) return false;
+			if (SkyMouse.y > globalY + (height - mPivotY) * mScaleY) return false;
+			if (SkyMouse.y < globalY - mPivotY * mScaleY) return false;
 			
 			return true;
 		}
@@ -428,10 +358,10 @@ package skysand.display
 		 */
 		public function hitTestBounds(x:Number, y:Number):Boolean
 		{
-			if (x > globalX + width - pivotX) return false;
-			if (x < globalX - pivotX) return false;
-			if (y > globalY + height - pivotY) return false;
-			if (y < globalY - pivotY) return false;
+			if (x > globalX + width - mPivotX) return false;
+			if (x < globalX - mPivotX) return false;
+			if (y > globalY + height - mPivotY) return false;
+			if (y < globalY - mPivotY) return false;
 			
 			return true;
 		}
@@ -441,149 +371,31 @@ package skysand.display
 		 */
 		public function calculateGlobalVisible():void
 		{
-			var isVisible:Boolean = mVisible && parent.mVisible && isAdded && parent.isAdded;
-			globalVisible = isVisible ? 1 * parent.globalVisible : 0 * parent.globalVisible;
+			isVisible = mVisible && parent.mVisible && isAdded && parent.isAdded && parent.isVisible;
 			isTransformed = true;
 		}
 		
 		public var isTransformed:Boolean = false;
 		public var globalTransformation:Boolean = false;
-		public var lm:SkyMatrix = new SkyMatrix();
-		public var wm:SkyMatrix = new SkyMatrix();
-		private var oldx:Number = 0;
-		private var oldy:Number = 0;
 		
-		public function setPos(x:Number, y:Number):void
-		{
-			this.x = x;
-			this.y = y;
-			lm.translate(x, y);
-			isTransformed = true;
-		}
 		
-		public function get x():Number
-		{
-			return mX;
-		}
 		
-		public function set x(value:Number):void
-		{
-			if (mX != value)
-			{
-				mX = value;
-				isTransformed = true;
-			}
-		}
 		
-		public function get y():Number
-		{
-			return mY;
-		}
 		
-		public function set y(value:Number):void
-		{
-			if (mY != value)
-			{
-				mY = value;
-				isTransformed = true;
-			}
-		}
 		
-		public function get width():Number
-		{
-			return mWidth;
-		}
 		
-		public function set width(value:Number):void
-		{
-			if (mWidth != value)
-			{
-				mWidth = value;
-				isTransformed = true;
-			}
-		}
 		
-		public function get height():Number
-		{
-			return mHeight;
-		}
 		
-		public function set height(value:Number):void
-		{
-			if (mHeight != value)
-			{
-				mHeight = value;
-				isTransformed = true;
-			}
-		}
 		
-		public function get rotation():Number
-		{
-			return mRotation;
-		}
-		
-		public function set rotation(value:Number):void
-		{
-			if (mRotation != value)
-			{
-				mRotation = value;
-				isTransformed = true;
-			}
-		}
-		public var gt:int = 1;
-		public var lt:int = 1;
-		
-		public function get color():uint
-		{
-			return mColor;
-		}
-		
-		public function set color(value:uint):void
-		{
-			mColor = value;
-		}
-		
-		public function get depth():int
-		{
-			return mDepth;
-		}
-		
-		public function set depth(value:int):void
-		{
-			mDepth = value;
-		}
-		
-		public function get alpha():Number
-		{
-			return mAlpha;
-		}
-		
-		public function set alpha(value:Number):void
-		{
-			mAlpha = value;
-		}
-		
+		/**
+		 * Обновить трансформацию объекта.
+		 */
 		public function updateTransformation():void
 		{
-			if (oldRotation != mRotation)
-				{
-					lm.rotate(mRotation * Math.PI / 180, scaleX, scaleY);
-					
-					oldRotation = mRotation;
-				}
-				
-				if (oldx != mX || oldy != mY)
-				{
-					lm.translate(mX, mY);
-					
-					oldy = mY;
-					oldx = mX;
-				}
-			//lm.Transformation(scaleX, scaleY, x, y, rotation * Math.PI / 180);
-			wm.multiply(lm, parent.wm);
+			worldMatrix.multiplyOnTransformation(mX, mY, cos, sin, mScaleX, mScaleY, parent.worldMatrix);
 			
-			globalX = wm.tx;
-			globalY = wm.ty;
+			globalX = worldMatrix.tx;
+			globalY = worldMatrix.ty;
 		}
 		
 		/**
@@ -593,69 +405,18 @@ package skysand.display
 		{
 			if (drag)
 			{
-				x = isLockAxisX ? x : SkyMouse.x - offsetDragPoint.x;
-				y = isLockAxisY ? y : SkyMouse.y - offsetDragPoint.y;
+				x = isLockAxisX ? mX : SkyMouse.x - offsetDragPoint.x;
+				y = isLockAxisY ? mY : SkyMouse.y - offsetDragPoint.y;
 				
 				if (border)
 				{
 					//if(isLockAxisX)
-						x = x >= rightBorder ? rightBorder : x <= leftBorder ? leftBorder : x;
+						x = mX >= rightBorder ? rightBorder : mX <= leftBorder ? leftBorder : mX;
 					//if(isLockAxisY)
-						y = y >= downBorder ? downBorder : y <= upBorder ? upBorder : y;
+						y = mY >= downBorder ? downBorder : mY <= upBorder ? upBorder : mY;
 						
 				}
 			}
-			/*	
-				if (oldRotation != rotation)
-				{
-					lm.rotate(rotation * Math.PI / 180, scaleX, scaleY);
-					isTransformed = true;
-					oldRotation = rotation;
-				}
-				
-				if (oldx != x || oldy != y)
-				{
-					lm.translate(x, y);
-					isTransformed = true;
-					oldy = y;
-					oldx = x;
-				}
-				
-				//globalTransformation = isTransformed || parent.globalTransformation;
-				//;
-				//gt = lt * parent.gt;
-				//globalTransformation = isTransformed && parent.globalTransformation;
-				//isTransformed = isTransformed && parent.isTransformed;
-				//
-				//if (!isTransformed)
-				//{
-					//lm.translate(x, y);
-					
-				//}
-				/*globalX = parent.globalX + x;
-				globalY = parent.globalY + y;
-				globalScaleX = parent.globalScaleX * scaleX;
-				globalScaleY = parent.globalScaleY * scaleY;
-				globalRotation = parent.globalRotation + rotation;
-				
-				if (oldRotation != globalRotation)
-				{
-					var angle:Number = SkyMath.toRadian(parent.globalRotation);
-					
-					localR = SkyMath.rotatePoint(x, y, 0, 0, angle);
-					globalR.x = localR.x + parent.globalR.x - x;
-					globalR.y = localR.y + parent.globalR.y - y;
-					
-					oldRotation = globalRotation;
-				}*/
-				
-				
-			
-		}
-		
-		public function updDrag():void
-		{
-			
 		}
 		
 		/**
@@ -664,6 +425,275 @@ package skysand.display
 		public function get isDrag():Boolean
 		{
 			return drag;
+		}
+		
+		/**
+		 * Координата х.
+		 */
+		public function get x():Number
+		{
+			return mX;
+		}
+		
+		/**
+		 * Координата х.
+		 */
+		public function set x(value:Number):void
+		{
+			if (mX != value)
+			{
+				mX = value;
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Координата у.
+		 */
+		public function get y():Number
+		{
+			return mY;
+		}
+		
+		/**
+		 * Координата у.
+		 */
+		public function set y(value:Number):void
+		{
+			if (mY != value)
+			{
+				mY = value;
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Ось X.
+		 */
+		public function get pivotX():Number
+		{
+			return mPivotX;
+		}
+		
+		/**
+		 * Ось X.
+		 */
+		public function set pivotX(value:Number):void
+		{
+			if (mPivotX != value)
+			{
+				mPivotX = value;
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Ось Y.
+		 */
+		public function get pivotY():Number
+		{
+			return mPivotY;
+		}
+		
+		/**
+		 * Ось Y.
+		 */
+		public function set pivotY(value:Number):void
+		{
+			if (mPivotY != value)
+			{
+				mPivotY = value;
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Масштаб по оси X.
+		 */
+		public function get scaleX():Number
+		{
+			return mScaleX;
+		}
+		
+		/**
+		 * Масштаб по оси X.
+		 */
+		public function set scaleX(value:Number):void
+		{
+			if (mScaleX != value)
+			{
+				mScaleX = value;
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Масштаб по оси Y.
+		 */
+		public function get scaleY():Number
+		{
+			return mScaleY;
+		}
+		
+		/**
+		 * Масштаб по оси Y.
+		 */
+		public function set scaleY(value:Number):void
+		{
+			if (mScaleY != value)
+			{
+				mScaleY = value;
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Ширина.
+		 */
+		public function get width():Number
+		{
+			return mWidth;
+		}
+		
+		/**
+		 * Ширина.
+		 */
+		public function set width(value:Number):void
+		{
+			if (mWidth != value)
+			{
+				mWidth = value;
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Высота.
+		 */
+		public function get height():Number
+		{
+			return mHeight;
+		}
+		
+		/**
+		 * Высота.
+		 */
+		public function set height(value:Number):void
+		{
+			if (mHeight != value)
+			{
+				mHeight = value;
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Угол поворота в градусах.
+		 */
+		public function get rotation():Number
+		{
+			return mRotation;
+		}
+		
+		/**
+		 * Угол поворота в градусах.
+		 */
+		public function set rotation(value:Number):void
+		{
+			if (mRotation != value)
+			{
+				mRotation = value;
+				cos = Math.cos(value * SkyMath.RADIAN);
+				sin = Math.sin(value * SkyMath.RADIAN);
+				isTransformed = true;
+			}
+		}
+		
+		/**
+		 * Цвет.
+		 */
+		public function get color():uint
+		{
+			return mColor;
+		}
+		
+		/**
+		 * Цвет.
+		 */
+		public function set color(value:uint):void
+		{
+			mColor = value;
+		}
+		
+		/**
+		 * Глубина на сцене.
+		 */
+		public function get depth():int
+		{
+			return mDepth;
+		}
+		
+		/**
+		 * Глубина на сцене.
+		 */
+		public function set depth(value:int):void
+		{
+			mDepth = value;
+		}
+		
+		/**
+		 * Прозрачность от 0 до 1.
+		 */
+		public function get alpha():Number
+		{
+			return mAlpha;
+		}
+		
+		/**
+		 * Прозрачность от 0 до 1.
+		 */
+		public function set alpha(value:Number):void
+		{
+			mAlpha = value;
+		}
+		
+		/**
+		 * Видимость объекта.
+		 */
+		public function set visible(value:Boolean):void
+		{
+			if (mVisible != value)
+			{
+				mVisible = value;
+				SkySand.render.calculateVisible = true;
+			}
+		}
+		
+		/**
+		 * Видимость объекта.
+		 */
+		public function get visible():Boolean
+		{
+			return mVisible;
+		}
+		
+		/**
+		 * Учитывать объект при поиске самого ближайщего к курсору. 
+		 */
+		public function set mouseEnabled(value:Boolean):void
+		{
+			mMouseEnabled = value;
+			
+			if (value) SkyMouse.instance.addObjectToClosestTest(this);
+			else SkyMouse.instance.removeObjectFromClosestTest(this);
+		}
+		
+		/**
+		 * Учитывать объект при поиске самого ближайщего к курсору. 
+		 */
+		public function get mouseEnabled():Boolean
+		{
+			return mMouseEnabled;
 		}
 	}
 }

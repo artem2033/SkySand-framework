@@ -21,6 +21,7 @@ package skysand.render
 	import flash.display3D.Context3DVertexBufferFormat;
 	import skysand.input.SkyKey;
 	import skysand.input.SkyKeyboard;
+	import skysand.utils.SkyUtils;
 	
 	import skysand.display.SkyRenderObject;
 	import skysand.file.SkyAtlasSprite;
@@ -235,10 +236,14 @@ package skysand.render
 			uvs.push(data.uvs[4], data.uvs[5]);
 			uvs.push(data.uvs[6], data.uvs[7]);
 			
-			verteces.push(0, 0, 0, 1, 1, 1, object.alpha);
-			verteces.push(0, 0, 0, 1, 1, 1, object.alpha);
-			verteces.push(0, 0, 0, 1, 1, 1, object.alpha);
-			verteces.push(0, 0, 0, 1, 1, 1, object.alpha);
+			var r:Number = SkyUtils.getRed(object.color) / 255;
+			var g:Number = SkyUtils.getGreen(object.color) / 255;
+			var b:Number = SkyUtils.getBlue(object.color) / 255;
+			
+			verteces.push(0, 0, 0, r, g, b, object.alpha);
+			verteces.push(0, 0, 0, r, g, b, object.alpha);
+			verteces.push(0, 0, 0, r, g, b, object.alpha);
+			verteces.push(0, 0, 0, r, g, b, object.alpha);
 			
 			objects.push(object);
 			isChanged = true;

@@ -1,8 +1,6 @@
 package skysand.text
 {
 	import flash.display.BitmapData;
-	import flash.display3D.Context3DTextureFormat;
-	import flash.display3D.textures.Texture;
 	import flash.text.TextLineMetrics;
 	import flash.text.TextFormat;
 	import flash.text.StyleSheet;
@@ -11,14 +9,10 @@ package skysand.text
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	
-	import skysand.display.SkyOldData;
 	import skysand.display.SkyRenderObjectContainer;
 	import skysand.render.SkyHardwareRender;
 	import skysand.render.SkyTextBatch;
-	import skysand.input.SkyKeyboard;
 	import skysand.input.SkyMouse;
-	import skysand.input.SkyKey;
-	import skysand.utils.SkyMath;
 	
 	public class SkyTextField extends SkyRenderObjectContainer
 	{
@@ -58,19 +52,9 @@ package skysand.text
 		public var batch:SkyTextBatch;
 		
 		/**
-		 * Старые данные для оптимизации рендера.
-		 */
-		public var old:SkyOldData;
-		
-		/**
 		 * Ссылка на вершины.
 		 */
 		private var verteces:Vector.<Number>;
-		
-		/**
-		 * Массив для хранения временных данных трансформированных вершин.
-		 */
-		private var v:Vector.<Number>;
 		
 		/**
 		 * Ссылка на мышь.
@@ -81,6 +65,30 @@ package skysand.text
 		{
 			super();
 			initialize();
+		}
+		
+		/**
+		 * Быстрое создание текстового поля.
+		 * @param	text текст.
+		 * @param	color цвет.
+		 * @param	background фон.
+		 * @param	backgroundColor цвет фона.
+		 * @return возвращает созданное текстовое поле.
+		 */
+		public static function createTextField(text:String, color:uint = 0x34495E, background:Boolean = false, backgroundColor:uint = 0xECF0F1):SkyTextField
+		{
+			var textField:SkyTextField = new SkyTextField();
+			textField.width = 200;
+			textField.height = 24;
+			textField.embedFonts = true;
+			textField.font = SkyFont.OPEN_SANS;
+			textField.size = 14;
+			textField.background = background;
+			textField.backgroundColor = backgroundColor;
+			textField.textColor = color;
+			textField.text = text;
+			
+			return textField;
 		}
 		
 		/**
@@ -100,14 +108,12 @@ package skysand.text
 		 */
 		private function initialize():void
 		{
-			bitmapData = new BitmapData(2, 2, true, 0xFFFFFFFF);
+			bitmapData = new BitmapData(mWidth, mHeight, true, 0xFFFFFFFF);
 			textFormat = new TextFormat();
 			matrix = new Matrix();
-			old = new SkyOldData();
-			v = new Vector.<Number>(8, true);
 			
 			textField = new TextField();
-			textField.width = 10;
+			textField.width = 1;
 			textField.height = 1;
 			textField.x -= 1000;
 			textField.y -= 1000;
@@ -116,8 +122,6 @@ package skysand.text
 			SkySand.STAGE.addChild(textField);
 			
 			focusOn = false;
-			height = 2;
-			width = 2;
 			
 			mouse = SkyMouse.instance;
 			mouse.addFunctionOnClick(setFocus, SkyMouse.LEFT);
@@ -189,7 +193,6 @@ package skysand.text
 		 */
 		override public function remove():void 
 		{
-			old.depth = 2;
 			batch.free();
 		}
 		
@@ -199,6 +202,7 @@ package skysand.text
 		override public function init():void 
 		{
 			batch = new SkyTextBatch();
+			batch.uploadToTexture(bitmapData);
 			SkySand.render.addBatch(batch, "textField");
 			
 			verteces = batch.verteces;
@@ -211,48 +215,96 @@ package skysand.text
 		{
 			super.calculateGlobalVisible();
 			
-			if (globalVisible == 0 && verteces != null)
-			{
-				verteces[2] = -1;
-				verteces[6] = -1;
-				verteces[10] = -1;
-				verteces[14] = -1;
-				
-				batch.isNeedToRender = false;
-				old.depth = 2;
-			}
+			var depth:Number = !isVisible ? -1 : mDepth / SkyHardwareRender.MAX_DEPTH;
+			
+			verteces[2] = depth;
+			verteces[6] = depth;
+			verteces[10] = depth;
+			verteces[14] = depth;
+			
+			batch.updateVertexBuffer();
+			batch.isNeedToRender = isVisible;
 		}
 		
+		/**
+		 * Обновить трансформацию объекта.
+		 */
 		override public function updateTransformation():void 
 		{
 			super.updateTransformation();
-			if (verteces == null) return;
 			
-			wm.transformTextField(width, height, 0, verteces);
+			worldMatrix.transformTextField(width, height, 0, verteces);
 			batch.updateVertexBuffer();
-			
-			if (old.alpha != alpha)
-				{
-					verteces[3] = alpha;
-					verteces[7] = alpha;
-					verteces[11] = alpha;
-					verteces[15] = alpha;
-					
-					old.alpha = alpha;
-					batch.updateVertexBuffer();
-				}
+		}
+		
+		/**
+		 * Прозрачность от 1 до 0.
+		 */
+		override public function set alpha(value:Number):void 
+		{
+			if (mAlpha != value)
+			{
+				mAlpha = value;
+				if (verteces == null) return;
 				
-				if (old.depth != depth)
-				{
-					verteces[2] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[6] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[10] = depth / SkyHardwareRender.MAX_DEPTH;
-					verteces[14] = depth / SkyHardwareRender.MAX_DEPTH;
-					
-					old.depth = depth;
-					batch.updateVertexBuffer();
-					batch.isNeedToRender = true;
-				}
+				verteces[3] = value;
+				verteces[7] = value;
+				verteces[11] = value;
+				verteces[15] = value;
+				
+				batch.updateVertexBuffer();
+			}
+		}
+		
+		/**
+		 * Глубина.
+		 */
+		override public function set depth(value:int):void 
+		{
+			if (mDepth != value)
+			{
+				mDepth = value;
+				if (!isVisible) return;
+				
+				verteces[2] = value / SkyHardwareRender.MAX_DEPTH;
+				verteces[6] = value / SkyHardwareRender.MAX_DEPTH;
+				verteces[10] = value / SkyHardwareRender.MAX_DEPTH;
+				verteces[14] = value / SkyHardwareRender.MAX_DEPTH;
+				
+				batch.updateVertexBuffer();
+			}
+		}
+		
+		/**
+		 * Ширина.
+		 */
+		override public function set width(value:Number):void 
+		{
+			if (mWidth != value)
+			{
+				bitmapData.dispose();
+				bitmapData = new BitmapData(value, mHeight, true, 0xFFFFFFFF);
+				textField.width = value;
+				mWidth = value;
+				
+				drawText();
+			}
+		}
+		
+		/**
+		 * Высота.
+		 */
+		override public function set height(value:Number):void 
+		{
+			if (mHeight != value)
+			{
+				bitmapData.dispose();
+				bitmapData = new BitmapData(mWidth, value, true, 0xFFFFFFFF);
+				textField.height = value;
+				mHeight = value;
+				
+				drawText();
+			}
 		}
 		
 		/**
@@ -262,99 +314,15 @@ package skysand.text
 		{
 			super.updateData(deltaTime);
 			
-			if (globalVisible == 1)
+			if (type == "input" && focusOn)
 			{
-				if (type == "input" && focusOn)
-				{
-					drawText();
-				}
-				
-				if (textField.autoSize != "none")
-				{
-					width = textField.width != width ? textField.width : width;
-					height = textField.height != height ? textField.height : height;
-				}
-				
-				if (old.width != width || old.height != height)
-					{
-						bitmapData.dispose();
-						bitmapData = new BitmapData(width, height, true, 0xFFFFFFFF);
-						textField.width = width;
-						textField.height = height;
-						
-						drawText();
-						
-						old.width = width;
-						old.height = height;
-					}
-				
-				/*var w:Number = globalScaleX * width;
-				var h:Number = globalScaleY * height;
-				
-				var px:Number = pivotX * globalScaleX;
-				var py:Number = pivotY * globalScaleY;
-				
-				
-				
-				if (old.rotation != globalRotation || old.width != width || old.height != height)
-				{
-					var angle:Number = SkyMath.toRadian(globalRotation);
-					
-					matrix.rotate(angle);
-					
-					v[0] = globalR.x - px * matrix.a - py * matrix.c;
-					v[1] = globalR.x + (w - px) * matrix.a - py * matrix.c;
-					v[2] = globalR.x - px * matrix.a + (h - py) * matrix.c;
-					v[3] = globalR.x + (w - px) * matrix.a + (h - py) * matrix.c;
-					v[4] = globalR.y - px * matrix.b - py * matrix.d;
-					v[5] = globalR.y + (w - px) * matrix.b - py * matrix.d;
-					v[6] = globalR.y - px * matrix.b + (h - py) * matrix.d;
-					v[7] = globalR.y + (w - px) * matrix.b + (h - py) * matrix.d;
-					
-					matrix.identity();
-					
-					if (old.width != width || old.height != height)
-					{
-						bitmapData.dispose();
-						bitmapData = new BitmapData(width, height, true, 0xFFFFFFFF);
-						textField.width = width;
-						textField.height = height;
-						
-						drawText();
-						
-						old.width = width;
-						old.height = height;
-					}
-					
-					old.x--;
-					old.y--;
-					old.rotation = rotation;
-					batch.updateVertexBuffer();
-				}
-				
-				if (old.x != globalX)
-				{
-					verteces[0] = globalX + v[0];
-					verteces[4] = globalX + v[1];
-					verteces[8] = globalX + v[2];
-					verteces[12] = globalX + v[3];
-					
-					old.x = globalX;
-					batch.updateVertexBuffer();
-				}
-				
-				if (old.y != globalY)
-				{
-					verteces[1] = globalY + v[4];
-					verteces[5] = globalY + v[5];
-					verteces[9] = globalY + v[6];
-					verteces[13] = globalY + v[7];
-					
-					old.y = globalY;
-					batch.updateVertexBuffer();
-				}
-				*/
-				
+				drawText();
+			}
+			
+			if (textField.autoSize != "none")
+			{
+				width = textField.width;
+				height = textField.height;
 			}
 		}
 		
@@ -377,11 +345,6 @@ package skysand.text
 			matrix = null;
 			batch = null;
 			mouse = null;
-			old = null;	
-			
-			v.fixed = false;
-			v.length = 0;
-			v = null;
 		}
 		
 		/**

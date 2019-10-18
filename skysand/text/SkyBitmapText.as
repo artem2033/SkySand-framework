@@ -187,7 +187,7 @@ package skysand.text
 			
 			for (var i:int = beginIndex; i < length; i++) 
 			{
-				symbols[i].verticesColor.setColor(color);
+				symbols[i].color = color;
 			}
 		}
 		
@@ -211,7 +211,7 @@ package skysand.text
 					var char:SkySprite = new SkySprite();
 					char.setAtlas(atlas, batchName);
 					char.setSpriteByIndex(33);
-					char.verticesColor.setColor(mTextColor);
+					char.color = mTextColor;
 					char.visible = false;
 					addChild(char);
 					
@@ -428,7 +428,7 @@ package skysand.text
 						var char:SkySprite = new SkySprite();
 						char.setAtlas(atlas, batchName);
 						char.setSpriteByIndex(33);
-						char.verticesColor.setColor(mTextColor);
+						char.color = mTextColor;
 						char.visible = false;
 						addChild(char);
 						
@@ -527,7 +527,7 @@ package skysand.text
 				
 				for (var i:int = 0; i < length; i++) 
 				{
-					symbols[i].verticesColor.setColor(value);
+					symbols[i].color = value;
 				}
 				
 				mTextColor = value;

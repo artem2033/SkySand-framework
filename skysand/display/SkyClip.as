@@ -332,47 +332,44 @@ package skysand.display
 		 */
 		override public function updateData(deltaTime:Number):void
 		{
-			if (globalVisible == 1)
+			if (playing)
 			{
-				if (playing)
+				if (delayAccumulator >= 1)
 				{
-					if (delayAccumulator >= 1)
-					{
-						mCurrentFrame += frameSpeed;
-						
-						if (mCurrentFrame < 1)
-						{
-							mCurrentFrame = mTotalFrames;
-							
-							if (mFunction != null) mFunction.apply();
-							
-							if (!repeat && !isStarted)
-							{
-								playing = false;
-								isStarted = false;
-								mCurrentFrame = 1;
-							}
-							
-							isStarted = true;
-						}
-						else if(mCurrentFrame > mTotalFrames)
-						{
-							mCurrentFrame = 1;
-							
-							if (mFunction != null) mFunction.apply();
-							
-							if (!repeat)
-							{
-								playing = false;
-							}
-						}
-						
-						setFrame(mCurrentFrame);
-						delayAccumulator = 0;
-					}
+					mCurrentFrame += frameSpeed;
 					
-					delayAccumulator += mDelay > 0 ? deltaTime / mDelay : 1;
+					if (mCurrentFrame < 1)
+					{
+						mCurrentFrame = mTotalFrames;
+						
+						if (mFunction != null) mFunction.apply();
+						
+						if (!repeat && !isStarted)
+						{
+							playing = false;
+							isStarted = false;
+							mCurrentFrame = 1;
+						}
+						
+						isStarted = true;
+					}
+					else if(mCurrentFrame > mTotalFrames)
+					{
+						mCurrentFrame = 1;
+						
+						if (mFunction != null) mFunction.apply();
+						
+						if (!repeat)
+						{
+							playing = false;
+						}
+					}
+						
+					setFrame(mCurrentFrame);
+					delayAccumulator = 0;
 				}
+				
+				delayAccumulator += mDelay > 0 ? deltaTime / mDelay : 1;
 			}
 			
 			super.updateData(deltaTime);
