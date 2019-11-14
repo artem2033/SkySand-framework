@@ -7,26 +7,6 @@ package skysand.display
 	public class SkyFrame extends SkyRenderObjectContainer
 	{
 		/**
-		 * Левая линия рамки.
-		 */
-		private var leftLine:SkyShape;
-		
-		/**
-		 * Правая линия рамки.
-		 */
-		private var rightLine:SkyShape;
-		
-		/**
-		 * Нижняя линия рамки.
-		 */
-		private var downLine:SkyShape;
-		
-		/**
-		 * Верхняя линия рамки.
-		 */
-		private var upLine:SkyShape;
-		
-		/**
 		 * Толщина линий.
 		 */
 		private var mThickness:Number;
@@ -35,6 +15,11 @@ package skysand.display
 		 * Включена ли привязка к центру координат.
 		 */
 		private var isAligned:Boolean;
+		
+		/**
+		 * Рамка.
+		 */
+		private var frame:SkyShape;
 		
 		public function SkyFrame() 
 		{
@@ -52,34 +37,14 @@ package skysand.display
 			mThickness = 1;
 			isAligned = false;
 			
-			leftLine = new SkyShape();
-			leftLine.batchName = batchName;
-			leftLine.color = 0xFFFFFF;
-			leftLine.drawRect(0, 0, mThickness, height);
-			addChild(leftLine);
+			frame = new SkyShape();
+			frame.batchName = batchName;
+			frame.color = 0xFFFFFF;
+			frame.drawFrame(0, 0, width, height, mThickness);
+			addChild(frame);
 			
-			rightLine = new SkyShape();
-			rightLine.batchName = batchName;
-			rightLine.color = 0xFFFFFF;
-			rightLine.drawRect(0, 0, mThickness, height);
-			rightLine.x = width - mThickness;
-			addChild(rightLine);
-			
-			downLine = new SkyShape();
-			downLine.batchName = batchName;
-			downLine.color = 0xFFFFFF;
-			downLine.drawRect(0, 0, width, mThickness);
-			downLine.y = height - mThickness;
-			addChild(downLine);
-			
-			upLine = new SkyShape();
-			upLine.batchName = batchName;
-			upLine.color = 0xFFFFFF;
-			upLine.drawRect(0, 0, width, mThickness);
-			addChild(upLine);
-			
-			this.width = width;
-			this.height = height;
+			mWidth = width;
+			mHeight = height;
 		}
 		
 		/**
@@ -89,32 +54,27 @@ package skysand.display
 		 */
 		public function setSize(width:Number, height:Number):void
 		{
-			this.width = width;
-			this.height = height;
-			
-			leftLine.height = height;
-			rightLine.height = height;
-			downLine.width = width;
-			upLine.width = width;
-			
-			if (!isAligned)
+			if (mWidth != width || mHeight != height)
 			{
-				rightLine.x = width - mThickness;
-				downLine.y = height - mThickness;
+				mWidth = width;
+				mHeight = height;
+				
+				frame.vertices[4] = mWidth;
+				frame.vertices[6] = mWidth;
+				frame.vertices[16] = mWidth - mThickness;
+				frame.vertices[18] = mWidth - mThickness;
+				
+				frame.vertices[7] = mHeight;
+				frame.vertices[9] = mHeight;
+				frame.vertices[15] = mHeight - mThickness;
+				frame.vertices[17] = mHeight - mThickness;
+				frame.updateVertices();
 			}
-			else
+			
+			if (isAligned)
 			{
-				leftLine.x = -width * 0.5;
-				leftLine.y = -height * 0.5;
-				
-				rightLine.x = width * 0.5 - mThickness;
-				rightLine.y = -height * 0.5;
-				
-				downLine.x = -width * 0.5;
-				downLine.y = height * 0.5 - mThickness;
-				
-				upLine.x = -width * 0.5;
-				upLine.y = -height * 0.5;
+				frame.x = mWidth / 2;
+				frame.y = mHeight / 2;
 			}
 		}
 		
@@ -125,45 +85,8 @@ package skysand.display
 		{
 			isAligned = true;
 			
-			leftLine.x = -width * 0.5;
-			leftLine.y = -height * 0.5;
-			
-			rightLine.x = width * 0.5 - mThickness;
-			rightLine.y = -height * 0.5;
-			
-			downLine.x = -width * 0.5;
-			downLine.y = height * 0.5 - mThickness;
-			
-			upLine.x = -width * 0.5;
-			upLine.y = -height * 0.5;
-		}
-		
-		/**
-		 * Цвет рамки.
-		 * @param	value значение цвета.
-		 */
-		public function setColor(value:uint):void
-		{
-			leftLine.color = value;
-			rightLine.color = value;
-			downLine.color = value;
-			upLine.color = value;
-			
-			color = value;
-		}
-		
-		/**
-		 * Прозрачность рамки.
-		 * @param	value значение от 0 до 1.
-		 */
-		public function setAlpha(value:Number):void
-		{
-			leftLine.alpha = value;
-			rightLine.alpha = value;
-			downLine.alpha = value;
-			upLine.alpha = value;
-			
-			alpha = value;
+			frame.x = mWidth / 2;
+			frame.y = mHeight / 2;
 		}
 		
 		/**
@@ -171,16 +94,22 @@ package skysand.display
 		 */
 		public function set thickness(value:Number):void
 		{
-			if (mThickness == value) return;
-			
-			mThickness = value;
-			leftLine.width = value;
-			rightLine.width = value;
-			downLine.height = value;
-			upLine.height = value;
-			
-			rightLine.x = width - value;
-			downLine.y = height - value;
+			if (mThickness != value)
+			{
+				mThickness = value;
+				
+				frame.vertices[0] = mThickness;
+				frame.vertices[1] = mThickness;
+				frame.vertices[12] = mThickness;
+				frame.vertices[13] = mThickness;
+				frame.vertices[14] = mThickness;
+				frame.vertices[15] = mHeight - mThickness;
+				frame.vertices[16] = mWidth - mThickness;
+				frame.vertices[17] = mHeight - mThickness;
+				frame.vertices[18] = mWidth - mThickness;
+				frame.vertices[19] = mThickness;
+				frame.updateVertices();
+			}
 		}
 		
 		/**
@@ -189,6 +118,76 @@ package skysand.display
 		public function get thickness():Number
 		{
 			return mThickness
+		}
+		
+		/**
+		 * Цвет рамки.
+		 */
+		override public function set color(value:uint):void 
+		{
+			if (mColor != value)
+			{
+				mColor = value;
+				frame.color = value;
+			}
+		}
+		
+		/**
+		 * Прозрачность рамки от 0 до 1.
+		 */
+		override public function set alpha(value:Number):void 
+		{
+			if (mAlpha != value)
+			{
+				mAlpha = value;
+				frame.alpha = value;
+			}
+		}
+		
+		/**
+		 * Ширина.
+		 */
+		override public function set width(value:Number):void 
+		{
+			if (mWidth != value)
+			{
+				mWidth = value;
+				
+				frame.vertices[4] = mWidth;
+				frame.vertices[6] = mWidth;
+				frame.vertices[16] = mWidth - mThickness;
+				frame.vertices[18] = mWidth - mThickness;
+				frame.updateVertices();
+			}
+		}
+		
+		/**
+		 * Высота.
+		 */
+		override public function set height(value:Number):void 
+		{
+			if (mHeight != value)
+			{
+				mHeight = value;
+				
+				frame.vertices[7] = mHeight;
+				frame.vertices[9] = mHeight;
+				frame.vertices[15] = mHeight - mThickness;
+				frame.vertices[17] = mHeight - mThickness;
+				frame.updateVertices();
+			}
+		}
+		
+		/**
+		 * Освободить память.
+		 */
+		override public function free():void 
+		{
+			super.free();
+			
+			removeChild(frame);
+			frame.free();
+			frame = null;
 		}
 	}
 }

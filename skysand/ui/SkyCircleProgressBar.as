@@ -228,7 +228,7 @@ package skysand.ui
 			point.x = radius * Math.cos(radian);
 			point.y = radius * Math.sin(radian);
 			
-			var verteces:Vector.<Number> = bar.getVertices();
+			var verteces:Vector.<Number> = bar.vertices;
 			var index:int = bar.indexID;
 			
 			verteces[0] = point.x;

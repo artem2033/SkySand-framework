@@ -1,32 +1,15 @@
 package skysand.render
 {
-	import adobe.utils.CustomActions;
-	import flash.display3D.Context3DBufferUsage;
-	import flash.display3D.Context3DFillMode;
-	import flash.display3D.Context3DTextureFilter;
-	import flash.display3D.Context3DWrapMode;
-	import flash.display3D.textures.Texture;
-	import flash.display3D.textures.TextureBase;
 	import flash.geom.Matrix;
 	import flash.geom.Matrix3D;
-	import flash.display3D.Context3D;
-	import flash.display3D.Program3D;
-	import flash.display3D.IndexBuffer3D;
-	import flash.display3D.VertexBuffer3D;
-	import flash.display3D.Context3DBlendFactor;
-	import flash.display3D.Context3DCompareMode;
-	import flash.display3D.Context3DProgramType;
-	import flash.display3D.Context3DTriangleFace;
-	import flash.display3D.Context3DVertexBufferFormat;
 	import flash.geom.Rectangle;
-	import skysand.display.SkyMesh;
-	import skysand.file.SkyAtlasSprite;
-	import skysand.file.SkyTextureAtlas;
-	import skysand.input.SkyKey;
-	import skysand.input.SkyKeyboard;
-	import skysand.utils.SkyUtils;
+	import flash.display3D.Context3D;
+	import flash.display3D.Context3DFillMode;
+	import flash.display3D.Context3DBlendFactor;
+	import flash.display3D.Context3DProgramType;
+	import flash.display3D.Context3DBufferUsage;
+	import flash.display3D.Context3DVertexBufferFormat;
 	
-	import skysand.interfaces.IBatch;
 	import skysand.display.SkyShape;
 	
 	/**
@@ -41,9 +24,9 @@ package skysand.render
 		public static const DATA_PER_VERTEX:uint = 7;
 		
 		/**
-		 * Текстурные координаты.
+		 * Флаг для загрузки вершин в видеопамять.
 		 */
-		public var uvs:Vector.<Number>;
+		public var isUploaded:Boolean = false;
 		
 		/**
 		 * Проверка на изменение размеров вершинного и индексного буфферов.
@@ -71,16 +54,6 @@ package skysand.render
 		private var list:Vector.<uint>;
 		
 		/**
-		 * Текстура для отрисовки меша
-		 */
-		private var texture:TextureBase;
-		
-		/**
-		 * Буффер текстурных координат.
-		 */
-		private var uvBuffer:VertexBuffer3D;
-		
-		/**
 		 * Матрица для вычисления текстурных координат.
 		 */
 		private var matrix:Matrix;
@@ -90,11 +63,10 @@ package skysand.render
 		 */
 		private var mScissorRect:Rectangle;
 		
-		public var isUploaded:Boolean = false;
 		
 		public function SkyShapeBatch()
 		{
-		
+			
 		}
 		
 		/**
@@ -111,15 +83,6 @@ package skysand.render
 		public function get scissorRect():Rectangle
 		{
 			return mScissorRect;
-		}
-		
-		/**
-		 * Задать текстуру.
-		 * @param	texture текстура.
-		 */
-		public function setTexture(texture:TextureBase):void
-		{
-			if (this.texture != texture) this.texture = texture;
 		}
 		
 		/**
@@ -140,53 +103,16 @@ package skysand.render
 			_name = name;
 			position = 0;
 			
-			if (texture != null)
-			{
-				matrix = new Matrix();
-				uvs = new Vector.<Number>();
-				
-				var vertexShader:String = "";
-				vertexShader += "m44 op, va0, vc0 \n";
-				vertexShader += "mov v0, va1 \n";//color
-				vertexShader += "mov v1, va2";//uv
-				
-				var pixelShader:String = "";
-				pixelShader += "tex ft0, v1, fs0 <2d, " + Context3DWrapMode.CLAMP + ", " + Context3DTextureFilter.ANISOTROPIC16X + "> \n";
-				pixelShader += "mul ft0, ft0, v0 \n";
-				pixelShader += "mov oc, ft0";
-			}
-			else
-			{
-				vertexShader = "";
-				vertexShader += "m44 op, va0, vc0 \n";
-				vertexShader += "mov v0, va1";
-				
-				pixelShader = "";
-				pixelShader += "mov ft0, v0 \n";
-				pixelShader += "mul ft0.xyz, ft0.xyz, v0.w \n";//alpha
-				pixelShader += "mov oc, ft0";
-			}
+			var vertexShader:String = "";
+			vertexShader += "m44 op, va0, vc0 \n";
+			vertexShader += "mov v0, va1";
+			
+			var pixelShader:String = "";
+			pixelShader += "mov ft0, v0 \n";
+			pixelShader += "mul ft0.xyz, ft0.xyz, v0.w \n";//alpha
+			pixelShader += "mov oc, ft0";
 			
 			setShader(vertexShader, pixelShader);
-		}
-		
-		public function addMesh(mesh:SkyMesh, data:SkyAtlasSprite, atlas:SkyTextureAtlas):void
-		{
-			var length:int = mesh.vertecesCount;
-			
-			for (var i:int = 0; i < length; i++)
-			{
-				verteces.push(0, 0, 0, 1, 1, 1, 1);
-			}
-			
-			sizes.push(indices.length);
-			triangulate(mesh.getVertices());
-			calculateUV(mesh, data, atlas);
-			mesh.indexID = position;
-			position = verteces.length;
-			objects.push(mesh);
-			
-			isChanged = true;
 		}
 		
 		/**
@@ -195,7 +121,7 @@ package skysand.render
 		 */
 		public function add(object:SkyShape):void
 		{
-			var length:int = object.vertecesCount;
+			var length:int = object.verticesCount;
 			
 			var r:Number = ((object.color >> 16) & 0xFF) / 255;
 			var g:Number = ((object.color >> 8) & 0xFF) / 255;
@@ -207,7 +133,7 @@ package skysand.render
 			}
 			
 			sizes.push(indices.length);
-			triangulate(object.getVertices());
+			triangulate(object.vertices);
 			object.indexID = position;
 			position = verteces.length;
 			objects.push(object);
@@ -225,13 +151,12 @@ package skysand.render
 			
 			if (index < 0) return;
 			
-			var size:int = object.vertecesCount * DATA_PER_VERTEX;
+			var size:int = object.verticesCount * DATA_PER_VERTEX;
 			var indexCount:int = index + 1 != sizes.length ? sizes[index + 1] - sizes[index] : indices.length - sizes[index];
 			var length:int = 0;
 			
 			verteces.splice(object.indexID, size);
 			indices.splice(sizes[index], indexCount);
-			if (uvs != null) uvs.splice(object.indexID / 7 * 2, object.vertecesCount * 2);
 			
 			length = indices.length;
 			
@@ -240,8 +165,8 @@ package skysand.render
 				indices[i] -= size / DATA_PER_VERTEX;
 			}
 			
-			objects.splice(index, 1);
-			sizes.splice(index, 1);
+			objects.removeAt(index);
+			sizes.removeAt(index);
 			
 			position -= size;
 			
@@ -272,19 +197,6 @@ package skysand.render
 			objects.length = 0;
 			objects = null;
 			
-			if (texture)
-			{
-				texture = null;
-				
-				uvs.length = 0;
-				uvs = null;
-				
-				uvBuffer.dispose();
-				uvBuffer = null;
-				
-				matrix = null;
-			}
-			
 			super.free();
 		}
 		
@@ -298,12 +210,6 @@ package skysand.render
 			if (verteces.length == 0) return;//с пустым пакетом вылетает ошибка.
 			if (isChanged && verteces.length > 0)
 			{
-				if (texture != null)
-				{
-					uvBuffer = context3D.createVertexBuffer(uvs.length / 2, 2);
-					uvBuffer.uploadFromVector(uvs, 0, uvs.length / 2);
-				}
-				
 				vertexBuffer = context3D.createVertexBuffer(verteces.length / DATA_PER_VERTEX, DATA_PER_VERTEX, Context3DBufferUsage.DYNAMIC_DRAW);
 				indexBuffer = context3D.createIndexBuffer(indices.length);
 				indexBuffer.uploadFromVector(indices, 0, indices.length);
@@ -318,18 +224,16 @@ package skysand.render
 			}
 			
 			context3D.setProgram(program);
-			context3D.setTextureAt(0, texture);
+			context3D.setTextureAt(0, null);
 			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, currentMatrix, true);
 			context3D.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 			context3D.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 			context3D.setVertexBufferAt(1, vertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_4);
-			context3D.setVertexBufferAt(2, uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
 			
 			if (mScissorRect != null) context3D.setScissorRectangle(mScissorRect);
 			
 			context3D.drawTriangles(indexBuffer);
 			context3D.setScissorRectangle(null);
-			context3D.setVertexBufferAt(2, null);
 		}
 		
 		/**
@@ -339,12 +243,12 @@ package skysand.render
 		 * @param	atlasWidth ширина текстуры.
 		 * @param	atlasHeight высота текстуры.
 		 */
-		private function calculateUV(mesh:SkyMesh, data:SkyAtlasSprite, atlas:SkyTextureAtlas):void
+		/*private function calculateUV(mesh:SkyMesh, data:SkyAtlasSprite, atlas:SkyTextureAtlas):void
 		{
 			matrix.identity();
-			matrix.scale(data.width / mesh.width, data.height / mesh.height);
+			matrix.scale(data.width / mesh.width, data.height / mesh.height);//???
 			
-			var verteces:Vector.<Number> = mesh.getVertices();
+			var verteces:Vector.<Number> = mesh.vertices;
 			var length:int = verteces.length / 2;
 			
 			for (var i:int = 0; i < length; i++)
@@ -355,9 +259,9 @@ package skysand.render
 				var dx:Number = data.pivotX + x * matrix.a + y * matrix.c;
 				var dy:Number = data.pivotY + x * matrix.b + y * matrix.d;
 				
-				uvs.push(dx / atlas.width, dy / atlas.height);
+				//uvs.push(dx / atlas.width, dy / atlas.height);
 			}
-		}
+		}*/
 		
 		/**
 		 * Трианугляция многоугольника без самопересечений.

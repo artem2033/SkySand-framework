@@ -1,17 +1,11 @@
 package skysand.display
 {
-	import adobe.utils.CustomActions;
 	import flash.display.BitmapData;
-	import flash.display3D.Context3DTextureFormat;
-	import flash.display3D.textures.RectangleTexture;
-	import flash.display3D.textures.TextureBase;
-	import flash.geom.Matrix;
-	import skysand.render.SkyBatchBase;
 	
-	import skysand.utils.SkyMath;
 	import skysand.utils.SkyUtils;
 	import skysand.file.SkyAtlasSprite;
 	import skysand.file.SkyTextureAtlas;
+	import skysand.render.SkyBatchBase;
 	import skysand.render.SkyHardwareRender;
 	import skysand.render.SkyStandartQuadBatch;
 	
@@ -27,54 +21,27 @@ package skysand.display
 		public var batch:SkyStandartQuadBatch;
 		
 		/**
-		 * Цвета каждой вершины.
-		 */
-		private var mVerticesColor:SkySpriteVerticesColor;
-		
-		/**
 		 * Данные о спрайте из текстурного атласа.
 		 */
-		internal var data:SkyAtlasSprite;
+		protected var data:SkyAtlasSprite;
 		
 		/**
 		 * Массив текстурных координат.
 		 */
-		internal var uvs:Vector.<Number>;
+		protected var uvs:Vector.<Number>;
 		
 		/**
 		 * Текстурный атлас.
 		 */
-		internal var atlas:SkyTextureAtlas;
+		protected var atlas:SkyTextureAtlas;
 		
 		/**
 		 * Массив вершин.
 		 */
 		private var verteces:Vector.<Number>;
 		
-		/**
-		 * Массив для хранения временных данных о трансформированных вершин.
-		 */
-		private var v:Vector.<Number>;
-		
-		/**
-		 * Матрица для расчёта поворота спрайта.
-		 */
-		private var matrix:Matrix;
-		
-		/**
-		 * Старые данные для оптимизации расчётов.
-		 */
-		private var old:SkyOldData;
-		
-		private var sin:Number = 0;
-		private var cos:Number = 1;
-		
 		public function SkySprite()
 		{
-			matrix = new Matrix();
-			old = new SkyOldData();
-			v = new Vector.<Number>(8, true);
-			//verticesColor = new SkySpriteVerticesColor();
 		}
 		
 		/**
@@ -259,22 +226,35 @@ package skysand.display
 		}
 		
 		/**
+		 * Назначить цвет одной из вершины спрайта(расположение вершин Z).
+		 * @param	color цвет вершины.
+		 * @param	index номер вершины от 0 до 3.
+		 */
+		public function setVertexColor(color:uint, index:int):void
+		{
+			if (verteces == null || index > 4) return;
+			
+			var red:Number = SkyUtils.getRed(color) / 255;
+			var green:Number = SkyUtils.getGreen(color) / 255;
+			var blue:Number = SkyUtils.getBlue(color) / 255;
+			
+			verteces[indexID + index * 7 + 3] = red;
+			verteces[indexID + index * 7 + 4] = green;
+			verteces[indexID + index * 7 + 5] = blue;
+			
+			batch.isUpload = false;
+		}
+		
+		/**
 		 * Освободить память.
 		 */
 		override public function free():void
 		{
-			v.fixed = false;
-			v.length = 0;
-			v = null;
-			
-			old = null;
 			uvs = null;
 			data = null;
 			atlas = null;
 			batch = null;
-			matrix = null;
 			verteces = null;
-			//verticesColor = null;
 			
 			super.free();
 		}
@@ -328,6 +308,9 @@ package skysand.display
 			batch.isUpload = false;
 		}
 		
+		/**
+		 * Глубина.
+		 */
 		override public function set depth(value:int):void 
 		{
 			if (mDepth != value)
@@ -345,6 +328,9 @@ package skysand.display
 			}
 		}
 		
+		/**
+		 * Прозрачность от 0 до 1.
+		 */
 		override public function set alpha(value:Number):void 
 		{
 			if (mAlpha != value)
@@ -362,6 +348,9 @@ package skysand.display
 			}
 		}
 		
+		/**
+		 * Цвет спрайта.
+		 */
 		override public function set color(value:uint):void 
 		{
 			if (mColor != value)
@@ -389,133 +378,22 @@ package skysand.display
 				verteces[indexID + 24] = red;
 				verteces[indexID + 25] = green;
 				verteces[indexID + 26] = blue;
-				//z
+				
 				batch.isUpload = false;
 			}
 		}
 		
+		/**
+		 * Обновить трансформацию спрайта.
+		 */
 		override public function updateTransformation():void 
 		{
 			super.updateTransformation();
 			
 			if (verteces == null) return;
-			worldMatrix.transformSprite(width, height, mPivotX, mPivotY, indexID, verteces);
+			worldMatrix.transformSprite(mWidth, mHeight, mPivotX, mPivotY, indexID, verteces);
 			
 			batch.isUpload = false;
 		}
-		
-		/**
-		 * Функция обновления координат и других данных.
-		 */
-		/*override public function updateData(deltaTime:Number):void 
-		{
-			super.updateData(deltaTime);
-			
-			
-			
-			if (globalVisible == 1)
-			{
-				
-				
-				
-				/*var w:Number = globalScaleX * width;
-				var h:Number = globalScaleY * height;
-				
-				var px:Number = pivotX * globalScaleX;
-				var py:Number = pivotY * globalScaleY;
-				
-				if (old.rotation != globalRotation || old.scaleX != globalScaleX || old.scaleY != globalScaleY || old.pivotX != px || old.pivotY != py)
-				{
-					if (old.rotation != globalRotation)
-					{
-						var angle:Number = SkyMath.toRadian(globalRotation);
-						sin = Math.sin(angle);
-						cos = Math.cos(angle);
-					}
-					
-					v[0] = globalR.x - px * cos - py * sin;
-					v[1] = globalR.x + (w - px) * cos + py * sin;
-					v[2] = globalR.x - px * cos - (h - py) * sin;
-					v[3] = globalR.x + (w - px) * cos - (h - py) * sin;
-					v[4] = globalR.y - px * sin - py * cos;
-					v[5] = globalR.y + (w - px) * sin - py * cos;
-					v[6] = globalR.y - px * sin + (h - py) * cos;
-					v[7] = globalR.y + (w - px) * sin + (h - py) * cos;
-					
-					verteces[indexID] = globalX + v[0];
-					verteces[indexID + 7] = globalX + v[1];
-					verteces[indexID + 14] = globalX + v[2];
-					verteces[indexID + 21] = globalX + v[3];
-					
-					verteces[indexID + 1] = globalY + v[4];
-					verteces[indexID + 8] = globalY + v[5];
-					verteces[indexID + 15] = globalY + v[6];
-					verteces[indexID + 22] = globalY + v[7];
-					
-					old.pivotX = px;
-					old.pivotY = py;
-					old.x = globalX;
-					old.y = globalY;
-					old.width = width;
-					old.height = height;
-					old.scaleX = globalScaleX;
-					old.scaleY = globalScaleY;
-					old.rotation = globalRotation;
-				}
-				
-				if (old.width != width)
-				{
-					v[1] = globalR.x + (w - px) * cos + py * sin;
-					v[3] = globalR.x + (w - px) * cos - (h - py) * sin;
-					v[5] = globalR.y + (w - px) * sin - py * cos;
-					v[7] = globalR.y + (w - px) * sin + (h - py) * cos;
-					
-					verteces[indexID + 7] = globalX + v[1];
-					verteces[indexID + 21] = globalX + v[3];
-					verteces[indexID + 8] = globalY + v[5];
-					verteces[indexID + 22] = globalY + v[7];
-					
-					old.width = width;
-				}
-				
-				if (old.height != height)
-				{
-					v[2] = globalR.x - px * cos - (h - py) * sin;
-					v[3] = globalR.x + (w - px) * cos - (h - py) * sin;
-					v[6] = globalR.y - px * sin + (h - py) * cos;
-					v[7] = globalR.y + (w - px) * sin + (h - py) * cos;
-					
-					verteces[indexID + 14] = globalX + v[2];
-					verteces[indexID + 21] = globalX + v[3];
-					verteces[indexID + 15] = globalY + v[6];
-					verteces[indexID + 22] = globalY + v[7];
-					
-					old.height = height;
-				}
-				
-				if (old.x != globalX)
-				{
-					verteces[indexID] = globalX + v[0];
-					verteces[indexID + 7] = globalX + v[1];
-					verteces[indexID + 14] = globalX + v[2];
-					verteces[indexID + 21] = globalX + v[3];
-					
-					old.x = globalX;
-				}
-				
-				if (old.y != globalY)
-				{
-					verteces[indexID + 1] = globalY + v[4];
-					verteces[indexID + 8] = globalY + v[5];
-					verteces[indexID + 15] = globalY + v[6];
-					verteces[indexID + 22] = globalY + v[7];
-					
-					old.y = globalY;
-				}
-				*/
-				
-			//}
-			
-		//}
 	}
 }

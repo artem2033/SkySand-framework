@@ -243,7 +243,7 @@ package skysand.debug
 		
 		public function update():void
 		{
-			if (globalVisible == 0) return;
+			if (!isVisible) return;
 			
 			if (container != null)
 			{

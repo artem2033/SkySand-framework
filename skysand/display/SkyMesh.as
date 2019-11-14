@@ -172,9 +172,9 @@ package skysand.display
 		{
 			if (batch != null)
 			{
-				batch.addMesh(this, data, atlas);
+				/*batch.addMesh(this, data, atlas);
 				batchVerteces = batch.verteces;
-				uvs = batch.uvs;
+				uvs = batch.uvs;*/
 			}
 		}
 		
@@ -184,7 +184,7 @@ package skysand.display
 			{
 				batch.remove(this);
 				uvs = null;
-				batchVerteces = null;
+				//batchVerteces = null;
 			}
 			
 			super.remove();

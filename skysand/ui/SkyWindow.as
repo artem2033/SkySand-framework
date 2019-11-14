@@ -24,7 +24,7 @@ package skysand.ui
 		/**
 		 * Кнопка закрытия консоли.
 		 */
-		private var closeButton:SkyButton;
+		public var closeButton:SkyButton;
 		
 		/**
 		 * Ссылка на мышку.
@@ -39,7 +39,6 @@ package skysand.ui
 		private var bitmapTextField:SkyBitmapText;
 		
 		protected var head:SkyShape;
-		
 		protected var body:SkyShape;
 		
 		public function SkyWindow()
@@ -63,6 +62,7 @@ package skysand.ui
 			
 			body = new SkyShape();
 			body.color = bodyColor;
+			//body.drawFullRoundRect(0, 0, width, height - 25, 10, 0, 0, 4, 4);
 			body.drawRect(0, 0, width, height - 25);
 			body.mouseEnabled = true;
 			body.y = 25;
@@ -70,6 +70,7 @@ package skysand.ui
 			
 			head = new SkyShape();
 			head.color = headColor;
+			//head.drawFullRoundRect(0, 0, width, 25, 10, 4, 4, 0, 0);
 			head.drawRect(0, 0, width, 25);
 			head.mouseEnabled = true;
 			addChild(head);

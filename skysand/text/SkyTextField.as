@@ -233,7 +233,7 @@ package skysand.text
 		{
 			super.updateTransformation();
 			
-			worldMatrix.transformTextField(width, height, 0, verteces);
+			worldMatrix.transformTextField(mWidth, mHeight, mPivotX, mPivotY, verteces);
 			batch.updateVertexBuffer();
 		}
 		
@@ -321,7 +321,7 @@ package skysand.text
 			
 			if (textField.autoSize != "none")
 			{
-				width = textField.width;
+				width = textField.width;//TODO: optimization
 				height = textField.height;
 			}
 		}

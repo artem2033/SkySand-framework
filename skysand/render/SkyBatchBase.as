@@ -163,27 +163,6 @@ package skysand.render
 		}
 		
 		/**
-		 * Добавить спрайт в пакет.
-		 * @param	sprite спрайт.
-		 */
-		/*public function add(object:SkyRenderObject):void
-		   {
-		
-		   }*/
-		
-		/**
-		 * Удалить спрайт из пакета.
-		 * @param	sprite спрайт.
-		 */
-		/*public function remove(sprite:SkySprite):void
-		   {
-		   /*verteces.splice(sprite.indexID, 12);
-		   indices.splice(sprite.indexID / 2, 6);
-		   //uvs.splice(sprite.indexID, 12);
-		   isChanged = true;
-		   }*/
-		
-		/**
 		 * Получить имя пакета.
 		 */
 		public function get name():String

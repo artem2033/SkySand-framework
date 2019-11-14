@@ -435,7 +435,7 @@ package skysand.ui
 		public function setAlpha(value:Number):void
 		{
 			if (textField) textField.alpha = value;
-			if (bitmapTextField) bitmapTextField.setAlpha(value);
+			if (bitmapTextField) bitmapTextField.alpha = value;
 			
 			button.alpha = value;
 			alpha = value;
@@ -729,7 +729,7 @@ package skysand.ui
 			
 			if (active)
 			{
-				if (button.hitTestMouse() && !isOut)
+				if (button.hitTestBoundsWithMouse() && !isOut)
 				{
 					if (mouse.isDown(SkyMouse.LEFT))
 					{

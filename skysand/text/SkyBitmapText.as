@@ -3,7 +3,7 @@ package skysand.text
 	import flash.geom.Rectangle;
 	import flash.filesystem.File;
 	
-	
+	import skysand.display.SkyFrame;
 	import skysand.display.SkyShape;
 	import skysand.display.SkySprite;
 	import skysand.display.SkyRenderObjectContainer;
@@ -18,7 +18,7 @@ package skysand.text
 	public class SkyBitmapText extends SkyRenderObjectContainer
 	{
 		/**
-		 * Массив спрайтов для отображения символов.
+		 * Массив символов для отображения текста.
 		 */
 		public var symbols:Vector.<SkySprite>;
 		
@@ -40,7 +40,7 @@ package skysand.text
 		/**
 		 * Граница.
 		 */
-		private var mBorder:SkyShape;
+		private var mBorder:SkyFrame;
 		
 		/**
 		 * Фон.
@@ -271,17 +271,9 @@ package skysand.text
 			mTextWidth -= mLetterSpacing;
 			mTextHeight += symbols[0].height;
 			
-			if (mBorder && mBorder.visible)
+			if (mBorder != null && mBorder.isVisible)
 			{
-				mBorder.verteces[4] = width;
-				mBorder.verteces[6] = width;
-				mBorder.verteces[16] = width - 1;
-				mBorder.verteces[18] = width - 1;
-				mBorder.verteces[7] = height;
-				mBorder.verteces[9] = height;
-				mBorder.verteces[15] = height - 1;
-				mBorder.verteces[17] = height - 1;
-				mBorder.updateVertices();
+				mBorder.setSize(mWidth, mHeight);
 			}
 		}
 		
@@ -310,7 +302,6 @@ package skysand.text
 				var char:SkySprite = symbols[i];
 				
 				if (!char.visible) continue;
-				
 				if (char.hitTestBounds(x, y)) return i;
 			}
 			
@@ -362,20 +353,21 @@ package skysand.text
 		
 		/**
 		 * Прозрачность текстового поля.
-		 * @param	value значение от 0 до 100.
 		 */
-		public function setAlpha(value:Number):void
+		override public function set alpha(value:Number):void 
 		{
-			var length:int = symbols.length;
-			
-			for (var i:int = 0; i < length; i++) 
+			if (mAlpha != value)
 			{
-				symbols[i].alpha = value;
+				mAlpha = value;
+				var length:int = symbols.length;
+				
+				for (var i:int = 0; i < length; i++) 
+				{
+					symbols[i].alpha = value;
+				}
+				
+				if (mBackground != null) mBackground.alpha = value;
 			}
-			
-			if (mBackground != null) mBackground.alpha = value;
-			
-			alpha = value;
 		}
 		
 		/**
@@ -493,17 +485,9 @@ package skysand.text
 				mTextWidth -= mLetterSpacing;
 				mTextHeight += symbols[0].height;
 				
-				if (mBorder && mBorder.visible)
+				if (mBorder != null && mBorder.isVisible)
 				{
-					mBorder.verteces[4] = width;
-					mBorder.verteces[6] = width;
-					mBorder.verteces[16] = width - 1;
-					mBorder.verteces[18] = width - 1;
-					mBorder.verteces[7] = height;
-					mBorder.verteces[9] = height;
-					mBorder.verteces[15] = height - 1;
-					mBorder.verteces[17] = height - 1;
-					mBorder.updateVertices();
+					mBorder.setSize(mWidth, mHeight);
 				}
 			}
 		}
@@ -609,23 +593,15 @@ package skysand.text
 			if (mBorder)
 			{
 				mBorder.visible = value;
-				mBorder.verteces[4] = width;
-				mBorder.verteces[6] = width;
-				mBorder.verteces[16] = width - 1;
-				mBorder.verteces[18] = width - 1;
-				mBorder.verteces[7] = height;
-				mBorder.verteces[9] = height;
-				mBorder.verteces[15] = height - 1;
-				mBorder.verteces[17] = height - 1;
-				mBorder.updateVertices();
+				mBorder.setSize(mWidth, mHeight);
 				
 				return;
 			}
 			
 			if (!mBorder && value)
 			{
-				mBorder = new SkyShape();
-				mBorder.drawFrame(0, 0, textWidth, textHeight, 1);
+				mBorder = new SkyFrame();
+				mBorder.create(mWidth, mHeight);
 				mBorder.color = mBorderColor;
 				addChild(mBorder);
 			}
@@ -683,17 +659,9 @@ package skysand.text
 					mBackground.height = height;
 				}
 				
-				if (mBorder && mBorder.visible)
+				if (mBorder != null && mBorder.isVisible)
 				{
-					mBorder.verteces[4] = width;
-					mBorder.verteces[6] = width;
-					mBorder.verteces[16] = width - 1;
-					mBorder.verteces[18] = width - 1;
-					mBorder.verteces[7] = height;
-					mBorder.verteces[9] = height;
-					mBorder.verteces[15] = height - 1;
-					mBorder.verteces[17] = height - 1;
-					mBorder.updateVertices();
+					mBorder.setSize(mWidth, mHeight);
 				}
 				
 				mDisplayAsPassword = value;
@@ -749,17 +717,9 @@ package skysand.text
 					mBackground.height = height;
 				}
 				
-				if (mBorder && mBorder.visible)
+				if (mBorder != null && mBorder.isVisible)
 				{
-					mBorder.verteces[4] = width;
-					mBorder.verteces[6] = width;
-					mBorder.verteces[16] = width - 1;
-					mBorder.verteces[18] = width - 1;
-					mBorder.verteces[7] = height;
-					mBorder.verteces[9] = height;
-					mBorder.verteces[15] = height - 1;
-					mBorder.verteces[17] = height - 1;
-					mBorder.updateVertices();
+					mBorder.setSize(mWidth, mHeight);
 				}
 			}
 		}

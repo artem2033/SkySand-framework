@@ -571,6 +571,26 @@ package skysand.ui
 			return null;
 		}
 		
+		public function setTextColor(textColor:uint, backgroundColor:uint):void
+		{
+			for (var i:int = 0; i < components.length; i++) 
+			{
+				if (components[i] is SkyTextField)
+				{
+					var textField:SkyTextField = components[i] as SkyTextField;
+					textField.textColor = textColor;
+					textField.backgroundColor = backgroundColor;
+				}
+				
+				if (components[i] is SkyBitmapText)
+				{
+					var bitmapTextField:SkyBitmapText = components[i] as SkyBitmapText;
+					bitmapTextField.textColor = textColor;
+					bitmapTextField.backgroundColor = backgroundColor;
+				}
+			}
+		}
+		
 		/**
 		 * Компаратор для сортировки по имени компонента.
 		 */
@@ -586,7 +606,7 @@ package skysand.ui
 		 */
 		private function toBoolean(str:String):Boolean
 		{
-			return str == "false" ? false : true;
+			return str == "true";
 		}
 	}
 }

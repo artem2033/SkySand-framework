@@ -170,6 +170,26 @@ package skysand.ui
 		}
 		
 		/**
+		 * Получить индекс кнопки из списка.
+		 * @param	name имя кнопки.
+		 * @return индекс кнопки.
+		 */
+		public function getItemIndex(name:String):int
+		{
+			var length:int = items.length;
+			
+			for (var i:int = 0; i < length; i++) 
+			{
+				if (names[i] == name)
+				{
+					return i;
+				}
+			}
+			
+			return -1;
+		}
+		
+		/**
 		 * Удалить из списка.
 		 * @param	index номер.
 		 */

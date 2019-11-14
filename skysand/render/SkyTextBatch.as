@@ -168,6 +168,8 @@ package skysand.render
 			context3D.setVertexBufferAt(1, vertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_1);
 			context3D.setVertexBufferAt(2, uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
 			context3D.drawTriangles(indexBuffer);
+			
+			context3D.setVertexBufferAt(2, null);
 		}
 	}
 }

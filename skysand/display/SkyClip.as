@@ -321,7 +321,8 @@ package skysand.display
 		 */
 		override public function free():void
 		{
-			frames.length = 0;
+			trackingSystem = null;
+			mFunction = null;
 			frames = null;
 			
 			super.free();
@@ -347,24 +348,21 @@ package skysand.display
 						if (!repeat && !isStarted)
 						{
 							playing = false;
-							isStarted = false;
+							isStarted = false;//TODO: wtf
 							mCurrentFrame = 1;
 						}
 						
 						isStarted = true;
 					}
-					else if(mCurrentFrame > mTotalFrames)
+					else if (mCurrentFrame > mTotalFrames)
 					{
 						mCurrentFrame = 1;
 						
 						if (mFunction != null) mFunction.apply();
 						
-						if (!repeat)
-						{
-							playing = false;
-						}
+						playing = repeat;
 					}
-						
+					
 					setFrame(mCurrentFrame);
 					delayAccumulator = 0;
 				}

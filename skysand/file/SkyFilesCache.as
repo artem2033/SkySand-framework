@@ -177,6 +177,16 @@ package skysand.file
 		}
 		
 		/**
+		 * Сохранить байты в выбранную директорию.
+		 * @param	bytes массив байтов.
+		 */
+		public static function saveBytes(bytes:ByteArray):void
+		{
+			var file:File = new File();
+			file.save(bytes);
+		}
+		
+		/**
 		 * Добавить атлас в кэш.
 		 * @param	atlas тесктурный атлас.
 		 */

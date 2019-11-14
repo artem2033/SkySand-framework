@@ -354,6 +354,7 @@ package skysand.render
 			
 			context3D.drawTriangles(indexBuffer);
 			context3D.setScissorRectangle(null);
+			context3D.setVertexBufferAt(2, null);
 		}
 	}
 }

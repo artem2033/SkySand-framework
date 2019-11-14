@@ -48,18 +48,39 @@ package skysand.utils
 			sy = 1;
 		}
 		
-		public function transformTextField(width:Number, height:Number, offset:int, out:Vector.<Number>):void
+		/**
+		 * Трансформировать текстовое поле.
+		 * @param	width ширина.
+		 * @param	height высота.
+		 * @param	px координата оси х.
+		 * @param	py координата оси у.
+		 * @param	offset смещение индекса для данного текстового поля в массиве вершин.
+		 * @param	out результат вычислений в виде массива вершин.
+		 */
+		public function transformTextField(width:Number, height:Number, px:Number, py:Number, out:Vector.<Number>):void
 		{
-			out[offset] = tx;
-			out[offset + 1] = ty;
-			out[offset + 4] = width * a + tx;
-			out[offset + 5] = width * b + ty;
-			out[offset + 8] = height * c + tx;
-			out[offset + 9] = height * d + ty;
-			out[offset + 12] = width * a + height * c + tx;
-			out[offset + 13] = width * b + height * d + ty;
+			var x:Number = tx - px * a - py * c;
+			var y:Number = ty - px * b - py * d;
+			
+			out[0] = x;
+			out[1] = y;
+			out[4] = width * a + x;
+			out[5] = width * b + y;
+			out[8] = height * c + x;
+			out[9] = height * d + y;
+			out[12] = width * a + height * c + x;
+			out[13] = width * b + height * d + y;
 		}
 		
+		/**
+		 * Трансформировать спрайт.
+		 * @param	width ширина.
+		 * @param	height высота.
+		 * @param	px координата оси х.
+		 * @param	py координата оси у.
+		 * @param	offset смещение индекса для данного спрайта в массиве вершин.
+		 * @param	out результат вычислений в виде массива вершин.
+		 */
 		public function transformSprite(width:Number, height:Number, px:Number, py:Number, offset:int, out:Vector.<Number>):void
 		{
 			var x:Number = tx - px * a - py * c;
@@ -75,7 +96,17 @@ package skysand.utils
 			out[offset + 22] = width * b + height * d + y;
 		}
 		
-		public function transformPoint(origin:Vector.<Number>, out:Vector.<Number>, offset:int, sx:Number, sy:Number, px:Number, py:Number):void
+		/**
+		 * Трансформировать фигуру.
+		 * @param	origin исходные вершины.
+		 * @param	out результат вычислений в виде массива вершин.
+		 * @param	offset смещение индекса для данной фигуры в массиве вершин.
+		 * @param	sx масштаб в зависимости от оригинальной ширины и указанной.
+		 * @param	sy масштаб в зависимости от оригинальной высоты и указанной.
+		 * @param	px координата оси х.
+		 * @param	py координата оси у.
+		 */
+		public function transformShape(origin:Vector.<Number>, out:Vector.<Number>, offset:int, sx:Number, sy:Number, px:Number, py:Number):void
         {
 			var length:int = origin.length / 2;
 			

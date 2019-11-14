@@ -66,7 +66,7 @@ package skysand.utils
 				string += getTimer() - time + " ";
 			}
 			
-			return "Avr: " + average + ", time: " + string;
+			return "Avr: " + (average / nTests) + ", time: " + string;
 		}
 		
 		/**

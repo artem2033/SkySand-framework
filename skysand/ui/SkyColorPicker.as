@@ -186,7 +186,8 @@ package skysand.ui
 			saturationValueSquare = new SkySprite();
 			saturationValueSquare.setAtlas(atlas);
 			saturationValueSquare.setSprite("satval");
-			//saturationValueSquare.verticesColor.setRight(SkyColor.BRIGHT_ORANGE);
+			saturationValueSquare.setVertexColor(SkyColor.BRIGHT_ORANGE, 1);
+			saturationValueSquare.setVertexColor(SkyColor.BRIGHT_ORANGE, 3);
 			saturationValueSquare.x = 2;
 			saturationValueSquare.y = 2;
 			saturationValueSquare.mouseEnabled = true;
@@ -368,10 +369,10 @@ package skysand.ui
 				var left:Number = 2 + arrow.width / 2;
 				var right:Number = 2 + width - arrow.width / 2;
 				
-				arrow.verteces[0] = arrow.x <= left ? 2 - arrow.x : 2 - left;
-				arrow.verteces[2] = arrow.x >= right ? width + 2 - arrow.x : arrow.width / 2;
-				
+				arrow.vertices[0] = arrow.x <= left ? 2 - arrow.x : 2 - left;
+				arrow.vertices[2] = arrow.x >= right ? width + 2 - arrow.x : arrow.width / 2;
 				arrow.updateVertices();
+				
 				prevArrowX = arrow.x;
 			}
 			
@@ -380,7 +381,9 @@ package skysand.ui
 			mSaturation = (colorPicker.x - 2) / saturationValueSquare.height;
 			color = SkyUtils.HSVToRGB(mHue, mSaturation, mValue);
 			
-			//saturationValueSquare.verticesColor.setRight(SkyUtils.HSVToRGB(mHue, 1, 1));
+			var rgb:uint = SkyUtils.HSVToRGB(mHue, 1, 1);
+			saturationValueSquare.setVertexColor(rgb, 1);
+			saturationValueSquare.setVertexColor(rgb, 3);
 		}
 		
 		/**

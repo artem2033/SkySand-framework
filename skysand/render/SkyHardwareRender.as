@@ -514,7 +514,8 @@ package skysand.render
 		public function addRenderObject(object:SkyRenderObjectContainer):void
 		{
 			objects.push(object);
-			object.updateData(0);
+			object.updateTransformation();
+			object.calculateBounds();
 			nObjects++;
 			updateDepth = true;
 			sortObjects = true;
@@ -624,53 +625,33 @@ package skysand.render
 				calculateVisible = false;
 			}
 			
-			/*var dirty:Boolean = false;
-			
-			var start:int = getTimer();*/
-			/*for (i = 0; i < nObjects; i++)
-			{
-				if(objects[i].isVisible)
-				objects[i].updateData(deltaTime);
-			}
-			/*SkySand.watch(getTimer() - start + " ud");
-			start = getTimer();*/
 			for (i = 0; i < nObjects; i++)
 			{
 				var object:SkyRenderObjectContainer = objects[i];
-				//dirty ||= object.isTransformed;
-				if(object.isVisible){object.updateData(deltaTime);
-				object.globalTransformation = object.isTransformed || object.parent.globalTransformation;
-				
-				}
-				/*if (object.isDrag) 
+				if (object.isVisible)
 				{
-					
 					object.updateData(deltaTime);
+					object.globalTransformation = object.isTransformed && object.parent.globalTransformation;
 				}
-				else */if (object.globalTransformation)
+				
+				if (!object.globalTransformation)
 				{
-					if(object.isVisible)
+					if (object.isVisible)
 					object.updateTransformation();
-					object.isTransformed = false;
-					//dirty = object.children != null;
+					object.isTransformed = true;
 				}
-				//if (!object.isTransformed) object.updateData(deltaTime);
-				//if (objects[i].globalVisible != 0)
-					//objects[i].updateData(deltaTime);
-					//SkySand.watch(objects[i].gt);
 			}
-			//SkySand.watch(getTimer() - start + " ut");
 			
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
 			//context3D.setCulling(Context3DTriangleFace.BACK);
 			
 			notRenderedBatchesCount = 0;
-			//start = getTimer();
+			
 			for (i = 0; i < nBatches; i++)
 			{
 				batches[i].render();
 			}
-			//SkySand.watch(getTimer() - start + " rt");
+			
 			if (isRenderToTarget)
 			{
 				context3D.setRenderToBackBuffer();

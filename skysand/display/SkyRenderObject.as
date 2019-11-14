@@ -1,14 +1,10 @@
 package skysand.display
 {
-	import filecontrol.OpenManager;
-	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import skysand.input.SkyKey;
-	import skysand.input.SkyKeyboard;
+	
 	import skysand.input.SkyMouse;
 	import skysand.utils.SkyMatrix;
-	
 	import skysand.utils.SkyMath;
 	
 	/**
@@ -38,9 +34,29 @@ package skysand.display
 		public var globalY:Number;
 		
 		/**
+		 * Глобальная видимость объекта.
+		 */
+		public var isVisible:Boolean;
+		
+		/**
+		 * Добален ли объект на сцену.
+		 */
+		public var isAdded:Boolean;
+		
+		/**
 		 * Имя объекта.
 		 */
 		public var name:String;
+		
+		/**
+		 * Указывает на то трансформирован ли объект локально.
+		 */
+		public var isTransformed:Boolean;
+		
+		/**
+		 * Указывает на то трансформирован ли объект глобально.
+		 */
+		public var globalTransformation:Boolean;
 		
 		/**
 		 * Координата x.
@@ -112,17 +128,15 @@ package skysand.display
 		 */
 		protected var worldMatrix:SkyMatrix;
 		
-		
+		/**
+		 * Посчитан ли ограничивающий прямоугольник.
+		 */
+		protected var boundsCalculated:Boolean;
 		
 		/**
-		 * Глобальная видимость объекта.
+		 * Ограничивающий прямоугольник.
 		 */
-		public var isVisible:Boolean;
-		
-		/**
-		 * Добален ли объект на сцену.
-		 */
-		public var isAdded:Boolean;
+		protected var bounds:Rectangle;
 		
 		/**
 		 * Может ли мышь взаимодействовать с объектом.
@@ -188,14 +202,18 @@ package skysand.display
 		{
 			offsetDragPoint = new Point();
 			worldMatrix = new SkyMatrix();
+			bounds = new Rectangle(0, 0, 1, 1);
 			parent = null;
 			
 			drag = false;
 			border = false;
 			isAdded = false;
 			mVisible = true;
+			isVisible = true;
+			isTransformed = true;
 			mMouseEnabled = false;
-			//mouseButton = SkyMouse.NONE;
+			boundsCalculated = false;
+			globalTransformation = true;
 			
 			name = "";
 			
@@ -205,7 +223,7 @@ package skysand.display
 			sin = 0;
 			mColor = 0xFFFFFF;
 			mAlpha = 1;
-			mDepth = 0;
+			mDepth = -1;
 			mWidth = 1;
 			mHeight = 1;
 			mScaleX = 1;
@@ -220,13 +238,7 @@ package skysand.display
 			downBorder = 0;
 			leftBorder = 0;
 			rightBorder = 0;
-			
-			isVisible = true;
 		}
-		
-		
-		
-		
 		
 		/**
 		 * Освободить память.
@@ -256,9 +268,9 @@ package skysand.display
 		 * @param	child дочерний объект
 		 * @return возвращает прямогульник(Rectangle).
 		 */
-		public function getBounds(child:SkyRenderObject):Rectangle
+		public function getBounds():Rectangle
 		{
-			return new Rectangle(globalX, globalY, width, height);
+			return bounds;
 		}
 		
 		/**
@@ -266,10 +278,13 @@ package skysand.display
 		 */
 		public function hitTestObject(object:SkyRenderObject):Boolean
 		{
-			if (object.globalX > globalX + width) return false;
-			if (object.globalX + object.width < globalX) return false;
-			if (object.globalY > globalY + height) return false;
-			if (object.globalY + object.height < globalY) return false;
+			var a:Rectangle = object.bounds;
+			
+			if (!boundsCalculated) calculateBounds();
+			if (!object.boundsCalculated) object.calculateBounds();
+			
+			if (a.width + object.globalX < bounds.x + globalX || a.x + object.globalX > bounds.width + globalX) return false;
+			if (a.height + object.globalY < bounds.y + globalY || a.y + object.globalY > bounds.height + globalY) return false;
 			
 			return true;
 		}
@@ -342,10 +357,12 @@ package skysand.display
 		 */
 		public function hitTestBoundsWithMouse():Boolean
 		{
-			if (SkyMouse.x > globalX + (width - mPivotX) * mScaleX) return false;
-			if (SkyMouse.x < globalX - mPivotX * mScaleX) return false;
-			if (SkyMouse.y > globalY + (height - mPivotY) * mScaleY) return false;
-			if (SkyMouse.y < globalY - mPivotY * mScaleY) return false;
+			var x:Number = SkyMouse.x;
+			var y:Number = SkyMouse.y;
+			
+			if (!boundsCalculated) calculateBounds();
+			if (x < bounds.x + globalX || x > bounds.width + globalX) return false;
+			if (y < bounds.y + globalY || y > bounds.height + globalY) return false;
 			
 			return true;
 		}
@@ -358,10 +375,9 @@ package skysand.display
 		 */
 		public function hitTestBounds(x:Number, y:Number):Boolean
 		{
-			if (x > globalX + width - mPivotX) return false;
-			if (x < globalX - mPivotX) return false;
-			if (y > globalY + height - mPivotY) return false;
-			if (y < globalY - mPivotY) return false;
+			if (!boundsCalculated) calculateBounds();
+			if (x < bounds.x + globalX || x > bounds.width + globalX) return false;
+			if (y < bounds.y + globalY || y > bounds.height + globalY) return false;
 			
 			return true;
 		}
@@ -372,20 +388,8 @@ package skysand.display
 		public function calculateGlobalVisible():void
 		{
 			isVisible = mVisible && parent.mVisible && isAdded && parent.isAdded && parent.isVisible;
-			isTransformed = true;
+			isTransformed = false;
 		}
-		
-		public var isTransformed:Boolean = false;
-		public var globalTransformation:Boolean = false;
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		
 		/**
 		 * Обновить трансформацию объекта.
@@ -420,6 +424,15 @@ package skysand.display
 		}
 		
 		/**
+		 * Посчитать граничивающий прямоугольник.
+		 */
+		public function calculateBounds():void
+		{
+			bounds.setTo( -mPivotX * mScaleX, -mPivotY * mScaleY, (mWidth - mPivotX) * mScaleX, (mHeight - mPivotY) * mScaleY);
+			boundsCalculated = true;
+		}
+		
+		/**
 		 * Перетаскивается ли в данный момент объект.
 		 */
 		public function get isDrag():Boolean
@@ -443,7 +456,7 @@ package skysand.display
 			if (mX != value)
 			{
 				mX = value;
-				isTransformed = true;
+				isTransformed = false;
 			}
 		}
 		
@@ -463,7 +476,7 @@ package skysand.display
 			if (mY != value)
 			{
 				mY = value;
-				isTransformed = true;
+				isTransformed = false;
 			}
 		}
 		
@@ -483,7 +496,8 @@ package skysand.display
 			if (mPivotX != value)
 			{
 				mPivotX = value;
-				isTransformed = true;
+				isTransformed = false;
+				boundsCalculated = false;
 			}
 		}
 		
@@ -503,7 +517,8 @@ package skysand.display
 			if (mPivotY != value)
 			{
 				mPivotY = value;
-				isTransformed = true;
+				isTransformed = false;
+				boundsCalculated = false;
 			}
 		}
 		
@@ -523,7 +538,8 @@ package skysand.display
 			if (mScaleX != value)
 			{
 				mScaleX = value;
-				isTransformed = true;
+				isTransformed = false;
+				boundsCalculated = false;
 			}
 		}
 		
@@ -543,7 +559,8 @@ package skysand.display
 			if (mScaleY != value)
 			{
 				mScaleY = value;
-				isTransformed = true;
+				isTransformed = false;
+				boundsCalculated = false;
 			}
 		}
 		
@@ -563,7 +580,8 @@ package skysand.display
 			if (mWidth != value)
 			{
 				mWidth = value;
-				isTransformed = true;
+				isTransformed = false;
+				boundsCalculated = false;
 			}
 		}
 		
@@ -583,7 +601,8 @@ package skysand.display
 			if (mHeight != value)
 			{
 				mHeight = value;
-				isTransformed = true;
+				isTransformed = false;
+				boundsCalculated = false;
 			}
 		}
 		
@@ -605,7 +624,8 @@ package skysand.display
 				mRotation = value;
 				cos = Math.cos(value * SkyMath.RADIAN);
 				sin = Math.sin(value * SkyMath.RADIAN);
-				isTransformed = true;
+				isTransformed = false;
+				boundsCalculated = false;
 			}
 		}
 		

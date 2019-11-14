@@ -236,8 +236,8 @@ package skysand.input
 		{
 			x = mStage.mouseX;
 			y = mStage.mouseY;
-			tx = camera == null ? mStage.mouseX : mStage.mouseX + camera.x - camera.screenOffset.x;
-			ty = camera == null ? mStage.mouseY : mStage.mouseY - camera.y - camera.screenOffset.y;
+			tx = camera == null ? x : x + camera.x - camera.screenOffset.x;
+			ty = camera == null ? y : y - camera.y - camera.screenOffset.y;
 		}
 		
 		public var scroll:int = 0;

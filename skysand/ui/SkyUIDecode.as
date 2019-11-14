@@ -45,7 +45,7 @@ package skysand.ui
 			textField.displayAsPassword = isPassword;
 			textField.name = name;
 			textField.setBackgroundSize(width, height);
-			textField.setAlpha(alpha);
+			textField.alpha = alpha;
 			textField.rotation = angle;
 			textField.x = x;
 			textField.y = y;
