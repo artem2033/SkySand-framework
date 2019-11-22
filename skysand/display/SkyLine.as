@@ -160,7 +160,7 @@ package skysand.display
 				isUpdated = false;
 			}
 		}
-		
+		private var id:int = 1;
 		/**
 		 * Задать конечную точку линии.
 		 * @param	x координата х.
@@ -168,15 +168,16 @@ package skysand.display
 		 */
 		public function lineTo(x:Number, y:Number):void
 		{
-			if (end.x != x || end.y != y)
-			{
-				end.x = x;
-				end.y = y;
-				dots[mStep].x = x;
-				dots[mStep].y = y;
+			//if (end.x != x || end.y != y)
+			//{
+				//end.x = x;
+				//end.y = y;
+				dots[id].x = x;
+				dots[id].y = y;
+				id++;
 				
 				isUpdated = false;
-			}
+			//}
 		}
 		
 		/**
@@ -333,16 +334,31 @@ package skysand.display
 		{
 			super.updateData(deltaTime);
 			
-			if (globalVisible == 1)
+			if (isVisible)
 			{
 				if (!isUpdated)
 				{
 					if (!isCurve)
 					{
-						lines[0].x = start.x;
-						lines[0].y = start.y;
-						lines[0].width = SkyMath.distance(start.x, start.y, end.x, end.y);
-						lines[0].rotation = SkyMath.toDegrees(SkyMath.radian(end.x, end.y, start.x, start.y));
+						lines[0].x = dots[mStep - 1].x;
+						lines[0].y = dots[mStep - 1].y;
+						lines[0].width = SkyMath.distance(start.x, start.y, dots[0].x, dots[0].y);
+						lines[0].rotation = SkyMath.toDegrees(SkyMath.radian(dots[0].x, dots[0].y, dots[mStep - 1].x, dots[mStep - 1].y));
+						
+						for (var i:int = 1; i < mStep; i++) 
+						{
+							var ax:Number = dots[i - 1].x;
+							var ay:Number = dots[i - 1].y;
+							var x:Number = dots[i].x;
+							var y:Number = dots[i].y;
+							
+							var line:SkyShape = lines[i];
+							line.visible = true;
+							line.width = SkyMath.distance(ax, ay, x, y);
+							line.rotation = SkyMath.toDegrees(SkyMath.radian(x, y, ax, ay));
+							line.x = ax;
+							line.y = ay;
+						}
 					}
 					else
 					{

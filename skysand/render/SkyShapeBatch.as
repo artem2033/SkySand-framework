@@ -119,7 +119,7 @@ package skysand.render
 		 * Добавить новый объект для отрисовки в пакет.
 		 * @param	object объект который нужно отрисовать.
 		 */
-		public function add(object:SkyShape):void
+		public function add(object:SkyShape, shapeIndices:Vector.<uint> = null):void
 		{
 			var length:int = object.verticesCount;
 			
@@ -133,7 +133,10 @@ package skysand.render
 			}
 			
 			sizes.push(indices.length);
-			triangulate(object.vertices);
+			
+			if (shapeIndices == null) triangulate(object.vertices);
+			else concat(shapeIndices);
+			
 			object.indexID = position;
 			position = verteces.length;
 			objects.push(object);
@@ -355,6 +358,21 @@ package skysand.render
 			}
 			
 			indices.push(list[0] + position / DATA_PER_VERTEX, list[1] + position / DATA_PER_VERTEX, list[2] + position / DATA_PER_VERTEX);
+		}
+		
+		/**
+		 * Добавить индексы фигуры в общий массив применив к ним смещение.
+		 * @param	objectIndices массив индексов для построения треугольников фигуры.
+		 */
+		private function concat(objectIndices:Vector.<uint>):void
+		{
+			var length:int = objectIndices.length;
+			
+			for (var i:int = 0; i < length; i++) 
+			{
+				objectIndices[i] += position / DATA_PER_VERTEX;
+				indices.push(objectIndices[i]);
+			}
 		}
 	}
 }

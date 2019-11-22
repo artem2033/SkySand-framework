@@ -38,6 +38,7 @@ package skysand.display
 		private var maxY:Number;
 		private var minX:Number;
 		private var minY:Number;
+		private var indices:Vector.<uint>;
 		
 		public function SkyShape()
 		{
@@ -63,6 +64,27 @@ package skysand.display
 				mVertices.length = 0;
 				mVertices = null;
 			}
+		}
+		
+		public function drawComplexShape(vertices:Vector.<Number>, indices:Vector.<uint>):void
+		{
+			this.indices = indices;
+			
+			for (var i:int = 0; i < vertices.length; i+=2) 
+			{
+				addVertex(vertices[i], vertices[i+1]);
+			}
+			/*
+			
+			minX = x < minX ? x : minX;
+			maxX = x > maxX ? x : maxX;
+			minY = y < minY ? y : minY;
+			maxY = y > maxY ? y : maxY;
+			
+			mWidth = maxX - minX;
+			mHeight = maxY - minY;*/
+			//...rest
+			//rest.
 		}
 		
 		/**
@@ -349,7 +371,7 @@ package skysand.display
 				}
 				
 				batchVertices = batch.verteces;
-				batch.add(this);
+				batch.add(this, indices);
 			}
 		}
 		
@@ -538,7 +560,7 @@ package skysand.display
 		/**
 		 * Прозрачность от 0 до 1.
 		 */
-		override public function set alpha(value:Number):void 
+		override public function set alpha(value:Number):void
 		{
 			if (mAlpha != value)
 			{

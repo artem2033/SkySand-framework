@@ -1,6 +1,7 @@
 package skysand.display 
 {
 	import flash.geom.Point;
+	import skysand.debug.Console;
 	
 	import skysand.utils.SkyMatrix;
 	import skysand.input.SkyMouse;
@@ -200,6 +201,31 @@ package skysand.display
 				removeChildAt(i);
 				i--;
 				endIndex--;
+			}
+		}
+		
+		/**
+		 * Переместить текущий дочерний объект в другой.
+		 * @param	child объект в который нужно переместить текущий дочерний объект.
+		 */
+		public function replaceTo(child:SkyRenderObjectContainer, isParent:Boolean = false):void
+		{
+			var index:int = parent.children.indexOf(this);
+			
+			parent.children.removeAt(index);
+			parent.nChildren--;
+			
+			if (isParent)
+			{
+				parent = child;
+				child.children.unshift(this);
+				child.nChildren++;
+			}
+			else
+			{
+				parent = child.parent;
+				child.parent.children.insertAt(parent.children.indexOf(child) + 1, this);
+				child.parent.nChildren++;
 			}
 		}
 		

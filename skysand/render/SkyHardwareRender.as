@@ -3,6 +3,7 @@ package skysand.render
 	import adobe.utils.CustomActions;
 	import flash.display.Bitmap;
 	import flash.display3D.Context3DCompareMode;
+	import flash.display3D.Context3DFillMode;
 	import flash.display3D.Context3DTriangleFace;
 	import flash.geom.Matrix;
 	import flash.geom.Matrix3D;
@@ -543,11 +544,14 @@ package skysand.render
 			if (child == null) return;
 			
 			child.depth = MAX_DEPTH - depthCount;
+			objects[depthCount - 1] = child;
 			depthCount++;
 			
 			if (child.children)
 			{
-				for (var i:int = 0; i < child.numChildren; i++)
+				var length:int = child.numChildren
+				
+				for (var i:int = 0; i < length; i++)
 				{
 					calculateDepth(child.children[i]);
 				}
@@ -578,6 +582,7 @@ package skysand.render
 		public function setRoot(root:SkyRenderObjectContainer):void
 		{
 			this.root = root;
+			root.depth = 0;
 		}
 		
 		
@@ -604,20 +609,25 @@ package skysand.render
 			
 			if (updateDepth)
 			{
-				depthCount = 0;
-				calculateDepth(root);
+				depthCount = 1;
 				updateDepth = false;
+				var length:int = root.numChildren
+				
+				for (var i:int = 0; i < length; i++)
+				{
+					calculateDepth(root.children[i]);
+				}
 			}
-			
+			/*
 			if (sortObjects)
 			{
 				sort();
 				sortObjects = false;
-			}
+			}*/
 			
 			if (calculateVisible)
 			{
-				for (var i:int = 0; i < nObjects; i++)
+				for (i = 0; i < nObjects; i++)
 				{
 					objects[i].calculateGlobalVisible();
 				}
@@ -642,6 +652,7 @@ package skysand.render
 				}
 			}
 			
+			//context3D.setFillMode(Context3DFillMode.WIREFRAME);
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
 			//context3D.setCulling(Context3DTriangleFace.BACK);
 			

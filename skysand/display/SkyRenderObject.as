@@ -387,7 +387,7 @@ package skysand.display
 		 */
 		public function calculateGlobalVisible():void
 		{
-			isVisible = mVisible && parent.mVisible && isAdded && parent.isAdded && parent.isVisible;
+			isVisible = mVisible && isAdded && parent.isVisible;
 			isTransformed = false;
 		}
 		
