@@ -8,7 +8,7 @@ package skysand.opentypefont
 	public class BytesUtils 
 	{
 		
-		public function BytesUtils() 
+		public function BytesUtils()
 		{
 			
 		}
@@ -37,14 +37,21 @@ package skysand.opentypefont
 			return value; 
 		}
 		
+		public static function readUint24(bytes:ByteArray):uint
+		{ 
+			var value:uint = bytes.readUnsignedShort() << 16; 
+			value += bytes.readUnsignedByte(); 
+			
+			return value; 
+		}
 		
-		public static function readLong16(bytes:ByteArray):uint  
+		/*public static function readLong16(bytes:ByteArray):uint  
 		{ 
 			var value:uint = bytes.readUnsignedByte() << 8; 
 			value += bytes.readUnsignedByte(); 
 			
 			return value; 
-		}
+		}*/
 		
 		public static function hasFlag(target:uint, flag:uint):Boolean
 		{

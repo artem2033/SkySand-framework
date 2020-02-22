@@ -1,8 +1,9 @@
 package skysand.display
 {
+	import skysand.render.IShapeRenderer;
 	import skysand.render.SkyHardwareRender;
-	import skysand.render.SkyShapeBatch;
 	import skysand.input.SkyMouse;
+	import skysand.render.SkyShapeBatch;
 	import skysand.utils.SkyUtils;
 	
 	/**
@@ -14,12 +15,17 @@ package skysand.display
 		/**
 		 * Ссылка на пакет для отрисовки.
 		 */
-		public var batch:SkyShapeBatch;
+		public var render:IShapeRenderer;
 		
 		/**
 		 * Имя пакета для отрисовки фигуры.
 		 */
-		public var batchName:String;
+		private var mRendererName:String;
+		
+		/**
+		 * Название класса для отрисовки текстуры.
+		 */
+		private var mRendererClass:Class;
 		
 		/**
 		 * Ссылка на вершины.
@@ -42,13 +48,13 @@ package skysand.display
 		
 		public function SkyShape()
 		{
-			batchName = "shape";
-			
 			maxX = -1000000;
 			maxY = -1000000;
 			minX = 1000000;
 			minY = 1000000;
 			
+			mRendererName = "shape";
+			mRendererClass = SkyShapeBatch;
 			mVertices = new Vector.<Number>();
 		}
 		
@@ -69,20 +75,23 @@ package skysand.display
 		public function drawComplexShape(vertices:Vector.<Number>, indices:Vector.<uint>):void
 		{
 			this.indices = indices;
-			
-			for (var i:int = 0; i < vertices.length; i+=2) 
+			mVertices = vertices.concat();
+			var length:int = vertices.length;
+			//trace(length);
+			for (var i:int = 0; i < length; i += 2)
 			{
-				addVertex(vertices[i], vertices[i+1]);
+				var x:Number = vertices[i];
+				var y:Number = vertices[i + 1];
+				//mVertices.push(x, y);
+				//addVertex(x, y);
+				minX = x < minX ? x : minX;
+				maxX = x > maxX ? x : maxX;
+				minY = y < minY ? y : minY;
+				maxY = y > maxY ? y : maxY;
 			}
-			/*
-			
-			minX = x < minX ? x : minX;
-			maxX = x > maxX ? x : maxX;
-			minY = y < minY ? y : minY;
-			maxY = y > maxY ? y : maxY;
-			
+			//trace(mVertices.length);
 			mWidth = maxX - minX;
-			mHeight = maxY - minY;*/
+			mHeight = maxY - minY;
 			//...rest
 			//rest.
 		}
@@ -362,16 +371,9 @@ package skysand.display
 		{
 			if (mVertices.length > 5)
 			{
-				batch = SkySand.render.getBatch(batchName) as SkyShapeBatch;
-				
-				if (batch == null)
-				{
-					batch = new SkyShapeBatch();
-					SkySand.render.addBatch(batch, batchName); 
-				}
-				
-				batchVertices = batch.verteces;
-				batch.add(this, indices);
+				render = SkySand.render.getBatch(mRendererName, mRendererClass, mVertices.length / 2) as IShapeRenderer;
+				render.add(this, indices);
+				batchVertices = render.vertices;
 			}
 		}
 		
@@ -380,9 +382,9 @@ package skysand.display
 		 */
 		override public function remove():void
 		{
-			if (batch != null)
+			if (render != null)
 			{
-				batch.remove(this);
+				render.remove(this);
 			}
 		}
 		
@@ -400,7 +402,7 @@ package skysand.display
 			for (var i:int = 0; i < length; i++)
 				batchVertices[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 2] = depth;
 			
-			batch.isUploaded = false;
+			render.updateVertexBuffer();
 		}
 		
 		/**
@@ -413,7 +415,7 @@ package skysand.display
 			if (batchVertices == null) return;
 			
 			worldMatrix.transformShape(mVertices, batchVertices, indexID, mWidth / (maxX - minX), mHeight / (maxY - minY), mPivotX, mPivotY);
-			batch.isUploaded = false;
+			render.updateVertexBuffer();
 		}
 		
 		/**
@@ -424,7 +426,7 @@ package skysand.display
 			if (batchVertices == null) return;
 			
 			worldMatrix.transformShape(mVertices, batchVertices, indexID, mWidth / (maxX - minX), mHeight / (maxY - minY), mPivotX, mPivotY);
-			batch.isUploaded = false;
+			render.updateVertexBuffer();
 			boundsCalculated = false;
 		}
 		
@@ -434,8 +436,8 @@ package skysand.display
 		 */
 		override public function hitTestBoundsWithMouse():Boolean
 		{
-			var x:Number = !batch.allowCameraTransformation ? SkyMouse.x : SkyMouse.tx;
-			var y:Number = !batch.allowCameraTransformation ? SkyMouse.y : SkyMouse.ty;
+			var x:Number = !render.allowCameraTransformation ? SkyMouse.x : SkyMouse.tx;
+			var y:Number = !render.allowCameraTransformation ? SkyMouse.y : SkyMouse.ty;
 			
 			if (!boundsCalculated) calculateBounds();
 			if (x < bounds.x + globalX || x > bounds.width + globalX) return false;
@@ -452,8 +454,8 @@ package skysand.display
 		{
 			if (batchVertices == null) return false;
 			
-			var x:Number = !batch.allowCameraTransformation ? SkyMouse.x : SkyMouse.tx;
-			var y:Number = !batch.allowCameraTransformation ? SkyMouse.y : SkyMouse.ty;
+			var x:Number = !render.allowCameraTransformation ? SkyMouse.x : SkyMouse.tx;
+			var y:Number = !render.allowCameraTransformation ? SkyMouse.y : SkyMouse.ty;
 			
 			var length:int = mVertices.length / 2;
 			var i:int, j:int = length - 1;
@@ -553,7 +555,7 @@ package skysand.display
 					batchVertices[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 5] = b;
 				}
 				
-				batch.isUploaded = false;
+				render.updateVertexBuffer();
 			}
 		}
 		
@@ -574,7 +576,7 @@ package skysand.display
 					batchVertices[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 6] = value;
 				}
 				
-				batch.isUploaded = false;
+				render.updateVertexBuffer();
 			}
 		}
 		
@@ -595,8 +597,56 @@ package skysand.display
 					batchVertices[i * SkyShapeBatch.DATA_PER_VERTEX + indexID + 2] = value / SkyHardwareRender.MAX_DEPTH;
 				}
 				
-				batch.isUploaded = false;
+				render.updateVertexBuffer();
 			}
+		}
+		
+		/**
+		 * Класс для отрисовки текстового поля.
+		 */
+		public function set rendererClass(value:Class):void
+		{
+			if (mRendererClass == value) return;
+			
+			mRendererClass = value;
+			
+			if (render != null)
+			{
+				remove();
+				init();
+			}
+		}
+		
+		/**
+		 * Класс для отрисовки текстового поля.
+		 */
+		public function get rendererClass():Class
+		{
+			return mRendererClass;
+		}
+		
+		/**
+		 * Название рендера спрайтов для поиска существующего или добавления нового.
+		 */
+		public function set rendererName(value:String):void
+		{
+			if (mRendererName == value) return;
+			
+			mRendererName = value;
+			
+			if (render != null)
+			{
+				remove();
+				init();
+			}
+		}
+		
+		/**
+		 * Название рендера спрайтов для поиска существующего или добавления нового.
+		 */
+		public function get rendererName():String
+		{
+			return mRendererName;
 		}
 	}
 }

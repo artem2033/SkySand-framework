@@ -13,17 +13,19 @@ package skysand.render
 	
 	import skysand.input.SkyKey;
 	import skysand.input.SkyKeyboard;
+	import skysand.interfaces.ITextRenderer;
+	import skysand.render.shaders.SkyBaseShaderList;
 	
 	/**
 	 * ...
 	 * @author CodeCoreGames
 	 */
-	public class SkyTextBatch extends SkyBatchBase
+	public class SkyTextBatch extends SkyBatchBase implements ITextRenderer
 	{
 		/**
 		 * Нужно ли отрисовывать пакет.
 		 */
-		public var isNeedToRender:Boolean;
+		private var mSkipRendering:Boolean;
 		
 		/**
 		 * Текстура.
@@ -74,6 +76,23 @@ package skysand.render
 		}
 		
 		/**
+		 * Получить ссылку на вершины.
+		 */
+		public function get vertices():Vector.<Number>
+		{
+			return verteces;
+		}
+		
+		/**
+		 * Не рендерить текстовое поле в зависимости от значения.
+		 */
+		public function set skipRendering(value:Boolean):void
+		{
+			mSkipRendering = value;
+			drawCallCount = value ? 0 : 1;
+		}
+		
+		/**
 		 * Обновить буффер вершин.
 		 */
 		public function updateVertexBuffer():void
@@ -93,19 +112,10 @@ package skysand.render
 			
 			destinationBlendFactor = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
 			sourceBlendFactor = Context3DBlendFactor.ONE;
-			isNeedToRender = true;
+			mSkipRendering = false;
+			drawCallCount = 1;
 			
-			var vertexShader:String = "";
-			vertexShader += "m44 op, va0, vc0 \n";
-			vertexShader += "mov v0, va2 \n";
-			vertexShader += "mov v0.z, va1.x";
-			
-			var pixelShader:String = "";
-			pixelShader += "tex ft0, v0.xy, fs0 <2d, clamp, linear, nomip> \n";
-			pixelShader += "mul ft0, ft0, v0.z \n";
-			pixelShader += "mov oc, ft0";
-			
-			setShader(vertexShader, pixelShader);
+			setShaderProgram(SkyBaseShaderList.SIMPLE_TEXT_FIELD);
 			
 			indices.push(0, 1, 2, 1, 3, 2);
 			verteces.push(0, 0, 0, 1,
@@ -154,11 +164,7 @@ package skysand.render
 		 */
 		override public function render():void
 		{
-			if (!isNeedToRender)
-			{
-				SkySand.render.notRenderedBatchesCount++;
-				return;
-			}
+			if (mSkipRendering) return;
 			
 			context3D.setProgram(program);
 			context3D.setBlendFactors(sourceBlendFactor, destinationBlendFactor);

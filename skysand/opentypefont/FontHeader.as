@@ -53,5 +53,29 @@ package skysand.opentypefont
 			indexToLocFormat = bytes.readShort();
 			glyphDataFormat = bytes.readShort();
 		}
+		
+		public function print():void
+		{
+			trace("header");
+			trace(majorVersion);
+			trace(minorVersion);
+			trace(fontRevision);
+			trace(checkSumAdjustment);
+			trace(magicNumber);
+			trace(flags);
+			trace(unitsPerEm);
+			trace(created);
+			trace(modified);
+			trace(xMin);
+			trace(yMin);
+			trace(xMax);
+			trace(yMax);
+			trace(macStyle);
+			trace(lowestRecPPEM);
+			trace(fontDirectionHint);
+			trace(indexToLocFormat);
+			trace(glyphDataFormat);
+			trace("---------------");
+		}
 	}
 }

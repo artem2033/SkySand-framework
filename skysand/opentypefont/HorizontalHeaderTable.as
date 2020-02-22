@@ -1,6 +1,7 @@
 package skysand.opentypefont 
 {
 	import flash.utils.ByteArray;
+	import skysand.debug.Console;
 	
 	/**
 	 * ...
@@ -40,8 +41,8 @@ package skysand.opentypefont
 			descender = bytes.readShort();
 			lineGap = bytes.readShort();
 			advanceWidthMax = bytes.readUnsignedShort();
-			minLeftSideBearing = bytes.readUnsignedShort();
-			minRightSideBearing = bytes.readUnsignedShort();
+			minLeftSideBearing = bytes.readShort();
+			minRightSideBearing = bytes.readShort();
 			xMaxExtent = bytes.readUnsignedShort();
 			caretSlopeRise = bytes.readShort();
 			caretSlopeRun = bytes.readShort();
@@ -52,6 +53,32 @@ package skysand.opentypefont
 			bytes.readShort();
 			metricDataFormat = bytes.readShort();
 			numberOfHMetrics = bytes.readUnsignedShort();
+		}
+		
+		public function log():void
+		{
+			Console.log(toString());
+		}
+		
+		public function toString():String
+		{
+			var string:String = "";
+			string += "\nmajorVersion: " + majorVersion;
+			string += "\nminorVersion: " + minorVersion;
+			string += "\nascender: " + ascender;
+			string += "\ndescender: " + descender;
+			string += "\nlineGap: " + lineGap;
+			string += "\nadvanceWidthMax: " + advanceWidthMax;
+			string += "\nminLeftSideBearing: " + minLeftSideBearing;
+			string += "\nminRightSideBearing: " + minRightSideBearing;
+			string += "\nxMaxExtent: " + xMaxExtent;
+			string += "\ncaretSlopeRise: " + caretSlopeRise;
+			string += "\ncaretSlopeRun: " + caretSlopeRun;
+			string += "\ncaretOffset: " + caretOffset;
+			string += "\nmetricDataFormat: " + metricDataFormat;
+			string += "\nnumberOfHMetrics: " + numberOfHMetrics;
+			
+			return string;
 		}
 	}
 }

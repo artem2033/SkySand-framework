@@ -198,7 +198,7 @@ package skysand.ui
 				volumeSprite = SkyUI.getForm(kind, SkyColor.setBright(color, -30), width, height, modification);
 				volumeSprite.y = 6;
 				volumeSprite.visible = volume;
-				volumeSprite.batchName = batchName;
+				volumeSprite.rendererName = batchName;
 				addChild(volumeSprite);
 			}
 			
@@ -206,7 +206,7 @@ package skysand.ui
 			{
 				button = SkyUI.getForm(SkyUI.RECTANGLE, color, width, height);
 				button.alpha = 0;
-				button.batchName = batchName;
+				button.rendererName = batchName;
 				addChild(button);
 				
 				frame = SkyUI.getForm(kind, color, width, height);
@@ -215,7 +215,7 @@ package skysand.ui
 			else
 			{
 				button = SkyUI.getForm(kind, color, width, height, modification);
-				button.batchName = batchName;
+				button.rendererName = batchName;
 				addChild(button);
 			}
 			

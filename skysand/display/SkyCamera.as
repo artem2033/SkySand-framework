@@ -142,6 +142,13 @@ package skysand.display
 			viewTransform = null;
 		}
 		
+		public function zoom(value:Number):void
+		{
+			viewTransform.identity();
+			viewTransform.appendScale(value, value, 1);
+			//viewTransform.appendTranslation((x - mX) * scaleX, (mY - y) * scaleY, 0);
+		}
+		
 		/**
 		 * Переместить камеру в заданную точку.
 		 * @param	x координата х.

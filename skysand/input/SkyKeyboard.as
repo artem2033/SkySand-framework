@@ -302,6 +302,10 @@ package skysand.input
 		 */
 		private function onKeyDownHandler(keyboardEvent:KeyboardEvent):void
 		{
+			//SkySand.watch("key: " + keyboardEvent.keyCode);
+			//SkySand.watch("char: " + keyboardEvent.charCode);
+			//SkySand.watch("char: " + String.fromCharCode(keyboardEvent.charCode));
+			
 			for (var i:int = 0; i < NUM_KEYS; i++) 
 			{
 				var key:SkyKeyData = keys[i];

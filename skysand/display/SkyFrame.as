@@ -32,19 +32,35 @@ package skysand.display
 		 * @param	height высота.
 		 * @param	batchName имя пакета в который добавлять линии.
 		 */
-		public function create(width:Number, height:Number, batchName:String = "shape"):void
+		public function create(width:Number, height:Number):void
 		{
 			mThickness = 1;
 			isAligned = false;
 			
 			frame = new SkyShape();
-			frame.batchName = batchName;
 			frame.color = 0xFFFFFF;
 			frame.drawFrame(0, 0, width, height, mThickness);
 			addChild(frame);
 			
 			mWidth = width;
 			mHeight = height;
+		}
+		
+		/**
+		 * Название пакета отрисовки.
+		 */
+		public function set rendererName(value:String):void
+		{
+			if (frame.rendererName != value)
+				frame.rendererName = value;
+		}
+		
+		/**
+		 * Название пакета отрисовки.
+		 */
+		public function get rendererName():String
+		{
+			return frame.rendererName;
 		}
 		
 		/**

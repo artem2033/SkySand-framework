@@ -1,37 +1,31 @@
 package skysand.render
 {
-	import flash.display3D.Context3DBufferUsage;
 	import flash.geom.Matrix3D;
 	import flash.geom.Rectangle;
-	import flash.utils.ByteArray;
 	import flash.display.BitmapData;
 	import flash.display3D.Context3D;
-	import flash.display3D.Program3D;
 	import flash.display3D.IndexBuffer3D;
 	import flash.display3D.VertexBuffer3D;
 	import flash.display3D.Context3DWrapMode;
 	import flash.display3D.Context3DMipFilter;
-	import flash.display3D.Context3DRenderMode;
+	import flash.display3D.Context3DBufferUsage;
 	import flash.display3D.Context3DBlendFactor;
-	import flash.display3D.Context3DCompareMode;
 	import flash.display3D.Context3DProgramType;
-	import flash.display3D.Context3DTriangleFace;
 	import flash.display3D.Context3DTextureFilter;
-	import flash.display3D.textures.RectangleTexture;
 	import flash.display3D.Context3DVertexBufferFormat;
-	import skysand.input.SkyKey;
-	import skysand.input.SkyKeyboard;
+	
 	import skysand.utils.SkyUtils;
-	
-	import skysand.display.SkyRenderObject;
+	import skysand.display.SkySprite;
 	import skysand.file.SkyAtlasSprite;
+	import skysand.interfaces.ISpriteRenderer;
+	import skysand.render.shaders.SkyBaseShaderList;
 	
-	public class SkyStandartQuadBatch extends SkyBatchBase
+	public class SkyQuadBatch extends SkyBatchBase implements ISpriteRenderer
 	{
 		/**
 		 * Массив текстурных координат + альфа канал.
 		 */
-		public var uvs:Vector.<Number>;
+		protected var mUvs:Vector.<Number>;
 		
 		/**
 		 * Текстура.
@@ -56,7 +50,7 @@ package skysand.render
 		/**
 		 * Массив спрайтов.
 		 */
-		protected var objects:Vector.<SkyRenderObject>;
+		protected var objects:Vector.<SkySprite>;
 		
 		/**
 		 * Коэффициент, на который умножается исходный цвет.
@@ -83,27 +77,19 @@ package skysand.render
 		 */
 		protected var mScissorRect:Rectangle;
 		
-		public var isUpload:Boolean = false;
+		protected var isUpload:Boolean = false;
 		
-		public function SkyStandartQuadBatch()
+		public function SkyQuadBatch()
 		{
-		
+			
 		}
 		
 		/**
-		 * Прямоугольник для ограничения отрисовки.
+		 * Обновить массив вершин.
 		 */
-		public function set scissorRect(value:Rectangle):void
+		public function updateVertexBuffer():void
 		{
-			mScissorRect = value;
-		}
-		
-		/**
-		 * Прямоугольник для ограничения отрисовки.
-		 */
-		public function get scissorRect():Rectangle
-		{
-			return mScissorRect;
+			isUpload = false;
 		}
 		
 		/**
@@ -135,21 +121,12 @@ package skysand.render
 			isChanged = true;
 			_name = name;
 			id = 0;
+			drawCallCount = 1;
 			
-			uvs = new Vector.<Number>();
-			objects = new Vector.<SkyRenderObject>();
+			mUvs = new Vector.<Number>();
+			objects = new Vector.<SkySprite>();
 			
-			var vertexShader:String = "";
-			vertexShader += "m44 op, va0, vc0 \n";
-			vertexShader += "mov v0, va1 \n";//color
-			vertexShader += "mov v1, va2";//uv
-			
-			var pixelShader:String = "";
-			pixelShader += "tex ft0, v1, fs0 <2d, " + wrapMode + ", " + textureFilter + "> \n";
-			pixelShader += "mul ft0, ft0, v0 \n";
-			pixelShader += "mov oc, ft0";
-			
-			setShader(vertexShader, pixelShader);
+			setShaderProgram(SkyBaseShaderList.SIMPLE_SPRITE);
 		}
 		
 		/**
@@ -181,18 +158,7 @@ package skysand.render
 		public function setTextureFilter(filter:String):void
 		{
 			textureFilter = filter;
-			
-			var vertexShader:String = "";
-			vertexShader += "m44 op, va0, vc0 \n";
-			vertexShader += "mov v0, va1 \n";//color
-			vertexShader += "mov v1, va2";//uv
-			
-			var pixelShader:String = "";
-			pixelShader += "tex ft0, v1, fs0 <2d, " + wrapMode + ", " + textureFilter + "> \n";
-			pixelShader += "mul ft0, ft0, v0 \n";
-			pixelShader += "mov oc, ft0";
-			
-			setShader(vertexShader, pixelShader);
+			trace("add swap filter");
 		}
 		
 		/**
@@ -202,21 +168,14 @@ package skysand.render
 		public function setWrapMode(mode:String):void
 		{
 			wrapMode = mode;
-			
-			var vertexShader:String = "";
-			vertexShader += "m44 op, va0, vc0 \n";
-			vertexShader += "mov v0, va1 \n";//color
-			vertexShader += "mov v1, va2";//uv
-			
-			var pixelShader:String = "";
-			pixelShader += "tex ft0, v1, fs0 <2d, " + wrapMode + ", " + textureFilter + "> \n";
-			pixelShader += "mul ft0, ft0, v0 \n";
-			pixelShader += "mov oc, ft0";
-			
-			setShader(vertexShader, pixelShader);
+			trace("add swap wrap mode");
 		}
 		
-		public function contains(object:SkyRenderObject):Boolean
+		/**
+		 * Содержится ли данный спрайт в этом пакете.
+		 * @param	object ссылка на спрайт.
+		 */
+		public function contains(object:SkySprite):Boolean
 		{
 			return objects.indexOf(object) >= 0;
 		}
@@ -225,16 +184,16 @@ package skysand.render
 		 * Добавить спрайт в пакет.
 		 * @param	sprite спрайт.
 		 */
-		public function add(object:SkyRenderObject, data:SkyAtlasSprite):void
+		public function add(object:SkySprite, data:SkyAtlasSprite):void
 		{
 			object.indexID = id * 28;
 			
 			indices.push(id * 4, id * 4 + 1, id * 4 + 2, id * 4 + 1, id * 4 + 3, id * 4 + 2);
 			
-			uvs.push(data.uvs[0], data.uvs[1]);
-			uvs.push(data.uvs[2], data.uvs[3]);
-			uvs.push(data.uvs[4], data.uvs[5]);
-			uvs.push(data.uvs[6], data.uvs[7]);
+			mUvs.push(data.uvs[0], data.uvs[1]);
+			mUvs.push(data.uvs[2], data.uvs[3]);
+			mUvs.push(data.uvs[4], data.uvs[5]);
+			mUvs.push(data.uvs[6], data.uvs[7]);
 			
 			var r:Number = SkyUtils.getRed(object.color) / 255;
 			var g:Number = SkyUtils.getGreen(object.color) / 255;
@@ -254,13 +213,13 @@ package skysand.render
 		 * Удалить спрайт из пакета.
 		 * @param	sprite спрайт.
 		 */
-		public function remove(object:SkyRenderObject):void
+		public function remove(object:SkySprite):void
 		{
 			if (objects.indexOf(object) < 0) return;
 			
 			verteces.splice(object.indexID, 28);
 			indices.splice(indices.length - 6, 6);
-			uvs.splice(object.indexID / 7 * 2, 8);
+			mUvs.splice(object.indexID / 7 * 2, 8);
 			
 			isChanged = true;
 			id--;
@@ -278,42 +237,6 @@ package skysand.render
 			if (verteces.length == 0) free();
 		}
 		
-		public function renderToTarget(textureTarget:RectangleTexture, targetMatrix:Matrix3D):void
-		{
-			if (objects.length == 0) return;
-			
-			super.render();
-			
-			if (isChanged)
-			{
-				vertexBuffer = context3D.createVertexBuffer(verteces.length / 7, 7);
-				indexBuffer = context3D.createIndexBuffer(indices.length);
-				indexBuffer.uploadFromVector(indices, 0, indices.length);
-				uvBuffer = context3D.createVertexBuffer(uvs.length / 2, 2);
-				
-				isChanged = false;
-			}
-			
-			vertexBuffer.uploadFromVector(verteces, 0, verteces.length / 7);
-			uvBuffer.uploadFromVector(uvs, 0, uvs.length / 2);
-			
-			context3D.setRenderToTexture(textureTarget);
-			context3D.clear(0, 0, 0, 0);
-			context3D.setProgram(program);
-			//context3D.setCulling(Context3DTriangleFace.BACK);
-			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
-			context3D.setBlendFactors(sourceBlendFactor, destinationBlendFactor);
-			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, targetMatrix, true);
-			context3D.setTextureAt(0, texture.data);
-			context3D.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
-			context3D.setVertexBufferAt(1, vertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_4);
-			context3D.setVertexBufferAt(2, uvBuffer, 0, Context3DVertexBufferFormat.FLOAT_2);
-			context3D.drawTriangles(indexBuffer);
-			context3D.setRenderToBackBuffer();
-			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix, true);
-			context3D.setVertexBufferAt(2, null);
-		}
-		
 		/**
 		 * Отрисовать все спрайты в пакете.
 		 */
@@ -328,7 +251,7 @@ package skysand.render
 				vertexBuffer = context3D.createVertexBuffer(verteces.length / 7, 7, Context3DBufferUsage.DYNAMIC_DRAW);
 				indexBuffer = context3D.createIndexBuffer(indices.length);
 				indexBuffer.uploadFromVector(indices, 0, indices.length);
-				uvBuffer = context3D.createVertexBuffer(uvs.length / 2, 2);
+				uvBuffer = context3D.createVertexBuffer(mUvs.length / 2, 2);
 				
 				isChanged = false;
 			}
@@ -339,7 +262,7 @@ package skysand.render
 				isUpload = true;
 			}
 			
-			uvBuffer.uploadFromVector(uvs, 0, uvs.length / 2);
+			uvBuffer.uploadFromVector(mUvs, 0, mUvs.length / 2);
 			
 			context3D.setProgram(program);
 			context3D.setBlendFactors(sourceBlendFactor, destinationBlendFactor);
@@ -355,6 +278,38 @@ package skysand.render
 			context3D.drawTriangles(indexBuffer);
 			context3D.setScissorRectangle(null);
 			context3D.setVertexBufferAt(2, null);
+		}
+		
+		/**
+		 * Прямоугольник для ограничения отрисовки.
+		 */
+		public function set scissorRect(value:Rectangle):void
+		{
+			mScissorRect = value;
+		}
+		
+		/**
+		 * Прямоугольник для ограничения отрисовки.
+		 */
+		public function get scissorRect():Rectangle
+		{
+			return mScissorRect;
+		}
+		
+		/**
+		 * Получить массив с текстурными координатами.
+		 */
+		public function get uvs():Vector.<Number>
+		{
+			return mUvs;
+		}
+		
+		/**
+		 * Получить массив с вершинами.
+		 */
+		public function get vertices():Vector.<Number>
+		{
+			return verteces;
 		}
 	}
 }

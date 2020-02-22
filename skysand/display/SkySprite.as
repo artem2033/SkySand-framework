@@ -5,9 +5,9 @@ package skysand.display
 	import skysand.utils.SkyUtils;
 	import skysand.file.SkyAtlasSprite;
 	import skysand.file.SkyTextureAtlas;
-	import skysand.render.SkyBatchBase;
+	import skysand.render.SkyQuadBatch;
 	import skysand.render.SkyHardwareRender;
-	import skysand.render.SkyStandartQuadBatch;
+	import skysand.interfaces.ISpriteRenderer;
 	
 	/**
 	 * ...
@@ -18,7 +18,7 @@ package skysand.display
 		/**
 		 * Пакет отрисовки.
 		 */
-		public var batch:SkyStandartQuadBatch;
+		public var render:ISpriteRenderer;
 		
 		/**
 		 * Данные о спрайте из текстурного атласа.
@@ -38,50 +38,48 @@ package skysand.display
 		/**
 		 * Массив вершин.
 		 */
-		private var verteces:Vector.<Number>;
+		private var vertices:Vector.<Number>;
+		
+		/**
+		 * Класс для отрисовки спрайта.
+		 */
+		private var mRendererClass:Class;
+		
+		/**
+		 * Название рендера спрайтов для поиска существующего или добавления нового.
+		 */
+		private var mRendererName:String;
 		
 		public function SkySprite()
 		{
+			mRendererClass = SkyQuadBatch;
+			mRendererName = "";
 		}
 		
 		/**
 		 * Задать атлас из глобального кеша.
 		 * @param	name название атласа.
-		 * @param	batchName если нужно добавить в пакет с другим именем.
 		 */
-		public function setAtlasFromCache(name:String, batchName:String = ""):void
+		public function setAtlasFromCache(name:String):void
 		{
-			setAtlas(SkySand.cache.getTextureAtlas(name), batchName);
+			setAtlas(SkySand.cache.getTextureAtlas(name));
 		}
 		
 		/**
 		 * Задать текстурный атлас.
 		 * @param	atlas ссылка на текстурный атлас.
-		 * @param	batchName если нужно добавить в пакет с другим именем.
 		 */
-		public function setAtlas(atlas:SkyTextureAtlas, batchName:String = ""):void
+		public function setAtlas(atlas:SkyTextureAtlas):void
 		{
 			if (atlas == this.atlas) return;
-			if (batch != null) batch.remove(this);
+			if (render != null) render.remove(this);
 			
-			var name:String = batchName == "" ? atlas.name : batchName
-			batch = SkySand.render.getBatch(name) as SkyStandartQuadBatch;
+			var name:String = mRendererName == "" ? atlas.name : mRendererName;
+			render = SkySand.render.getBatch(name, mRendererClass, 4) as ISpriteRenderer;
 			
-			if (batch == null)
-			{
-				batch = new SkyStandartQuadBatch();
-				SkySand.render.addBatch(batch, name);
-			}
-			
-			verteces = null;
+			vertices = null;
 			this.atlas = atlas
-			batch.setTexture(atlas.texture);
-		}
-		
-		public function prepareSpriteToTargetRender(batch:SkyStandartQuadBatch, atlas:SkyTextureAtlas):void
-		{
-			this.batch = batch;
-			this.atlas = atlas;
+			render.setTexture(atlas.texture);
 		}
 		
 		/**
@@ -91,11 +89,14 @@ package skysand.display
 		 */
 		public function setBitmapData(bitmapData:BitmapData, name:String):void
 		{
-			if (batch == null) 
+			if (render != null)
 			{
-				batch = new SkyStandartQuadBatch();
-				SkySand.render.addBatch(batch, name);
+				render.remove(this);
 			}
+			
+			mRendererName = name;
+			render = SkySand.render.getBatch(name, mRendererClass, 4) as ISpriteRenderer;
+			render.setTextureFromBitmapData(bitmapData);
 			
 			if (data == null)
 			{
@@ -110,8 +111,6 @@ package skysand.display
 				data.uvs[6] = 1;
 				data.uvs[7] = 1;
 			}
-			
-			batch.setTextureFromBitmapData(bitmapData);
 			
 			width = bitmapData.width;
 			height = bitmapData.height;
@@ -170,11 +169,11 @@ package skysand.display
 				pivotX = data.pivotX;
 				pivotY = data.pivotY;
 				
-				if (isAdded && !batch.contains(this))
+				if (isAdded && !render.contains(this))
 				{
-					batch.add(this, data);
-					verteces = batch.verteces;
-					uvs = batch.uvs;
+					render.add(this, data);
+					vertices = render.vertices;
+					uvs = render.uvs;
 				}
 				
 				if (uvs != null)
@@ -232,17 +231,17 @@ package skysand.display
 		 */
 		public function setVertexColor(color:uint, index:int):void
 		{
-			if (verteces == null || index > 4) return;
+			if (vertices == null || index > 4) return;
 			
 			var red:Number = SkyUtils.getRed(color) / 255;
 			var green:Number = SkyUtils.getGreen(color) / 255;
 			var blue:Number = SkyUtils.getBlue(color) / 255;
 			
-			verteces[indexID + index * 7 + 3] = red;
-			verteces[indexID + index * 7 + 4] = green;
-			verteces[indexID + index * 7 + 5] = blue;
+			vertices[indexID + index * 7 + 3] = red;
+			vertices[indexID + index * 7 + 4] = green;
+			vertices[indexID + index * 7 + 5] = blue;
 			
-			batch.isUpload = false;
+			render.updateVertexBuffer();
 		}
 		
 		/**
@@ -253,8 +252,8 @@ package skysand.display
 			uvs = null;
 			data = null;
 			atlas = null;
-			batch = null;
-			verteces = null;
+			render = null;
+			vertices = null;
 			
 			super.free();
 		}
@@ -264,14 +263,12 @@ package skysand.display
 		 */
 		override public function init():void 
 		{
-			if (batch != null)
+			if (render != null)
 			{
-				batch.add(this, data);
-				verteces = batch.verteces;
-				uvs = batch.uvs;
+				render.add(this, data);
+				vertices = render.vertices;
+				uvs = render.uvs;
 			}
-			
-			super.init();
 		}
 		
 		/**
@@ -279,14 +276,12 @@ package skysand.display
 		 */
 		override public function remove():void 
 		{
-			if (batch != null)
+			if (render != null)
 			{
-				batch.remove(this);
+				render.remove(this);
 				uvs = null;
-				verteces = null;
+				vertices = null;
 			}
-			
-			super.remove();
 		}
 		
 		/**
@@ -296,16 +291,16 @@ package skysand.display
 		{
 			super.calculateGlobalVisible();
 			
-			if (verteces == null) return;
+			if (vertices == null) return;
 			
 			var depth:Number = !isVisible ? -1 : mDepth / SkyHardwareRender.MAX_DEPTH;
 			
-			verteces[indexID + 2] = depth;
-			verteces[indexID + 9] = depth;
-			verteces[indexID + 16] = depth;
-			verteces[indexID + 23] = depth;
+			vertices[indexID + 2] = depth;
+			vertices[indexID + 9] = depth;
+			vertices[indexID + 16] = depth;
+			vertices[indexID + 23] = depth;
 			
-			batch.isUpload = false;
+			render.updateVertexBuffer();
 		}
 		
 		/**
@@ -317,14 +312,14 @@ package skysand.display
 			{
 				mDepth = value;
 				
-				if (verteces == null || !isVisible) return;
+				if (vertices == null || !isVisible) return;
 				
-				verteces[indexID + 2] = mDepth / SkyHardwareRender.MAX_DEPTH;
-				verteces[indexID + 9] = mDepth / SkyHardwareRender.MAX_DEPTH;
-				verteces[indexID + 16] = mDepth / SkyHardwareRender.MAX_DEPTH;
-				verteces[indexID + 23] = mDepth / SkyHardwareRender.MAX_DEPTH;
+				vertices[indexID + 2] = mDepth / SkyHardwareRender.MAX_DEPTH;
+				vertices[indexID + 9] = mDepth / SkyHardwareRender.MAX_DEPTH;
+				vertices[indexID + 16] = mDepth / SkyHardwareRender.MAX_DEPTH;
+				vertices[indexID + 23] = mDepth / SkyHardwareRender.MAX_DEPTH;
 				
-				batch.isUpload = false;
+				render.updateVertexBuffer();
 			}
 		}
 		
@@ -337,14 +332,14 @@ package skysand.display
 			{
 				mAlpha = value;
 				
-				if (verteces == null) return;
+				if (vertices == null) return;
 				
-				verteces[indexID + 6] = alpha;
-				verteces[indexID + 13] = alpha;
-				verteces[indexID + 20] = alpha;
-				verteces[indexID + 27] = alpha;
+				vertices[indexID + 6] = alpha;
+				vertices[indexID + 13] = alpha;
+				vertices[indexID + 20] = alpha;
+				vertices[indexID + 27] = alpha;
 				
-				batch.isUpload = false;
+				render.updateVertexBuffer();
 			}
 		}
 		
@@ -357,29 +352,29 @@ package skysand.display
 			{
 				mColor = value;
 				
-				if (verteces == null) return;
+				if (vertices == null) return;
 				
 				var red:Number = SkyUtils.getRed(value) / 255;
 				var green:Number = SkyUtils.getGreen(value) / 255;
 				var blue:Number = SkyUtils.getBlue(value) / 255;
 				
-				verteces[indexID + 3] = red;
-				verteces[indexID + 4] = green;
-				verteces[indexID + 5] = blue;
+				vertices[indexID + 3] = red;
+				vertices[indexID + 4] = green;
+				vertices[indexID + 5] = blue;
 				
-				verteces[indexID + 10] = red;
-				verteces[indexID + 11] = green;
-				verteces[indexID + 12] = blue;
+				vertices[indexID + 10] = red;
+				vertices[indexID + 11] = green;
+				vertices[indexID + 12] = blue;
 				
-				verteces[indexID + 17] = red;
-				verteces[indexID + 18] = green;
-				verteces[indexID + 19] = blue;
+				vertices[indexID + 17] = red;
+				vertices[indexID + 18] = green;
+				vertices[indexID + 19] = blue;
 				
-				verteces[indexID + 24] = red;
-				verteces[indexID + 25] = green;
-				verteces[indexID + 26] = blue;
+				vertices[indexID + 24] = red;
+				vertices[indexID + 25] = green;
+				vertices[indexID + 26] = blue;
 				
-				batch.isUpload = false;
+				render.updateVertexBuffer();
 			}
 		}
 		
@@ -390,10 +385,58 @@ package skysand.display
 		{
 			super.updateTransformation();
 			
-			if (verteces == null) return;
-			worldMatrix.transformSprite(mWidth, mHeight, mPivotX, mPivotY, indexID, verteces);
+			if (vertices == null) return;
+			worldMatrix.transformSprite(mWidth, mHeight, mPivotX, mPivotY, indexID, vertices);
 			
-			batch.isUpload = false;
+			render.updateVertexBuffer();
+		}
+		
+		/**
+		 * Класс для отрисовки текстового поля.
+		 */
+		public function set rendererClass(value:Class):void
+		{
+			if (mRendererClass == value) return;
+			
+			mRendererClass = value;
+			
+			if (render != null)
+			{
+				remove();
+				init();
+			}
+		}
+		
+		/**
+		 * Класс для отрисовки текстового поля.
+		 */
+		public function get rendererClass():Class
+		{
+			return mRendererClass;
+		}
+		
+		/**
+		 * Название рендера спрайтов для поиска существующего или добавления нового.
+		 */
+		public function set rendererName(value:String):void
+		{
+			if (mRendererName == value) return;
+			
+			mRendererName = value;
+			
+			if (render != null)
+			{
+				remove();
+				init();
+			}
+		}
+		
+		/**
+		 * Название рендера спрайтов для поиска существующего или добавления нового.
+		 */
+		public function get rendererName():String
+		{
+			return mRendererName;
 		}
 	}
 }

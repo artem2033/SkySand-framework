@@ -53,6 +53,39 @@
         }
 		*/
 		/**
+		 * Проверка на попадание точки в контур.
+		 * @param	x координата точки.
+		 * @param	y координата точки.
+		 * @param	xPoints массив координат контура.
+		 * @param	yPoints массив координта контура.
+		 * @param	offset начальная точка обхода контура.
+		 * @param	length количество точек. Если явно не указано, то будет присвоена длинна массива.
+		 * @return возвращает true - столкновение, false - отсутствие столкновения.
+		 */
+		public static function containsPoint(x:Number, y:Number, xPoints:Vector.<Number>, yPoints:Vector.<Number>, offset:int = 0, length:int = -1):Boolean
+		{
+			length = length == -1 ? xPoints.length : length;
+			
+			var i:int, j:int = length - 1;
+			var oddNodes:uint = 0;
+			
+			for (i = offset; i < length; ++i)
+			{
+				var ix:Number = xPoints[i];
+				var iy:Number = yPoints[i];
+				var jx:Number = xPoints[j];
+				var jy:Number = yPoints[j];
+				
+				if ((iy < y && jy >= y || jy < y && iy >= y) && (ix <= x || jx <= x))
+					oddNodes ^= uint(ix + (y - iy) / (jy - iy) * (jx - ix) < x);
+				
+				j = i;
+			}
+			
+			return oddNodes != 0;
+		}
+		
+		/**
 		 * Расстояние между двумя точками.
 		 * @param	a точка 1.
 		 * @param	b точка 2.

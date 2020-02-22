@@ -21,12 +21,15 @@ package skysand.render
 	import flash.geom.Utils3D;
 	import flash.geom.Vector3D;
 	import flash.system.System;
+	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	import skysand.debug.Console;
 	import skysand.display.SkyCamera;
 	import skysand.input.SkyKey;
 	import skysand.input.SkyKeyboard;
 	import skysand.input.SkyMouse;
+	import skysand.render.shaders.AGALMiniAssembler;
+	import skysand.render.shaders.SkyBaseShaderList;
 	import skysand.text.SkyTextField;
 	import skysand.ui.SkyButton;
 	import skysand.utils.SkyUtils;
@@ -61,11 +64,6 @@ package skysand.render
 		 * Сглаживание.
 		 */
 		public var antialiasing:Number = 4;
-		
-		/**
-		 * Число неотрисованных пакетов.
-		 */
-		internal var notRenderedBatchesCount:int = 0;
 		
 		/**
 		 * Ширина отрисовываемого изображения.
@@ -157,6 +155,9 @@ package skysand.render
 		 */
 		private var spriteCount:int;
 		
+		
+		public var verticesCount:uint;
+		
 		/**
 		 * Корневой объект.
 		 */
@@ -208,11 +209,42 @@ package skysand.render
 		private var assembler:AGALMiniAssembler;
 		
 		/**
+		 * Список программ.
+		 */
+		private var programs:Vector.<Program3D>;
+		
+		/**
+		 * Количество вызовов отрисовки.
+		 */
+		private var mDrawCallCount:int;
+		
+		/**
 		 * Конструктор.
 		 */
 		public function SkyHardwareRender()
 		{
 			
+		}
+		
+		/**
+		 * Получить программу из списка.
+		 * @param	id уникальный идентификатор программы.
+		 * @return возвращает программу.
+		 */
+		public function getProgram(id:uint):Program3D
+		{
+			return programs[id];
+		}
+		
+		/**
+		 * Добавить программу в список для повторного использования.
+		 * @param	program ссылка на программу.
+		 * @return возвращает уникальный идентификатор для добавленной программы.
+		 */
+		public function addProgram(program:Program3D):uint
+		{
+			programs[programs.length] = program;
+			return programs.length - 1;
 		}
 		
 		/**
@@ -222,13 +254,16 @@ package skysand.render
 		{
 			context3D = SkySand.CONTEXT_3D;
 			context3D.configureBackBuffer(SkySand.SCREEN_WIDTH, SkySand.SCREEN_HEIGHT, antialiasing, true);
-			
+			context3D.enableErrorChecking = true;
 			worldView = new Matrix3D();
 			worldView.appendTranslation(-SkySand.SCREEN_WIDTH / 2, -SkySand.SCREEN_HEIGHT / 2, 0);
 			worldView.appendScale(2 / SkySand.SCREEN_WIDTH, -2 / SkySand.SCREEN_HEIGHT, 1);
 			
 			modelViewMatrix = new Matrix3D();
 			modelViewMatrix.append(worldView);
+			
+			var shaderList:SkyBaseShaderList = new SkyBaseShaderList();
+			programs = shaderList.getList();
 			
 			verteces = new Vector.<Number>();
 			verteces.push(0, 0, 0);
@@ -286,6 +321,7 @@ package skysand.render
 			textFieldsCount = 0;
 			graphicsCount = 0;
 			spriteCount = 0;
+			verticesCount = 0;
 			
 			SkySand.STAGE.nativeWindow.addEventListener(NativeWindowBoundsEvent.RESIZE, onResizeListener);
 		}
@@ -384,7 +420,7 @@ package skysand.render
 		 * @param	name название.
 		 * @return возращает пакет.
 		 */
-		public function getBatch(name:String):SkyBatchBase
+		public function getBatch(name:String, rendererType:Class, verticesCount:uint):SkyBatchBase
 		{
 			var batch:SkyBatchBase;
 			
@@ -392,13 +428,21 @@ package skysand.render
 			{
 				batch = batchStack[i];
 				
-				if (batch.name == name && batch.verteces.length < 196596)
+				if (batch.name == name && batch.hasAvailableSpace(verticesCount))
 				{
 					return batch;
 				}
 			}
 			
-			return null;
+			this.verticesCount += verticesCount;
+			
+			batch = new rendererType();
+			batch.initialize(context3D, modelViewMatrix, worldView, name);
+			batches[nBatches] = batch;
+			batchStack[nBatches] = batch;
+			nBatches++;
+			
+			return batch;
 		}
 		
 		/**
@@ -651,12 +695,13 @@ package skysand.render
 					object.isTransformed = true;
 				}
 			}
+			if(SkyKeyboard.isPressed(SkyKey.W))
+			context3D.setFillMode(Context3DFillMode.WIREFRAME);
+			if(SkyKeyboard.isPressed(SkyKey.S))
+			context3D.setFillMode(Context3DFillMode.SOLID);
 			
-			//context3D.setFillMode(Context3DFillMode.WIREFRAME);
 			context3D.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
-			//context3D.setCulling(Context3DTriangleFace.BACK);
-			
-			notRenderedBatchesCount = 0;
+			context3D.setCulling(Context3DTriangleFace.NONE);
 			
 			for (i = 0; i < nBatches; i++)
 			{
@@ -678,11 +723,24 @@ package skysand.render
 		}
 		
 		/**
+		 * Посчитать количество вызовов отрисовки.
+		 */
+		public function updateStats():void
+		{
+			mDrawCallCount = 0;
+			
+			for (var i:int = 0; i < nBatches; i++)
+			{
+				mDrawCallCount += batches[i].drawCallCount;
+			}
+		}
+		
+		/**
 		 * Число вызовов отрисовки.
 		 */
 		public function get drawCallsCount():int
 		{
-			return isRenderToTarget ? batches.length + 1 - notRenderedBatchesCount : batches.length - notRenderedBatchesCount;
+			return mDrawCallCount;
 		}
 		
 		/**

@@ -8,10 +8,11 @@ package skysand.text
 	import flash.geom.Rectangle;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import skysand.render.SkyTextBatch;
 	
+	import skysand.interfaces.ITextRenderer;
 	import skysand.display.SkyRenderObjectContainer;
 	import skysand.render.SkyHardwareRender;
-	import skysand.render.SkyTextBatch;
 	import skysand.input.SkyMouse;
 	
 	public class SkyTextField extends SkyRenderObjectContainer
@@ -34,7 +35,7 @@ package skysand.text
 		/**
 		 * Текстовое поле с которого производится отрисовка.
 		 */
-		private var textField:TextField;
+		public var textField:TextField;
 		
 		/**
 		 * Формат текстового поля.
@@ -49,17 +50,27 @@ package skysand.text
 		/**
 		 * Пакет для отрисовки текстового поля.
 		 */
-		public var batch:SkyTextBatch;
+		public var render:ITextRenderer;
 		
 		/**
 		 * Ссылка на вершины.
 		 */
-		private var verteces:Vector.<Number>;
+		private var vertices:Vector.<Number>;
 		
 		/**
 		 * Ссылка на мышь.
 		 */
 		private var mouse:SkyMouse;
+		
+		/**
+		 * Флаг для запроса отрисовки текстового поля.
+		 */
+		private var updateText:Boolean = false;
+		
+		/**
+		 * Класс для отрисовки текстового поля.
+		 */
+		private var mRendererClass:Class;
 		
 		public function SkyTextField()
 		{
@@ -109,6 +120,7 @@ package skysand.text
 		private function initialize():void
 		{
 			bitmapData = new BitmapData(mWidth, mHeight, true, 0xFFFFFFFF);
+			mRendererClass = SkyTextBatch;
 			textFormat = new TextFormat();
 			matrix = new Matrix();
 			
@@ -118,9 +130,7 @@ package skysand.text
 			textField.x -= 1000;
 			textField.y -= 1000;
 			textField.visible = false;
-			
-			SkySand.STAGE.addChild(textField);
-			
+			textField.mouseEnabled = false;
 			focusOn = false;
 			
 			mouse = SkyMouse.instance;
@@ -144,7 +154,7 @@ package skysand.text
 			{
 				//keyboard.isActive = true;
 				focusOn = false;
-				drawText();
+				updateText = true;
 			}
 		}
 		
@@ -167,7 +177,7 @@ package skysand.text
 			bitmapData.draw(textField);
 			bitmapData.unlock();
 			
-			if (batch != null) batch.uploadToTexture(bitmapData);
+			if (render != null) render.uploadToTexture(bitmapData);
 		}
 		
 		/**
@@ -193,7 +203,7 @@ package skysand.text
 		 */
 		override public function remove():void 
 		{
-			batch.free();
+			render.free();
 		}
 		
 		/**
@@ -201,11 +211,10 @@ package skysand.text
 		 */
 		override public function init():void 
 		{
-			batch = new SkyTextBatch();
-			batch.uploadToTexture(bitmapData);
-			SkySand.render.addBatch(batch, "textField");
+			render = SkySand.render.getBatch("textField", mRendererClass, 4) as ITextRenderer;
+			render.uploadToTexture(bitmapData);
 			
-			verteces = batch.verteces;
+			vertices = render.vertices;
 		}
 		
 		/**
@@ -217,13 +226,13 @@ package skysand.text
 			
 			var depth:Number = !isVisible ? -1 : mDepth / SkyHardwareRender.MAX_DEPTH;
 			
-			verteces[2] = depth;
-			verteces[6] = depth;
-			verteces[10] = depth;
-			verteces[14] = depth;
+			vertices[2] = depth;
+			vertices[6] = depth;
+			vertices[10] = depth;
+			vertices[14] = depth;
 			
-			batch.updateVertexBuffer();
-			batch.isNeedToRender = isVisible;
+			render.updateVertexBuffer();
+			render.skipRendering = !isVisible;
 		}
 		
 		/**
@@ -233,8 +242,8 @@ package skysand.text
 		{
 			super.updateTransformation();
 			
-			worldMatrix.transformTextField(mWidth, mHeight, mPivotX, mPivotY, verteces);
-			batch.updateVertexBuffer();
+			worldMatrix.transformTextField(mWidth, mHeight, mPivotX, mPivotY, vertices);
+			render.updateVertexBuffer();
 		}
 		
 		/**
@@ -245,14 +254,15 @@ package skysand.text
 			if (mAlpha != value)
 			{
 				mAlpha = value;
-				if (verteces == null) return;
+				if (vertices == null) return;
 				
-				verteces[3] = value;
-				verteces[7] = value;
-				verteces[11] = value;
-				verteces[15] = value;
+				vertices[3] = value;
+				vertices[7] = value;
+				vertices[11] = value;
+				vertices[15] = value;
 				
-				batch.updateVertexBuffer();
+				render.updateVertexBuffer();
+				render.skipRendering = mAlpha == 0;
 			}
 		}
 		
@@ -266,12 +276,12 @@ package skysand.text
 				mDepth = value;
 				if (!isVisible) return;
 				
-				verteces[2] = value / SkyHardwareRender.MAX_DEPTH;
-				verteces[6] = value / SkyHardwareRender.MAX_DEPTH;
-				verteces[10] = value / SkyHardwareRender.MAX_DEPTH;
-				verteces[14] = value / SkyHardwareRender.MAX_DEPTH;
+				vertices[2] = value / SkyHardwareRender.MAX_DEPTH;
+				vertices[6] = value / SkyHardwareRender.MAX_DEPTH;
+				vertices[10] = value / SkyHardwareRender.MAX_DEPTH;
+				vertices[14] = value / SkyHardwareRender.MAX_DEPTH;
 				
-				batch.updateVertexBuffer();
+				render.updateVertexBuffer();
 			}
 		}
 		
@@ -287,7 +297,7 @@ package skysand.text
 				textField.width = value;
 				mWidth = value;
 				
-				drawText();
+				updateText = true;
 			}
 		}
 		
@@ -303,7 +313,7 @@ package skysand.text
 				textField.height = value;
 				mHeight = value;
 				
-				drawText();
+				updateText = true;
 			}
 		}
 		
@@ -314,9 +324,10 @@ package skysand.text
 		{
 			super.updateData(deltaTime);
 			
-			if (type == "input" && focusOn)
+			if (type == "input" && focusOn || updateText)
 			{
 				drawText();
+				updateText = false;
 			}
 			
 			if (textField.autoSize != "none")
@@ -333,7 +344,8 @@ package skysand.text
 		{
 			super.free();
 			
-			SkySand.STAGE.removeChild(textField);
+			if (SkySand.STAGE.contains(textField))
+				SkySand.STAGE.removeChild(textField);
 			
 			mouse.removeFunctionOnClick(setFocus, SkyMouse.LEFT);
 			
@@ -341,9 +353,9 @@ package skysand.text
 			bitmapData = null;
 			textFormat = null;
 			textField = null;
-			verteces = null;
+			vertices = null;
 			matrix = null;
-			batch = null;
+			render = null;
 			mouse = null;
 		}
 		
@@ -357,21 +369,21 @@ package skysand.text
 		{
 			textFormat.color = color;
 			textField.setTextFormat(textFormat, beginIndex, endIndex);
-			drawText();
+			updateText = true;
 		}
 		
 		public function setLeading(leading:int):void
 		{
 			textFormat.leading = leading;
 			textField.setTextFormat(textFormat);
-			drawText();
+			updateText = true;
 		}
 		
 		public function setAlign(kind:String):void
 		{
 			textFormat.align = kind;
 			textField.setTextFormat(textFormat);
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -384,7 +396,7 @@ package skysand.text
 		{
 			textFormat.size = size;
 			textField.setTextFormat(textFormat, beginIndex, endIndex);
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -394,7 +406,7 @@ package skysand.text
 		public function appendText(newText:String):void
 		{
 			textField.appendText(newText);
-			drawText();
+			updateText = true;
 			
 			if (textField.autoSize != "none")
 			{
@@ -534,7 +546,7 @@ package skysand.text
 		public function replaceSelectedText(value:String):void
 		{
 			textField.replaceSelectedText(value);
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -546,7 +558,7 @@ package skysand.text
 		public function replaceText(beginIndex:int, endIndex:int, newText:String):void
 		{
 			textField.replaceText(beginIndex, endIndex, newText);
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -557,7 +569,7 @@ package skysand.text
 		public function setSelection(beginIndex:int, endIndex:int):void
 		{
 			textField.setSelection(beginIndex, endIndex);
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -569,7 +581,31 @@ package skysand.text
 		public function setTextFormat(format:TextFormat, beginIndex:int = -1, endIndex:int = -1):void
 		{
 			textField.setTextFormat(format, beginIndex, endIndex);
-			drawText();
+			updateText = true;
+		}
+		
+		/**
+		 * Класс для отрисовки текстового поля.
+		 */
+		public function set rendererClass(value:Class):void
+		{
+			if (mRendererClass == value) return;
+			
+			mRendererClass = value;
+			
+			if (render != null)
+			{
+				remove();
+				init();
+			}
+		}
+		
+		/**
+		 * Класс для отрисовки текстового поля.
+		 */
+		public function get rendererClass():Class
+		{
+			return mRendererClass;
 		}
 		
 		/**
@@ -578,7 +614,7 @@ package skysand.text
 		public function set background(value:Boolean):void
 		{
 			textField.background = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -595,7 +631,7 @@ package skysand.text
 		public function set textColor(value:uint):void
 		{
 			textField.textColor = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -615,7 +651,7 @@ package skysand.text
 			{
 				textField.text = value;
 				_text = value;
-				drawText();
+				updateText = true;
 				
 				if (textField.autoSize != "none")
 				{
@@ -647,7 +683,7 @@ package skysand.text
 		public function set alwaysShowSelection(value:Boolean):void
 		{
 			textField.alwaysShowSelection = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -664,7 +700,7 @@ package skysand.text
 		public function set antiAliasType(antiAliasType:String):void
 		{
 			textField.antiAliasType = antiAliasType;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -681,7 +717,7 @@ package skysand.text
 		public function set autoSize(value:String):void
 		{
 			textField.autoSize = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -698,7 +734,7 @@ package skysand.text
 		public function set backgroundColor(value:uint):void
 		{
 			textField.backgroundColor = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -715,7 +751,7 @@ package skysand.text
 		public function set border(value:Boolean):void
 		{
 			textField.border = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -732,7 +768,7 @@ package skysand.text
 		public function set borderColor(value:uint):void
 		{
 			textField.borderColor = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -765,7 +801,7 @@ package skysand.text
 		public function set condenseWhite(value:Boolean):void
 		{
 			textField.condenseWhite = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -782,7 +818,7 @@ package skysand.text
 		public function set defaultTextFormat(format:TextFormat):void
 		{
 			textField.defaultTextFormat = format;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -799,7 +835,7 @@ package skysand.text
 		public function set displayAsPassword(value:Boolean):void
 		{
 			textField.displayAsPassword = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -816,7 +852,7 @@ package skysand.text
 		public function set embedFonts(value:Boolean):void
 		{
 			textField.embedFonts = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -833,7 +869,7 @@ package skysand.text
 		public function set gridFitType(gridFitType:String):void
 		{
 			textField.gridFitType = gridFitType;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -850,7 +886,7 @@ package skysand.text
 		public function set htmlText(value:String):void
 		{
 			textField.htmlText = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -875,7 +911,7 @@ package skysand.text
 		public function set maxChars(value:int):void
 		{
 			textField.maxChars = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -924,7 +960,7 @@ package skysand.text
 		public function set multiline(value:Boolean):void
 		{
 			textField.multiline = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -949,7 +985,7 @@ package skysand.text
 		public function set restrict(value:String):void
 		{
 			textField.restrict = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -966,7 +1002,7 @@ package skysand.text
 		public function set scrollH(value:int):void
 		{
 			textField.scrollH = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -983,7 +1019,7 @@ package skysand.text
 		public function set scrollV(value:int):void
 		{
 			textField.scrollV = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1000,7 +1036,7 @@ package skysand.text
 		public function set selectable(value:Boolean):void
 		{
 			textField.selectable = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1041,7 +1077,7 @@ package skysand.text
 		public function set sharpness(value:Number):void
 		{
 			textField.sharpness = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1058,7 +1094,7 @@ package skysand.text
 		public function set styleSheet(value:StyleSheet):void
 		{
 			textField.styleSheet = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1099,7 +1135,7 @@ package skysand.text
 		public function set thickness(value:Number):void
 		{
 			textField.thickness = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1115,11 +1151,20 @@ package skysand.text
 		 */
 		public function set type(value:String):void
 		{
-			if (value == "input") mouseEnabled = true;
-			else mouseEnabled = false;
+			if (textField.type == value) return;
+			if (value == "input")
+			{
+				SkySand.STAGE.addChild(textField);
+				mouseEnabled = true;
+			}
+			else
+			{
+				SkySand.STAGE.removeChild(textField);
+				mouseEnabled = false;
+			}
 			
 			textField.type = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1136,7 +1181,7 @@ package skysand.text
 		public function set useRichTextClipboard(value:Boolean):void
 		{
 			textField.useRichTextClipboard = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1153,7 +1198,7 @@ package skysand.text
 		public function set wordWrap(value:Boolean):void
 		{
 			textField.wordWrap = value;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1171,7 +1216,7 @@ package skysand.text
 		{
 			textFormat.font = value;
 			textField.defaultTextFormat = textFormat;
-			drawText();
+			updateText = true;
 		}
 		
 		/**
@@ -1181,7 +1226,7 @@ package skysand.text
 		{
 			textFormat.size = value;
 			textField.defaultTextFormat = textFormat;
-			drawText();
+			updateText = true;
 		}
 		
 		/**

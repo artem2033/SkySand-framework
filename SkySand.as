@@ -13,6 +13,7 @@ package
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DProfile;
 	import flash.display3D.Context3DRenderMode;
+	import skysand.utils.SkyUtils;
 	
 	import skysand.text.SkyFont;
 	import skysand.input.SkyKey;
@@ -135,6 +136,13 @@ package
 		 */
 		private var stage3D:Stage3D;
 		
+		/**
+		 * Цвет заполнения экрана во время очистки буффера.
+		 */
+		private static var redClear:Number;
+		private static var greenClear:Number;
+		private static var blueClear:Number;
+		
 		public function SkySand()
 		{
 			isDevelopMode = false;
@@ -142,6 +150,19 @@ package
 			oldTime = 0;
 			deltaTime = 0;
 			invFrameRate = 0;
+			redClear = 0;
+			greenClear = 0;
+			blueClear = 0;
+		}
+		
+		/**
+		 * Цвет для очистки заднего буффера.
+		 */
+		public static function setClearColor(value:uint):void
+		{
+			redClear	= SkyUtils.getRed(value) / 255;
+			greenClear	= SkyUtils.getGreen(value) / 255;
+			blueClear	= SkyUtils.getBlue(value) / 255;
 		}
 		
 		/**
@@ -309,6 +330,9 @@ package
 				console.initialize();
 				console.visible = false;
 				console.message(VERSION, Console.GREEN);
+				console.message("FRAMEWORK: Shape program created.", Console.GREEN);
+				console.message("FRAMEWORK: Sprite program created.", Console.GREEN);
+				console.message("FRAMEWORK: Text field program created.", Console.GREEN);
 				console.registerCommand("showProfiler", profiler.show, []);
 				
 				output = new SkyOutput();
@@ -351,11 +375,12 @@ package
 			
 			if (SkyKeyboard.isPressed(SkyKey.F9)) pause = !pause;
 			
+			CONTEXT_3D.clear(redClear, greenClear, blueClear);//
+			
 			if (isDevelopMode)
 			{
 				if (!pause)
 				{
-					CONTEXT_3D.clear();//
 					profiler.totalUpdateTime = getTimer();
 					keyboard.update();
 					console.update();
@@ -367,6 +392,7 @@ package
 					
 					profiler.renderTime = getTimer();
 					hardwareRender.update(deltaTime);
+					hardwareRender.updateStats();
 					profiler.renderTime = getTimer() - profiler.renderTime;
 					
 					output.update();
@@ -379,7 +405,6 @@ package
 			}
 			else
 			{
-				CONTEXT_3D.clear();//
 				keyboard.update();
 				mouse.update();
 				

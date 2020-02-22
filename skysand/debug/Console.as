@@ -3,6 +3,7 @@
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFieldType;
+	import skysand.display.SkyShape;
 	import skysand.input.SkyMouse;
 	import skysand.render.SkyHardwareRender;
 	import skysand.text.SkyTextField;
@@ -95,7 +96,7 @@
 		 * Статичный метод для ввода сообщения в консоль.
 		 * @param	value данные.
 		 */
-		public static function log(value:*, color:uint = 0):void
+		public static function log(value:*, color:uint = 0xCCCCCC):void
 		{
 			instance.message(String(value), color);
 		}
@@ -113,7 +114,7 @@
 			helpWordsCount = 0;
 			currentItemWord = 0;
 			
-			create(400, 480, 0xDBB71E, 0x151E27);
+			create(400, 480, 0xFEAA0A, 0x232E40);//0xDBB71E, 0x151E27);
 			addText("DEVELOPER CONSOLE", "verdana",  0x151E27, 12);
 			
 			displayField = new SkyTextField();
@@ -218,11 +219,10 @@
 		 * Ввести сообщение в консоль.
 		 * @param	text текст.
 		 */
-		public function message(text:String, _color:uint = 0):void
+		public function message(text:String, _color:uint = 0xCCCCCC):void
 		{
 			if (displayField == null) return;
 			
-			_color = _color == 0 ? 0xDBB71E : _color;
 			displayField.appendText(String(stringCount) + ": " + text + '\n');
 			displayField.setColor(_color, displayField.length - text.length - 1, displayField.length);
 			displayField.scrollV = displayField.maxScrollV;

@@ -10,6 +10,8 @@ package skysand.render
 	
 	public class SkyBatchBase extends Object
 	{
+		public var drawCallCount:int = 0;
+		
 		/**
 		 * Массив вершин.
 		 */
@@ -56,11 +58,6 @@ package skysand.render
 		protected var nObjects:uint;
 		
 		/**
-		 * Ассемблер.
-		 */ 
-		protected var assembler:AGALMiniAssembler;
-		
-		/**
 		 * Матрица трансформации мировых координат.
 		 */
 		protected var worldMatrix:Matrix3D;
@@ -88,7 +85,6 @@ package skysand.render
 			this.worldMatrix = worldMatrix;
 			
 			currentMatrix = worldMatrix;
-			assembler = new AGALMiniAssembler();
 			
 			verteces = new Vector.<Number>();
 			indices = new Vector.<uint>();
@@ -96,7 +92,6 @@ package skysand.render
 			nObjects = 0;
 			_name = name;
 		}
-		
 		
 		public function set allowCameraTransformation(value:Boolean):void
 		{
@@ -109,14 +104,12 @@ package skysand.render
 		}
 		
 		/**
-		 * Создать шейдер для загрузки в видеокарту.
-		 * @param	vertexShader вершиный шейдер.
-		 * @param	pixelShader пиксельный шейдер.
+		 * Установить текущий шейдер из общего списка программ.
+		 * @param	id идентификатор программы.
 		 */
-		public function setShader(vertexShader:String, pixelShader:String):void
+		public function setShaderProgram(id:uint):void
 		{
-			if (program != null) program.dispose();
-			program = assembler.assemble2(context3D, SkyHardwareRender.shaderVersion, vertexShader, pixelShader);
+			program = SkySand.render.getProgram(id);
 		}
 		
 		/**
@@ -157,9 +150,12 @@ package skysand.render
 				indexBuffer = null;
 			}
 			
-			assembler = null;
-			
 			SkySand.render.removeBatch(this);
+		}
+		
+		public function hasAvailableSpace(size:uint):Boolean
+		{
+			return false;
 		}
 		
 		/**

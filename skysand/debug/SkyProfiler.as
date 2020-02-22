@@ -377,7 +377,7 @@ package skysand.debug
 				lineIndex = lineIndex - 1 < 0 ? 28 : lineIndex - 1;
 				
 				drawCallsField.text = "draw calls\t\t\t" + render.drawCallsCount.toString();
-				graphicsCountField.text = "Graphics objects\t" + render.graphicObjectsCount.toString();
+				graphicsCountField.text = "Shapes\t\t\t\t" + render.graphicObjectsCount.toString();
 				spriteCountField.text = "Sprites\t\t\t\t" + render.spriteObjectsCount.toString();
 				textCountField.text = "TextFields\t\t\t" + render.textObjectsCount.toString();
 				renderObjectsCountField.text = "Render objects\t\t" + render.renderObjectsCount.toString();

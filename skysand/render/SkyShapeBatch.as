@@ -1,27 +1,29 @@
 package skysand.render
 {
-	import flash.geom.Matrix;
 	import flash.geom.Matrix3D;
 	import flash.geom.Rectangle;
 	import flash.display3D.Context3D;
-	import flash.display3D.Context3DFillMode;
 	import flash.display3D.Context3DBlendFactor;
 	import flash.display3D.Context3DProgramType;
 	import flash.display3D.Context3DBufferUsage;
 	import flash.display3D.Context3DVertexBufferFormat;
+	import flash.utils.ByteArray;
 	
+	import skysand.render.shaders.SkyBaseShaderList;
 	import skysand.display.SkyShape;
 	
 	/**
 	 * ...
 	 * @author codecoregames
 	 */
-	public class SkyShapeBatch extends SkyBatchBase
+	public class SkyShapeBatch extends SkyBatchBase implements IShapeRenderer
 	{
 		/**
 		 * Количество данный на одну вершину.
 		 */
 		public static const DATA_PER_VERTEX:uint = 7;
+		public static const MAX_VERTICES:uint = 65535;
+		public static const MAX_LENGTH:uint = DATA_PER_VERTEX * MAX_VERTICES;
 		
 		/**
 		 * Флаг для загрузки вершин в видеопамять.
@@ -54,15 +56,11 @@ package skysand.render
 		private var list:Vector.<uint>;
 		
 		/**
-		 * Матрица для вычисления текстурных координат.
-		 */
-		private var matrix:Matrix;
-		
-		/**
 		 * Прямоугольник для ограничения отрисовки.
 		 */
 		private var mScissorRect:Rectangle;
-		
+		protected var sourceFactor:String;
+		protected var destinationFactor:String;
 		
 		public function SkyShapeBatch()
 		{
@@ -70,19 +68,11 @@ package skysand.render
 		}
 		
 		/**
-		 * Прямоугольник для ограничения отрисовки.
+		 * Обновить буффер вершин.
 		 */
-		public function set scissorRect(value:Rectangle):void
+		public function updateVertexBuffer():void
 		{
-			mScissorRect = value;
-		}
-		
-		/**
-		 * Прямоугольник для ограничения отрисовки.
-		 */
-		public function get scissorRect():Rectangle
-		{
-			return mScissorRect;
+			isUploaded = false;
 		}
 		
 		/**
@@ -99,27 +89,21 @@ package skysand.render
 			sizes = new Vector.<int>();
 			list = new Vector.<uint>();
 			
+			destinationFactor = Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA;
+			sourceFactor = Context3DBlendFactor.ONE;
 			isChanged = false;
 			_name = name;
 			position = 0;
+			drawCallCount = 1;
 			
-			var vertexShader:String = "";
-			vertexShader += "m44 op, va0, vc0 \n";
-			vertexShader += "mov v0, va1";
-			
-			var pixelShader:String = "";
-			pixelShader += "mov ft0, v0 \n";
-			pixelShader += "mul ft0.xyz, ft0.xyz, v0.w \n";//alpha
-			pixelShader += "mov oc, ft0";
-			
-			setShader(vertexShader, pixelShader);
+			setShaderProgram(SkyBaseShaderList.SIMPLE_SHAPE);
 		}
 		
 		/**
 		 * Добавить новый объект для отрисовки в пакет.
 		 * @param	object объект который нужно отрисовать.
 		 */
-		public function add(object:SkyShape, shapeIndices:Vector.<uint> = null):void
+		public function add(object:SkyShape, indices:Vector.<uint> = null):void
 		{
 			var length:int = object.verticesCount;
 			
@@ -132,10 +116,10 @@ package skysand.render
 				verteces.push(0, 0, object.depth, r, g, b, object.alpha);
 			}
 			
-			sizes.push(indices.length);
+			sizes.push(this.indices.length);
 			
-			if (shapeIndices == null) triangulate(object.vertices);
-			else concat(shapeIndices);
+			if (indices == null) triangulate(object.vertices);
+			else concat(indices);
 			
 			object.indexID = position;
 			position = verteces.length;
@@ -204,16 +188,25 @@ package skysand.render
 		}
 		
 		/**
-		 * Отрисовать все спрайты в пакете.
+		 * Проверка свободного места в массиве для добавления нового объекта.
 		 */
-		override public function render():void
+		override public function hasAvailableSpace(size:uint):Boolean 
 		{
-			super.render();
-			
+			return verteces.length + size * DATA_PER_VERTEX < MAX_LENGTH;
+		}
+		
+		/**
+		 * Обновить буфер индексов и буфер вершин перед отрисовкой.
+		 */
+		public function updatePreRender():void
+		{
 			if (verteces.length == 0) return;//с пустым пакетом вылетает ошибка.
 			if (isChanged && verteces.length > 0)
 			{
+				if(vertexBuffer) vertexBuffer.dispose();
 				vertexBuffer = context3D.createVertexBuffer(verteces.length / DATA_PER_VERTEX, DATA_PER_VERTEX, Context3DBufferUsage.DYNAMIC_DRAW);
+				
+				if(indexBuffer) indexBuffer.dispose();
 				indexBuffer = context3D.createIndexBuffer(indices.length);
 				indexBuffer.uploadFromVector(indices, 0, indices.length);
 				
@@ -225,11 +218,20 @@ package skysand.render
 				vertexBuffer.uploadFromVector(verteces, 0, verteces.length / DATA_PER_VERTEX);
 				isUploaded = true;
 			}
+		}
+		
+		/**
+		 * Отрисовать все спрайты в пакете.
+		 */
+		override public function render():void
+		{
+			super.render();
+			updatePreRender();
 			
 			context3D.setProgram(program);
 			context3D.setTextureAt(0, null);
 			context3D.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, currentMatrix, true);
-			context3D.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA);
+			context3D.setBlendFactors(sourceFactor, destinationFactor);
 			context3D.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 			context3D.setVertexBufferAt(1, vertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_4);
 			
@@ -240,31 +242,28 @@ package skysand.render
 		}
 		
 		/**
-		 * Посчитать текстурные координаты.
-		 * @param	mesh меш.
-		 * @param	data данные о текстуре.
-		 * @param	atlasWidth ширина текстуры.
-		 * @param	atlasHeight высота текстуры.
+		 * Прямоугольник для ограничения отрисовки.
 		 */
-		/*private function calculateUV(mesh:SkyMesh, data:SkyAtlasSprite, atlas:SkyTextureAtlas):void
+		public function set scissorRect(value:Rectangle):void
 		{
-			matrix.identity();
-			matrix.scale(data.width / mesh.width, data.height / mesh.height);//???
-			
-			var verteces:Vector.<Number> = mesh.vertices;
-			var length:int = verteces.length / 2;
-			
-			for (var i:int = 0; i < length; i++)
-			{
-				var x:int = verteces[i * 2];
-				var y:int = verteces[i * 2 + 1];
-				
-				var dx:Number = data.pivotX + x * matrix.a + y * matrix.c;
-				var dy:Number = data.pivotY + x * matrix.b + y * matrix.d;
-				
-				//uvs.push(dx / atlas.width, dy / atlas.height);
-			}
-		}*/
+			mScissorRect = value;
+		}
+		
+		/**
+		 * Прямоугольник для ограничения отрисовки.
+		 */
+		public function get scissorRect():Rectangle
+		{
+			return mScissorRect;
+		}
+		
+		/**
+		 * Получить список вершин.
+		 */
+		public function get vertices():Vector.<Number>
+		{
+			return verteces;
+		}
 		
 		/**
 		 * Трианугляция многоугольника без самопересечений.
@@ -367,11 +366,12 @@ package skysand.render
 		private function concat(objectIndices:Vector.<uint>):void
 		{
 			var length:int = objectIndices.length;
+			var start:int = indices.length;
+			var offset:int = position / DATA_PER_VERTEX;
 			
 			for (var i:int = 0; i < length; i++) 
 			{
-				objectIndices[i] += position / DATA_PER_VERTEX;
-				indices.push(objectIndices[i]);
+				indices[start + i] = objectIndices[i] + offset;
 			}
 		}
 	}

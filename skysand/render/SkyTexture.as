@@ -22,21 +22,6 @@ package skysand.render
 		private var context3D:Context3D;
 		
 		/**
-		 * Текстура.
-		 */
-		private var mTexture:TextureBase;
-		
-		/**
-		 * Ширина.
-		 */
-		private var mWidth:Number;
-		
-		/**
-		 * Высота.
-		 */
-		private var mHeight:Number;
-		
-		/**
 		 * Формат текстуры.
 		 */
 		private var mFormat:String;
@@ -45,6 +30,21 @@ package skysand.render
 		 * Оптимизировать ли текстуру для рендера в неё.
 		 */
 		private var mOptimizeForRenderToTexture:Boolean;
+		
+		/**
+		 * Текстура.
+		 */
+		private var mTexture:TextureBase;
+		
+		/**
+		 * Ширина.
+		 */
+		protected var mWidth:Number;
+		
+		/**
+		 * Высота.
+		 */
+		protected var mHeight:Number;
 		
 		/**
 		 * @param	width ширина текстуры.

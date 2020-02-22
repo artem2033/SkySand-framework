@@ -7,7 +7,7 @@ package skysand.text
 	import skysand.display.SkyShape;
 	import skysand.display.SkySprite;
 	import skysand.display.SkyRenderObjectContainer;
-	import skysand.render.SkyStandartQuadBatch;
+	import skysand.render.SkyQuadBatch;
 	import skysand.file.SkyTextureAtlas;
 	import skysand.file.SkyFilesCache;
 	
@@ -209,7 +209,8 @@ package skysand.text
 				for (var i:int = 0; i < length - symbolsLength; i++) 
 				{
 					var char:SkySprite = new SkySprite();
-					char.setAtlas(atlas, batchName);
+					char.rendererName = batchName;
+					char.setAtlas(atlas);
 					char.setSpriteByIndex(33);
 					char.color = mTextColor;
 					char.visible = false;
@@ -418,7 +419,8 @@ package skysand.text
 					for (var i:int = 0; i < length - symbolsLength; i++) 
 					{
 						var char:SkySprite = new SkySprite();
-						char.setAtlas(atlas, batchName);
+						char.rendererName = batchName;
+						char.setAtlas(atlas);
 						char.setSpriteByIndex(33);
 						char.color = mTextColor;
 						char.visible = false;
@@ -836,9 +838,9 @@ package skysand.text
 		/**
 		 * Получить пакет отрисовки символов.
 		 */
-		public function get batch():SkyStandartQuadBatch
+		public function get batch():SkyQuadBatch
 		{
-			return symbols[0].batch;
+			return symbols[0].render as SkyQuadBatch;
 		}
 	}
 }

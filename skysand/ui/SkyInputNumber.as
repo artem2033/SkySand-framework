@@ -129,7 +129,7 @@ package skysand.ui
 			addChild(upButton);
 			
 			upArrow = new SkyShape();
-			upArrow.batchName = batchName;
+			upArrow.rendererName = batchName;
 			upArrow.color = SkyColor.CLOUDS;
 			upArrow.addVertex(1, 0);
 			upArrow.addVertex(4, 3);
@@ -152,7 +152,7 @@ package skysand.ui
 			addChild(downButton);
 			
 			downArrow = new SkyShape();
-			downArrow.batchName = batchName;
+			downArrow.rendererName = batchName;
 			downArrow.color = SkyColor.CLOUDS;
 			downArrow.addVertex(1, 0);
 			downArrow.addVertex(4, 3);

@@ -3,6 +3,8 @@ package skysand.opentypefont
 	import flash.utils.ByteArray;
 	import skysand.debug.Console;
 	import skysand.display.SkyRenderObjectContainer;
+	import skysand.display.SkyShape;
+	import skysand.utils.SkyUtils;
 	
 	/**
 	 * ...
@@ -25,6 +27,7 @@ package skysand.opentypefont
 			tableOffset = bytes.position;
 			
 			//var compositeGlyphs:Vector.<uint> = new Vector.<uint>();
+			SkyUtils.setTime();
 			
 			for (var i:int = 0; i < numGlyphs; i++) 
 			{
@@ -32,11 +35,31 @@ package skysand.opentypefont
 				var size:int = offsets[i + 1] - offsets[i];
 				
 				glyphs[i] = new GlyphData();
-				if (size > 0) glyphs[i].readBytes(bytes);
+				if (size > 0)
+				{
+					//Console.log(i);
+					glyphs[i].readBytes(bytes);
+					//Console.log("---");
+				}
 			}
+			/*Console.log("glyph num: " + numGlyphs);
+			Console.log("total: " + (GlyphData.contourCount1 + GlyphData.contourCount2 + GlyphData.contourCountMore));
+			Console.log("1 contour count: " + GlyphData.contourCount1);
+			Console.log("2 contour count: " + GlyphData.contourCount2);
+			Console.log("more contour count: " + GlyphData.contourCountMore);
 			
+			GlyphData.contourCount1 = 0;
+			GlyphData.contourCount2 = 0;
+			GlyphData.contourCountMore = 0;
+			*/
+			Console.log("Glyphs read time: " + SkyUtils.getTime())
 			Console.instance.registerCommand("print", printGlyph, []);
-			Console.instance.registerCommand("draw", drawGlyph, []);
+			Console.instance.registerCommand("d", drawGlyph, []);
+		}
+		
+		public function getGlyphs():Vector.<GlyphData>
+		{
+			return glyphs;
 		}
 		
 		private function printGlyph(index:int):void
@@ -44,19 +67,11 @@ package skysand.opentypefont
 			glyphs[index].print();
 		}
 		private var first:Boolean = true;
-		
+		private var shape:SkyShape;
 		private function drawGlyph(index:int):void
 		{
-			if (!first)
-			{
-				for (var i:int = 0; i < glyphs[index].numberOfContours; i++) 
-				{
-					container.children[container.numChildren - 1 - i].visible = false;
-				}
-			}
-			else first = false;
-			
-			first = glyphs[index].draw(container);
+			if (shape) shape.visible = false;
+			shape = glyphs[index].draw(container);
 		}
 	}
 }

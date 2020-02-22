@@ -16,7 +16,7 @@ package skysand.utils
 		 */
 		public var y:Number;
 		
-		public function SkyVector2D(x:Number = 0, y:Number = 0) 
+		public function SkyVector2D(x:Number = 0, y:Number = 0)
 		{
 			this.x = x;
 			this.y = y;

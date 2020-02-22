@@ -2,6 +2,7 @@ package skysand.ui
 {
 	import flash.display3D.textures.Texture;
 	import flash.text.AntiAliasType;
+	import skysand.display.SkyRenderObjectContainer;
 	import skysand.text.SkyBitmapText;
 	import skysand.text.SkyFont;
 	
@@ -14,7 +15,7 @@ package skysand.ui
 	 * ...
 	 * @author CodeCoreGames
 	 */
-	public class SkyWindow extends SkyShape
+	public class SkyWindow extends SkyRenderObjectContainer
 	{
 		/**
 		 * Разрешить перетаскивание окна мышью.
